@@ -92,6 +92,25 @@ class LoginForm extends Component {
             toggleButton.innerHTML = showPassword ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
             passwordGroup.appendChild(toggleButton);
         }
+
+        // Add virtual keyboard toggle
+        const virtualKeyboardToggle = DOM.create('button', {
+            type: 'button',
+            className: 'virtual-keyboard-toggle-btn',
+            'aria-label': 'Toggle virtual keyboard',
+            onclick: this.handleToggleVirtualKeyboard
+        });
+        virtualKeyboardToggle.innerHTML = '<i class="fas fa-keyboard"></i>';
+        passwordGroup.appendChild(virtualKeyboardToggle);
+
+        // Add virtual keyboard container
+        const virtualKeyboardContainer = DOM.create('div', {
+            className: 'virtual-keyboard-container',
+            id: 'virtual-keyboard-container',
+            style: 'display: none;'
+        });
+        passwordGroup.appendChild(virtualKeyboardContainer);
+
         formElement.appendChild(passwordGroup);
 
         // Remember me checkbox
@@ -198,6 +217,34 @@ class LoginForm extends Component {
 
     handleTogglePassword() {
         this.setState({ showPassword: !this.state.showPassword });
+    }
+
+    handleToggleVirtualKeyboard() {
+        const container = document.getElementById('virtual-keyboard-container');
+        if (!container) return;
+
+        if (container.style.display === 'none' || container.style.display === '') {
+            // Show virtual keyboard
+            container.style.display = 'block';
+
+            // Generate virtual keyboard HTML using the VirtualKeyboard class
+            if (typeof VirtualKeyboard !== 'undefined') {
+                const vk = new VirtualKeyboard();
+                const keyboardHtml = vk.generateKeyboard('password', 'qwerty', {
+                    randomize: true, // Randomize for security
+                    theme: 'default',
+                    size: 'medium'
+                });
+                container.innerHTML = keyboardHtml;
+            } else {
+                // Fallback if VirtualKeyboard class is not available
+                container.innerHTML = '<p>Virtual keyboard not available</p>';
+            }
+        } else {
+            // Hide virtual keyboard
+            container.style.display = 'none';
+            container.innerHTML = '';
+        }
     }
 
     handleForgotPassword(e) {

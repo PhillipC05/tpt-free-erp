@@ -1,6 +1,9 @@
 /* TPT Free ERP - Main Stylesheet */
 /* Global Reset and Base Styles */
 
+/* Import Virtual Keyboard Styles */
+@import url('virtual-keyboard.css');
+
 * {
     margin: 0;
     padding: 0;

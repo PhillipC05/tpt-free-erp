@@ -1,7 +1,7 @@
 <?php
 /**
  * TPT Free ERP - IoT & Device Integration Module
- * Complete IoT device management, sensor data collection, and predictive maintenance
+ * Complete device management, sensor data collection, real-time monitoring, and predictive maintenance system
  */
 
 class IoT extends BaseController {
@@ -22,10 +22,13 @@ class IoT extends BaseController {
 
         $data = [
             'title' => 'IoT & Device Integration',
-            'device_stats' => $this->getDeviceStats(),
-            'sensor_readings' => $this->getLatestSensorReadings(),
-            'alerts_summary' => $this->getAlertsSummary(),
-            'predictive_insights' => $this->getPredictiveInsights(),
+            'device_overview' => $this->getDeviceOverview(),
+            'sensor_status' => $this->getSensorStatus(),
+            'data_collection' => $this->getDataCollection(),
+            'real_time_monitoring' => $this->getRealTimeMonitoring(),
+            'predictive_maintenance' => $this->getPredictiveMaintenance(),
+            'alert_system' => $this->getAlertSystem(),
+            'device_analytics' => $this->getDeviceAnalytics(),
             'system_health' => $this->getSystemHealth()
         ];
 
@@ -33,16 +36,18 @@ class IoT extends BaseController {
     }
 
     /**
-     * Device management
+     * Device registration and management
      */
     public function devices() {
         $this->requirePermission('iot.devices.view');
 
         $filters = [
-            'status' => $_GET['status'] ?? 'all',
+            'status' => $_GET['status'] ?? null,
             'type' => $_GET['type'] ?? null,
             'location' => $_GET['location'] ?? null,
             'category' => $_GET['category'] ?? null,
+            'date_from' => $_GET['date_from'] ?? null,
+            'date_to' => $_GET['date_to'] ?? null,
             'search' => $_GET['search'] ?? null
         ];
 
@@ -53,49 +58,33 @@ class IoT extends BaseController {
             'devices' => $devices,
             'filters' => $filters,
             'device_types' => $this->getDeviceTypes(),
+            'device_status' => $this->getDeviceStatus(),
             'device_categories' => $this->getDeviceCategories(),
-            'locations' => $this->getLocations(),
-            'device_summary' => $this->getDeviceSummary($filters)
+            'device_locations' => $this->getDeviceLocations(),
+            'device_templates' => $this->getDeviceTemplates(),
+            'bulk_actions' => $this->getBulkActions(),
+            'device_analytics' => $this->getDeviceAnalytics()
         ];
 
         $this->render('modules/iot/devices', $data);
     }
 
     /**
-     * Register new device
-     */
-    public function registerDevice() {
-        $this->requirePermission('iot.devices.create');
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            return $this->processDeviceRegistration();
-        }
-
-        $data = [
-            'title' => 'Register New Device',
-            'device_types' => $this->getDeviceTypes(),
-            'device_categories' => $this->getDeviceCategories(),
-            'locations' => $this->getLocations(),
-            'protocols' => $this->getSupportedProtocols(),
-            'next_device_id' => $this->generateNextDeviceId()
-        ];
-
-        $this->render('modules/iot/register_device', $data);
-    }
-
-    /**
-     * Sensor data management
+     * Sensor data collection
      */
     public function sensors() {
         $this->requirePermission('iot.sensors.view');
 
         $data = [
-            'title' => 'Sensor Data Management',
-            'sensor_readings' => $this->getSensorReadings(),
-            'sensor_types' => $this->getSensorTypes(),
-            'data_quality' => $this->getDataQualityMetrics(),
-            'data_trends' => $this->getDataTrends(),
-            'anomaly_detection' => $this->getAnomalyDetection()
+            'title' => 'Sensor Data Collection',
+            'sensor_data' => $this->getSensorData(),
+            'data_streams' => $this->getDataStreams(),
+            'data_processing' => $this->getDataProcessing(),
+            'data_storage' => $this->getDataStorage(),
+            'data_quality' => $this->getDataQuality(),
+            'data_analytics' => $this->getDataAnalytics(),
+            'data_exports' => $this->getDataExports(),
+            'data_settings' => $this->getDataSettings()
         ];
 
         $this->render('modules/iot/sensors', $data);
@@ -108,12 +97,15 @@ class IoT extends BaseController {
         $this->requirePermission('iot.monitoring.view');
 
         $data = [
-            'title' => 'Real-time Monitoring',
-            'live_readings' => $this->getLiveReadings(),
-            'active_alerts' => $this->getActiveAlerts(),
-            'system_status' => $this->getSystemStatus(),
+            'title' => 'Real-Time Monitoring',
+            'live_data' => $this->getLiveData(),
+            'monitoring_dashboards' => $this->getMonitoringDashboards(),
+            'threshold_alerts' => $this->getThresholdAlerts(),
             'performance_metrics' => $this->getPerformanceMetrics(),
-            'connectivity_status' => $this->getConnectivityStatus()
+            'system_status' => $this->getSystemStatus(),
+            'monitoring_logs' => $this->getMonitoringLogs(),
+            'monitoring_analytics' => $this->getMonitoringAnalytics(),
+            'monitoring_settings' => $this->getMonitoringSettings()
         ];
 
         $this->render('modules/iot/monitoring', $data);
@@ -128,64 +120,97 @@ class IoT extends BaseController {
         $data = [
             'title' => 'Predictive Maintenance',
             'maintenance_predictions' => $this->getMaintenancePredictions(),
-            'failure_probability' => $this->getFailureProbability(),
-            'maintenance_schedule' => $this->getPredictiveMaintenanceSchedule(),
-            'cost_savings' => $this->getMaintenanceCostSavings(),
-            'model_accuracy' => $this->getModelAccuracy()
+            'failure_analysis' => $this->getFailureAnalysis(),
+            'maintenance_schedules' => $this->getMaintenanceSchedules(),
+            'anomaly_detection' => $this->getAnomalyDetection(),
+            'predictive_models' => $this->getPredictiveModels(),
+            'maintenance_history' => $this->getMaintenanceHistory(),
+            'predictive_analytics' => $this->getPredictiveAnalytics(),
+            'maintenance_settings' => $this->getMaintenanceSettings()
         ];
 
         $this->render('modules/iot/predictive_maintenance', $data);
     }
 
     /**
-     * Device security management
+     * Alert system
      */
-    public function security() {
-        $this->requirePermission('iot.security.view');
+    public function alerts() {
+        $this->requirePermission('iot.alerts.view');
 
         $data = [
-            'title' => 'Device Security',
-            'security_events' => $this->getSecurityEvents(),
-            'device_authentication' => $this->getDeviceAuthentication(),
+            'title' => 'Alert System',
+            'active_alerts' => $this->getActiveAlerts(),
+            'alert_history' => $this->getAlertHistory(),
+            'alert_rules' => $this->getAlertRules(),
+            'alert_templates' => $this->getAlertTemplates(),
+            'alert_notifications' => $this->getAlertNotifications(),
+            'alert_escalation' => $this->getAlertEscalation(),
+            'alert_analytics' => $this->getAlertAnalytics(),
+            'alert_settings' => $this->getAlertSettings()
+        ];
+
+        $this->render('modules/iot/alerts', $data);
+    }
+
+    /**
+     * Device connectivity
+     */
+    public function connectivity() {
+        $this->requirePermission('iot.connectivity.view');
+
+        $data = [
+            'title' => 'Device Connectivity',
+            'connection_status' => $this->getConnectionStatus(),
+            'network_topology' => $this->getNetworkTopology(),
+            'communication_protocols' => $this->getCommunicationProtocols(),
+            'data_transmission' => $this->getDataTransmission(),
+            'connectivity_analytics' => $this->getConnectivityAnalytics(),
+            'connectivity_logs' => $this->getConnectivityLogs(),
+            'connectivity_settings' => $this->getConnectivitySettings(),
+            'security_protocols' => $this->getSecurityProtocols()
+        ];
+
+        $this->render('modules/iot/connectivity', $data);
+    }
+
+    /**
+     * Device firmware management
+     */
+    public function firmware() {
+        $this->requirePermission('iot.firmware.view');
+
+        $data = [
+            'title' => 'Firmware Management',
+            'firmware_versions' => $this->getFirmwareVersions(),
             'firmware_updates' => $this->getFirmwareUpdates(),
-            'access_control' => $this->getAccessControl(),
-            'encryption_status' => $this->getEncryptionStatus()
+            'update_schedules' => $this->getUpdateSchedules(),
+            'update_history' => $this->getUpdateHistory(),
+            'firmware_compatibility' => $this->getFirmwareCompatibility(),
+            'update_analytics' => $this->getUpdateAnalytics(),
+            'firmware_templates' => $this->getFirmwareTemplates(),
+            'firmware_settings' => $this->getFirmwareSettings()
         ];
 
-        $this->render('modules/iot/security', $data);
+        $this->render('modules/iot/firmware', $data);
     }
 
     /**
-     * Edge computing management
-     */
-    public function edgeComputing() {
-        $this->requirePermission('iot.edge.view');
-
-        $data = [
-            'title' => 'Edge Computing',
-            'edge_nodes' => $this->getEdgeNodes(),
-            'local_processing' => $this->getLocalProcessing(),
-            'data_routing' => $this->getDataRouting(),
-            'offline_capabilities' => $this->getOfflineCapabilities(),
-            'edge_analytics' => $this->getEdgeAnalytics()
-        ];
-
-        $this->render('modules/iot/edge_computing', $data);
-    }
-
-    /**
-     * Analytics and reporting
+     * IoT analytics
      */
     public function analytics() {
         $this->requirePermission('iot.analytics.view');
 
         $data = [
             'title' => 'IoT Analytics',
-            'device_utilization' => $this->getDeviceUtilization(),
-            'data_volume' => $this->getDataVolume(),
-            'energy_consumption' => $this->getEnergyConsumption(),
-            'roi_analysis' => $this->getIoTROI(),
-            'performance_insights' => $this->getPerformanceInsights()
+            'device_performance' => $this->getDevicePerformance(),
+            'data_insights' => $this->getDataInsights(),
+            'predictive_insights' => $this->getPredictiveInsights(),
+            'efficiency_metrics' => $this->getEfficiencyMetrics(),
+            'cost_analysis' => $this->getCostAnalysis(),
+            'trend_analysis' => $this->getTrendAnalysis(),
+            'benchmarking' => $this->getBenchmarking(),
+            'custom_reports' => $this->getCustomReports()
         ];
 
         $this->render('modules/iot/analytics', $data);
@@ -195,107 +220,214 @@ class IoT extends BaseController {
     // PRIVATE METHODS
     // ============================================================================
 
-    private function getDeviceStats() {
+    private function getDeviceOverview() {
         return $this->db->querySingle("
             SELECT
-                COUNT(*) as total_devices,
-                COUNT(CASE WHEN status = 'active' THEN 1 END) as active_devices,
-                COUNT(CASE WHEN status = 'inactive' THEN 1 END) as inactive_devices,
-                COUNT(CASE WHEN status = 'maintenance' THEN 1 END) as maintenance_devices,
-                COUNT(CASE WHEN last_seen < DATE_SUB(NOW(), INTERVAL 1 HOUR) THEN 1 END) as offline_devices,
-                AVG(battery_level) as avg_battery_level,
-                COUNT(DISTINCT device_type) as device_types_count
-            FROM iot_devices
-            WHERE company_id = ?
+                COUNT(DISTINCT d.id) as total_devices,
+                COUNT(CASE WHEN d.status = 'online' THEN 1 END) as online_devices,
+                COUNT(CASE WHEN d.status = 'offline' THEN 1 END) as offline_devices,
+                COUNT(CASE WHEN d.status = 'maintenance' THEN 1 END) as maintenance_devices,
+                COUNT(DISTINCT dt.device_type) as device_types,
+                COUNT(DISTINCT dl.location_name) as locations,
+                AVG(d.uptime_percentage) as avg_uptime,
+                COUNT(CASE WHEN d.last_seen < DATE_SUB(NOW(), INTERVAL 1 HOUR) THEN 1 END) as devices_not_reporting,
+                COUNT(CASE WHEN d.firmware_update_available = true THEN 1 END) as devices_needing_updates
+            FROM devices d
+            LEFT JOIN device_types dt ON d.device_type_id = dt.id
+            LEFT JOIN device_locations dl ON d.location_id = dl.id
+            WHERE d.company_id = ?
         ", [$this->user['company_id']]);
     }
 
-    private function getLatestSensorReadings() {
+    private function getSensorStatus() {
         return $this->db->query("
             SELECT
-                sr.*,
-                d.name as device_name,
-                d.device_id as device_code,
-                st.name as sensor_type_name,
-                st.unit as measurement_unit
-            FROM sensor_readings sr
-            JOIN iot_devices d ON sr.device_id = d.id
-            JOIN sensor_types st ON sr.sensor_type_id = st.id
-            WHERE sr.company_id = ?
-            ORDER BY sr.timestamp DESC
+                s.sensor_name,
+                s.sensor_type,
+                d.device_name,
+                s.status,
+                s.last_reading,
+                s.last_reading_value,
+                s.units,
+                TIMESTAMPDIFF(MINUTE, s.last_reading, NOW()) as minutes_since_last_reading,
+                s.battery_level,
+                s.signal_strength,
+                CASE
+                    WHEN TIMESTAMPDIFF(MINUTE, s.last_reading, NOW()) > 60 THEN 'not_reporting'
+                    WHEN s.battery_level < 20 THEN 'low_battery'
+                    WHEN s.signal_strength < 30 THEN 'weak_signal'
+                    ELSE 'normal'
+                END as sensor_health
+            FROM sensors s
+            JOIN devices d ON s.device_id = d.id
+            WHERE d.company_id = ?
+            ORDER BY s.last_reading DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getDataCollection() {
+        return $this->db->querySingle("
+            SELECT
+                COUNT(sd.id) as total_readings,
+                COUNT(DISTINCT sd.sensor_id) as active_sensors,
+                COUNT(DISTINCT DATE(sd.reading_timestamp)) as days_with_data,
+                AVG(sd.reading_value) as avg_reading_value,
+                MIN(sd.reading_timestamp) as earliest_reading,
+                MAX(sd.reading_timestamp) as latest_reading,
+                SUM(CASE WHEN sd.reading_timestamp >= DATE_SUB(NOW(), INTERVAL 1 HOUR) THEN 1 ELSE 0 END) as readings_last_hour,
+                SUM(CASE WHEN sd.reading_timestamp >= DATE_SUB(NOW(), INTERVAL 24 HOUR) THEN 1 ELSE 0 END) as readings_last_24h,
+                AVG(TIMESTAMPDIFF(SECOND, LAG(sd.reading_timestamp) OVER (ORDER BY sd.reading_timestamp), sd.reading_timestamp)) as avg_collection_interval
+            FROM sensor_data sd
+            JOIN sensors s ON sd.sensor_id = s.id
+            JOIN devices d ON s.device_id = d.id
+            WHERE d.company_id = ? AND sd.reading_timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        ", [$this->user['company_id']]);
+    }
+
+    private function getRealTimeMonitoring() {
+        return $this->db->query("
+            SELECT
+                d.device_name,
+                s.sensor_name,
+                s.sensor_type,
+                sd.reading_value,
+                sd.reading_timestamp,
+                s.units,
+                sd.data_quality_score,
+                CASE
+                    WHEN sd.reading_value > s.threshold_high THEN 'above_threshold'
+                    WHEN sd.reading_value < s.threshold_low THEN 'below_threshold'
+                    ELSE 'normal'
+                END as reading_status,
+                TIMESTAMPDIFF(SECOND, sd.reading_timestamp, NOW()) as seconds_since_reading
+            FROM sensor_data sd
+            JOIN sensors s ON sd.sensor_id = s.id
+            JOIN devices d ON s.device_id = d.id
+            WHERE d.company_id = ? AND sd.reading_timestamp >= DATE_SUB(NOW(), INTERVAL 5 MINUTE)
+            ORDER BY sd.reading_timestamp DESC
+            LIMIT 100
+        ", [$this->user['company_id']]);
+    }
+
+    private function getPredictiveMaintenance() {
+        return $this->db->query("
+            SELECT
+                d.device_name,
+                pm.prediction_type,
+                pm.risk_level,
+                pm.predicted_failure_date,
+                pm.confidence_score,
+                pm.recommended_action,
+                TIMESTAMPDIFF(DAY, NOW(), pm.predicted_failure_date) as days_until_failure,
+                pm.estimated_cost,
+                pm.priority_level,
+                pm.last_updated
+            FROM predictive_maintenance pm
+            JOIN devices d ON pm.device_id = d.id
+            WHERE d.company_id = ? AND pm.status = 'active'
+            ORDER BY pm.risk_level DESC, pm.predicted_failure_date ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getAlertSystem() {
+        return $this->db->query("
+            SELECT
+                a.alert_type,
+                a.severity,
+                a.message,
+                d.device_name,
+                s.sensor_name,
+                a.trigger_value,
+                a.threshold_value,
+                a.created_at,
+                TIMESTAMPDIFF(MINUTE, a.created_at, NOW()) as minutes_since_alert,
+                a.status,
+                a.acknowledged_by,
+                a.resolved_at
+            FROM alerts a
+            LEFT JOIN devices d ON a.device_id = d.id
+            LEFT JOIN sensors s ON a.sensor_id = s.id
+            WHERE a.company_id = ?
+            ORDER BY a.severity DESC, a.created_at DESC
             LIMIT 50
         ", [$this->user['company_id']]);
     }
 
-    private function getAlertsSummary() {
+    private function getDeviceAnalytics() {
         return $this->db->querySingle("
             SELECT
-                COUNT(*) as total_alerts,
-                COUNT(CASE WHEN severity = 'critical' THEN 1 END) as critical_alerts,
-                COUNT(CASE WHEN severity = 'high' THEN 1 END) as high_alerts,
-                COUNT(CASE WHEN severity = 'medium' THEN 1 END) as medium_alerts,
-                COUNT(CASE WHEN status = 'active' THEN 1 END) as active_alerts,
-                COUNT(CASE WHEN acknowledged_at IS NOT NULL THEN 1 END) as acknowledged_alerts
-            FROM iot_alerts
-            WHERE company_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
-        ", [$this->user['company_id']]);
-    }
-
-    private function getPredictiveInsights() {
-        return $this->db->query("
-            SELECT
-                pi.*,
-                d.name as device_name,
-                d.device_id as device_code,
-                pt.name as prediction_type_name
-            FROM predictive_insights pi
-            JOIN iot_devices d ON pi.device_id = d.id
-            JOIN prediction_types pt ON pi.prediction_type_id = pt.id
-            WHERE pi.company_id = ? AND pi.confidence_score > 0.7
-            ORDER BY pi.confidence_score DESC, pi.created_at DESC
-            LIMIT 20
+                COUNT(d.id) as total_devices,
+                ROUND((COUNT(CASE WHEN d.status = 'online' THEN 1 END) / NULLIF(COUNT(d.id), 0)) * 100, 2) as online_percentage,
+                AVG(d.uptime_percentage) as avg_uptime,
+                COUNT(CASE WHEN d.uptime_percentage >= 99 THEN 1 END) as high_uptime_devices,
+                COUNT(CASE WHEN d.uptime_percentage < 95 THEN 1 END) as low_uptime_devices,
+                AVG(d.battery_level) as avg_battery_level,
+                COUNT(CASE WHEN d.battery_level < 20 THEN 1 END) as low_battery_devices,
+                COUNT(CASE WHEN d.firmware_update_available = true THEN 1 END) as devices_needing_updates,
+                AVG(TIMESTAMPDIFF(DAY, d.last_firmware_update, NOW())) as avg_days_since_update
+            FROM devices d
+            WHERE d.company_id = ?
         ", [$this->user['company_id']]);
     }
 
     private function getSystemHealth() {
         return $this->db->querySingle("
             SELECT
-                AVG(CASE WHEN last_seen > DATE_SUB(NOW(), INTERVAL 5 MINUTE) THEN 100 ELSE 0 END) as connectivity_health,
-                AVG(battery_level) as battery_health,
-                COUNT(CASE WHEN status = 'active' THEN 1 END) * 100.0 / COUNT(*) as device_health,
-                AVG(data_quality_score) as data_quality_health
-            FROM iot_devices
-            WHERE company_id = ?
+                COUNT(CASE WHEN d.status = 'online' THEN 1 END) as online_devices,
+                COUNT(CASE WHEN d.status = 'offline' THEN 1 END) as offline_devices,
+                COUNT(CASE WHEN TIMESTAMPDIFF(MINUTE, d.last_seen, NOW()) > 60 THEN 1 END) as devices_not_reporting,
+                COUNT(CASE WHEN s.battery_level < 20 THEN 1 END) as low_battery_sensors,
+                COUNT(CASE WHEN s.signal_strength < 30 THEN 1 END) as weak_signal_sensors,
+                COUNT(a.id) as active_alerts,
+                COUNT(CASE WHEN pm.risk_level = 'high' THEN 1 END) as high_risk_predictions,
+                ROUND(AVG(d.uptime_percentage), 2) as system_uptime,
+                COUNT(CASE WHEN d.uptime_percentage >= 99 THEN 1 END) as high_performance_devices
+            FROM devices d
+            LEFT JOIN sensors s ON d.id = s.device_id
+            LEFT JOIN alerts a ON d.id = a.device_id AND a.status = 'active'
+            LEFT JOIN predictive_maintenance pm ON d.id = pm.device_id AND pm.status = 'active'
+            WHERE d.company_id = ?
         ", [$this->user['company_id']]);
     }
 
-    private function getDevices($filters) {
+    private function getDevices($filters = []) {
         $where = ["d.company_id = ?"];
         $params = [$this->user['company_id']];
 
-        if ($filters['status'] !== 'all') {
+        if (isset($filters['status'])) {
             $where[] = "d.status = ?";
             $params[] = $filters['status'];
         }
 
-        if ($filters['type']) {
-            $where[] = "d.device_type = ?";
+        if (isset($filters['type'])) {
+            $where[] = "d.device_type_id = ?";
             $params[] = $filters['type'];
         }
 
-        if ($filters['location']) {
+        if (isset($filters['location'])) {
             $where[] = "d.location_id = ?";
             $params[] = $filters['location'];
         }
 
-        if ($filters['category']) {
+        if (isset($filters['category'])) {
             $where[] = "d.category_id = ?";
             $params[] = $filters['category'];
         }
 
-        if ($filters['search']) {
-            $where[] = "(d.name LIKE ? OR d.device_id LIKE ? OR d.serial_number LIKE ?)";
+        if (isset($filters['date_from'])) {
+            $where[] = "d.installation_date >= ?";
+            $params[] = $filters['date_from'] . ' 00:00:00';
+        }
+
+        if (isset($filters['date_to'])) {
+            $where[] = "d.installation_date <= ?";
+            $params[] = $filters['date_to'] . ' 23:59:59';
+        }
+
+        if (isset($filters['search'])) {
+            $where[] = "(d.device_name LIKE ? OR d.device_id LIKE ? OR d.serial_number LIKE ? OR d.model LIKE ?)";
             $search_term = '%' . $filters['search'] . '%';
+            $params[] = $search_term;
             $params[] = $search_term;
             $params[] = $search_term;
             $params[] = $search_term;
@@ -306,863 +438,725 @@ class IoT extends BaseController {
         return $this->db->query("
             SELECT
                 d.*,
-                dt.name as device_type_name,
-                dc.name as category_name,
-                l.name as location_name,
-                COUNT(sr.id) as sensor_readings_count,
-                MAX(sr.timestamp) as last_reading,
-                AVG(sr.data_quality_score) as avg_data_quality
-            FROM iot_devices d
-            LEFT JOIN device_types dt ON d.device_type = dt.id
+                dt.type_name,
+                dl.location_name,
+                dc.category_name,
+                d.uptime_percentage,
+                d.battery_level,
+                d.signal_strength,
+                TIMESTAMPDIFF(MINUTE, d.last_seen, NOW()) as minutes_since_last_seen,
+                COUNT(s.id) as sensor_count,
+                COUNT(CASE WHEN s.status = 'active' THEN 1 END) as active_sensors,
+                COUNT(a.id) as active_alerts,
+                d.firmware_version,
+                d.firmware_update_available
+            FROM devices d
+            LEFT JOIN device_types dt ON d.device_type_id = dt.id
+            LEFT JOIN device_locations dl ON d.location_id = dl.id
             LEFT JOIN device_categories dc ON d.category_id = dc.id
-            LEFT JOIN locations l ON d.location_id = l.id
-            LEFT JOIN sensor_readings sr ON d.id = sr.device_id
+            LEFT JOIN sensors s ON d.id = s.device_id
+            LEFT JOIN alerts a ON d.id = a.device_id AND a.status = 'active'
             WHERE $whereClause
-            GROUP BY d.id, dt.name, dc.name, l.name
-            ORDER BY d.created_at DESC
+            GROUP BY d.id
+            ORDER BY d.device_name ASC
         ", $params);
     }
 
     private function getDeviceTypes() {
         return $this->db->query("
-            SELECT * FROM device_types
-            WHERE company_id = ?
-            ORDER BY name ASC
+            SELECT
+                dt.*,
+                COUNT(d.id) as device_count,
+                AVG(d.uptime_percentage) as avg_uptime,
+                COUNT(CASE WHEN d.status = 'online' THEN 1 END) as online_devices
+            FROM device_types dt
+            LEFT JOIN devices d ON dt.id = d.device_type_id
+            WHERE dt.company_id = ?
+            GROUP BY dt.id
+            ORDER BY device_count DESC
         ", [$this->user['company_id']]);
+    }
+
+    private function getDeviceStatus() {
+        return [
+            'online' => 'Online',
+            'offline' => 'Offline',
+            'maintenance' => 'Maintenance',
+            'error' => 'Error',
+            'inactive' => 'Inactive'
+        ];
     }
 
     private function getDeviceCategories() {
         return $this->db->query("
-            SELECT * FROM device_categories
-            WHERE company_id = ?
-            ORDER BY name ASC
+            SELECT
+                dc.*,
+                COUNT(d.id) as device_count,
+                SUM(d.purchase_value) as total_value,
+                AVG(d.uptime_percentage) as avg_uptime
+            FROM device_categories dc
+            LEFT JOIN devices d ON dc.id = d.category_id
+            WHERE dc.company_id = ?
+            GROUP BY dc.id
+            ORDER BY device_count DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getLocations() {
+    private function getDeviceLocations() {
         return $this->db->query("
-            SELECT * FROM locations
-            WHERE company_id = ?
-            ORDER BY name ASC
+            SELECT
+                dl.*,
+                COUNT(d.id) as device_count,
+                COUNT(CASE WHEN d.status = 'online' THEN 1 END) as online_devices,
+                AVG(d.uptime_percentage) as avg_uptime
+            FROM device_locations dl
+            LEFT JOIN devices d ON dl.id = d.location_id
+            WHERE dl.company_id = ?
+            GROUP BY dl.id
+            ORDER BY device_count DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getSupportedProtocols() {
+    private function getDeviceTemplates() {
+        return $this->db->query("
+            SELECT * FROM device_templates
+            WHERE company_id = ? AND is_active = true
+            ORDER BY template_name ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getBulkActions() {
         return [
-            'mqtt' => 'MQTT',
-            'http' => 'HTTP/HTTPS',
-            'coap' => 'CoAP',
-            'websocket' => 'WebSocket',
-            'modbus' => 'Modbus',
-            'opcua' => 'OPC UA',
-            'custom' => 'Custom Protocol'
+            'update_firmware' => 'Update Firmware',
+            'reboot_devices' => 'Reboot Devices',
+            'change_location' => 'Change Location',
+            'update_category' => 'Update Category',
+            'export_devices' => 'Export Device Data',
+            'import_devices' => 'Import Device Data',
+            'bulk_configuration' => 'Bulk Configuration',
+            'generate_reports' => 'Generate Reports'
         ];
     }
 
-    private function getDeviceSummary($filters) {
-        $where = ["company_id = ?"];
-        $params = [$this->user['company_id']];
+    private function getSensorData() {
+        return $this->db->query("
+            SELECT
+                s.sensor_name,
+                s.sensor_type,
+                d.device_name,
+                sd.reading_value,
+                sd.reading_timestamp,
+                s.units,
+                sd.data_quality_score,
+                sd.collection_method,
+                TIMESTAMPDIFF(SECOND, LAG(sd.reading_timestamp) OVER (PARTITION BY sd.sensor_id ORDER BY sd.reading_timestamp), sd.reading_timestamp) as interval_seconds
+            FROM sensor_data sd
+            JOIN sensors s ON sd.sensor_id = s.id
+            JOIN devices d ON s.device_id = d.id
+            WHERE d.company_id = ? AND sd.reading_timestamp >= DATE_SUB(NOW(), INTERVAL 1 HOUR)
+            ORDER BY sd.reading_timestamp DESC
+            LIMIT 1000
+        ", [$this->user['company_id']]);
+    }
 
-        if ($filters['status'] !== 'all') {
-            $where[] = "status = ?";
-            $params[] = $filters['status'];
-        }
+    private function getDataStreams() {
+        return $this->db->query("
+            SELECT
+                ds.stream_name,
+                ds.stream_type,
+                COUNT(sd.id) as total_readings,
+                MIN(sd.reading_timestamp) as first_reading,
+                MAX(sd.reading_timestamp) as last_reading,
+                AVG(sd.reading_value) as avg_value,
+                MIN(sd.reading_value) as min_value,
+                MAX(sd.reading_value) as max_value,
+                ds.sampling_rate,
+                ds.retention_period_days,
+                ds.is_active
+            FROM data_streams ds
+            LEFT JOIN sensor_data sd ON ds.id = sd.stream_id
+            WHERE ds.company_id = ?
+            GROUP BY ds.id
+            ORDER BY total_readings DESC
+        ", [$this->user['company_id']]);
+    }
 
-        if ($filters['type']) {
-            $where[] = "device_type = ?";
-            $params[] = $filters['type'];
-        }
+    private function getDataProcessing() {
+        return $this->db->query("
+            SELECT
+                dp.process_name,
+                dp.process_type,
+                dp.status,
+                dp.last_run,
+                dp.execution_time_seconds,
+                dp.records_processed,
+                dp.success_rate,
+                dp.error_count,
+                TIMESTAMPDIFF(MINUTE, dp.last_run, NOW()) as minutes_since_last_run
+            FROM data_processing dp
+            WHERE dp.company_id = ?
+            ORDER BY dp.last_run DESC
+        ", [$this->user['company_id']]);
+    }
 
-        $whereClause = implode(' AND ', $where);
-
+    private function getDataStorage() {
         return $this->db->querySingle("
             SELECT
-                COUNT(*) as total_devices,
-                COUNT(CASE WHEN status = 'active' THEN 1 END) as active_devices,
-                COUNT(CASE WHEN status = 'inactive' THEN 1 END) as inactive_devices,
-                COUNT(DISTINCT device_type) as device_types,
-                COUNT(DISTINCT category_id) as categories,
-                AVG(acquisition_cost) as avg_cost
-            FROM iot_devices
-            WHERE $whereClause
-        ", $params);
-    }
-
-    private function generateNextDeviceId() {
-        $lastDevice = $this->db->querySingle("
-            SELECT device_id FROM iot_devices
-            WHERE company_id = ? AND device_id LIKE 'IOT%'
-            ORDER BY device_id DESC
-            LIMIT 1
+                COUNT(sd.id) as total_readings,
+                SUM(LENGTH(sd.raw_data)) as total_data_size_bytes,
+                COUNT(DISTINCT DATE(sd.reading_timestamp)) as days_stored,
+                COUNT(DISTINCT sd.sensor_id) as sensors_with_data,
+                AVG(sd.data_quality_score) as avg_data_quality,
+                COUNT(CASE WHEN sd.data_quality_score < 80 THEN 1 END) as low_quality_readings,
+                MAX(sd.reading_timestamp) as latest_reading,
+                MIN(sd.reading_timestamp) as oldest_reading
+            FROM sensor_data sd
+            JOIN sensors s ON sd.sensor_id = s.id
+            JOIN devices d ON s.device_id = d.id
+            WHERE d.company_id = ?
         ", [$this->user['company_id']]);
-
-        if ($lastDevice) {
-            $number = (int)substr($lastDevice['device_id'], 3) + 1;
-            return 'IOT' . str_pad($number, 6, '0', STR_PAD_LEFT);
-        }
-
-        return 'IOT000001';
     }
 
-    private function processDeviceRegistration() {
-        $this->requirePermission('iot.devices.create');
-
-        $data = $this->validateDeviceData($_POST);
-
-        if (!$data) {
-            $this->setFlash('error', 'Invalid device data');
-            $this->redirect('/iot/register-device');
-        }
-
-        try {
-            $this->db->beginTransaction();
-
-            $deviceId = $this->db->insert('iot_devices', [
-                'company_id' => $this->user['company_id'],
-                'device_id' => $data['device_id'],
-                'name' => $data['name'],
-                'description' => $data['description'],
-                'device_type' => $data['device_type'],
-                'category_id' => $data['category_id'],
-                'location_id' => $data['location_id'],
-                'serial_number' => $data['serial_number'],
-                'manufacturer' => $data['manufacturer'],
-                'model' => $data['model'],
-                'firmware_version' => $data['firmware_version'],
-                'communication_protocol' => $data['communication_protocol'],
-                'ip_address' => $data['ip_address'],
-                'mac_address' => $data['mac_address'],
-                'acquisition_date' => $data['acquisition_date'],
-                'acquisition_cost' => $data['acquisition_cost'],
-                'warranty_expiry' => $data['warranty_expiry'],
-                'power_source' => $data['power_source'],
-                'battery_capacity' => $data['battery_capacity'],
-                'operating_temperature_min' => $data['operating_temperature_min'],
-                'operating_temperature_max' => $data['operating_temperature_max'],
-                'configuration' => json_encode($data['configuration']),
-                'security_settings' => json_encode($data['security_settings']),
-                'status' => 'inactive',
-                'created_by' => $this->user['id']
-            ]);
-
-            // Register sensors if provided
-            if (!empty($data['sensors'])) {
-                $this->registerDeviceSensors($deviceId, $data['sensors']);
-            }
-
-            // Generate device authentication credentials
-            $this->generateDeviceCredentials($deviceId);
-
-            $this->db->commit();
-
-            $this->setFlash('success', 'Device registered successfully');
-            $this->redirect('/iot/devices');
-
-        } catch (Exception $e) {
-            $this->db->rollback();
-            $this->setFlash('error', 'Failed to register device: ' . $e->getMessage());
-            $this->redirect('/iot/register-device');
-        }
-    }
-
-    private function validateDeviceData($data) {
-        if (empty($data['name']) || empty($data['device_type']) || empty($data['category_id'])) {
-            return false;
-        }
-
-        return [
-            'device_id' => $data['device_id'] ?? $this->generateNextDeviceId(),
-            'name' => $data['name'],
-            'description' => $data['description'] ?? '',
-            'device_type' => $data['device_type'],
-            'category_id' => $data['category_id'],
-            'location_id' => $data['location_id'] ?? null,
-            'serial_number' => $data['serial_number'] ?? null,
-            'manufacturer' => $data['manufacturer'] ?? '',
-            'model' => $data['model'] ?? '',
-            'firmware_version' => $data['firmware_version'] ?? '',
-            'communication_protocol' => $data['communication_protocol'] ?? 'mqtt',
-            'ip_address' => $data['ip_address'] ?? null,
-            'mac_address' => $data['mac_address'] ?? null,
-            'acquisition_date' => $data['acquisition_date'] ?? date('Y-m-d'),
-            'acquisition_cost' => (float)($data['acquisition_cost'] ?? 0),
-            'warranty_expiry' => $data['warranty_expiry'] ?? null,
-            'power_source' => $data['power_source'] ?? 'battery',
-            'battery_capacity' => (int)($data['battery_capacity'] ?? 0),
-            'operating_temperature_min' => (float)($data['operating_temperature_min'] ?? -20),
-            'operating_temperature_max' => (float)($data['operating_temperature_max'] ?? 60),
-            'configuration' => $data['configuration'] ?? [],
-            'security_settings' => $data['security_settings'] ?? [],
-            'sensors' => $data['sensors'] ?? []
-        ];
-    }
-
-    private function registerDeviceSensors($deviceId, $sensors) {
-        foreach ($sensors as $sensor) {
-            $this->db->insert('device_sensors', [
-                'company_id' => $this->user['company_id'],
-                'device_id' => $deviceId,
-                'sensor_type_id' => $sensor['sensor_type_id'],
-                'sensor_name' => $sensor['sensor_name'],
-                'measurement_unit' => $sensor['measurement_unit'],
-                'calibration_date' => date('Y-m-d'),
-                'calibration_due' => date('Y-m-d', strtotime('+1 year')),
-                'configuration' => json_encode($sensor['configuration'] ?? []),
-                'status' => 'active'
-            ]);
-        }
-    }
-
-    private function generateDeviceCredentials($deviceId) {
-        $credentials = [
-            'device_id' => $deviceId,
-            'api_key' => bin2hex(random_bytes(32)),
-            'secret_key' => bin2hex(random_bytes(32)),
-            'certificate' => $this->generateDeviceCertificate($deviceId),
-            'created_at' => date('Y-m-d H:i:s'),
-            'expires_at' => date('Y-m-d H:i:s', strtotime('+1 year'))
-        ];
-
-        $this->db->insert('device_credentials', [
-            'company_id' => $this->user['company_id'],
-            'device_id' => $deviceId,
-            'credentials' => json_encode($credentials),
-            'status' => 'active',
-            'created_by' => $this->user['id']
-        ]);
-
-        return $credentials;
-    }
-
-    private function generateDeviceCertificate($deviceId) {
-        // Implementation for generating device certificate
-        // This would typically use OpenSSL or similar library
-        return '-----BEGIN CERTIFICATE-----\n' . base64_encode(random_bytes(512)) . '\n-----END CERTIFICATE-----';
-    }
-
-    private function getSensorReadings() {
+    private function getDataQuality() {
         return $this->db->query("
             SELECT
-                sr.*,
-                d.name as device_name,
-                d.device_id as device_code,
-                st.name as sensor_type_name,
-                st.unit as measurement_unit,
-                ds.sensor_name
-            FROM sensor_readings sr
-            JOIN iot_devices d ON sr.device_id = d.id
-            JOIN sensor_types st ON sr.sensor_type_id = st.id
-            JOIN device_sensors ds ON sr.device_sensor_id = ds.id
-            WHERE sr.company_id = ?
-            ORDER BY sr.timestamp DESC
-            LIMIT 100
+                s.sensor_name,
+                d.device_name,
+                AVG(sd.data_quality_score) as avg_quality,
+                COUNT(sd.id) as total_readings,
+                COUNT(CASE WHEN sd.data_quality_score >= 90 THEN 1 END) as high_quality_readings,
+                COUNT(CASE WHEN sd.data_quality_score < 70 THEN 1 END) as low_quality_readings,
+                ROUND((COUNT(CASE WHEN sd.data_quality_score >= 90 THEN 1 END) / NULLIF(COUNT(sd.id), 0)) * 100, 2) as quality_percentage,
+                MAX(sd.reading_timestamp) as last_reading,
+                COUNT(CASE WHEN sd.reading_timestamp < DATE_SUB(NOW(), INTERVAL 1 HOUR) THEN 1 END) as stale_readings
+            FROM sensor_data sd
+            JOIN sensors s ON sd.sensor_id = s.id
+            JOIN devices d ON s.device_id = d.id
+            WHERE d.company_id = ?
+            GROUP BY s.id, d.id
+            ORDER BY avg_quality ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getSensorTypes() {
+    private function getDataAnalytics() {
+        return $this->db->querySingle("
+            SELECT
+                COUNT(DISTINCT s.id) as total_sensors,
+                COUNT(sd.id) as total_readings,
+                AVG(sd.reading_value) as avg_reading_value,
+                COUNT(DISTINCT DATE(sd.reading_timestamp)) as active_days,
+                COUNT(CASE WHEN sd.reading_timestamp >= DATE_SUB(NOW(), INTERVAL 1 HOUR) THEN 1 END) as readings_last_hour,
+                COUNT(CASE WHEN sd.reading_timestamp >= DATE_SUB(NOW(), INTERVAL 24 HOUR) THEN 1 END) as readings_last_24h,
+                AVG(sd.data_quality_score) as avg_data_quality,
+                COUNT(CASE WHEN sd.data_quality_score < 80 THEN 1 END) as low_quality_readings
+            FROM sensors s
+            LEFT JOIN sensor_data sd ON s.id = sd.sensor_id
+            JOIN devices d ON s.device_id = d.id
+            WHERE d.company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getDataExports() {
         return $this->db->query("
-            SELECT * FROM sensor_types
+            SELECT
+                de.export_name,
+                de.export_type,
+                de.status,
+                de.created_at,
+                de.completed_at,
+                de.file_size_bytes,
+                de.record_count,
+                de.download_url,
+                TIMESTAMPDIFF(MINUTE, de.created_at, de.completed_at) as processing_time_minutes
+            FROM data_exports de
+            WHERE de.company_id = ?
+            ORDER BY de.created_at DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getDataSettings() {
+        return $this->db->querySingle("
+            SELECT * FROM data_collection_settings
             WHERE company_id = ?
-            ORDER BY name ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getDataQualityMetrics() {
-        return $this->db->querySingle("
-            SELECT
-                AVG(data_quality_score) as avg_quality_score,
-                COUNT(CASE WHEN data_quality_score >= 0.9 THEN 1 END) as high_quality_readings,
-                COUNT(CASE WHEN data_quality_score < 0.7 THEN 1 END) as low_quality_readings,
-                COUNT(CASE WHEN is_anomaly = true THEN 1 END) as anomaly_count,
-                COUNT(*) as total_readings
-            FROM sensor_readings
-            WHERE company_id = ? AND timestamp >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
-        ", [$this->user['company_id']]);
-    }
-
-    private function getDataTrends() {
+    private function getLiveData() {
         return $this->db->query("
             SELECT
-                DATE_TRUNC('hour', timestamp) as hour,
-                COUNT(*) as readings_count,
-                AVG(value) as avg_value,
-                MIN(value) as min_value,
-                MAX(value) as max_value,
-                STDDEV(value) as value_stddev
-            FROM sensor_readings
-            WHERE company_id = ? AND timestamp >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
-            GROUP BY DATE_TRUNC('hour', timestamp)
-            ORDER BY hour DESC
+                d.device_name,
+                s.sensor_name,
+                s.sensor_type,
+                sd.reading_value,
+                sd.reading_timestamp,
+                s.units,
+                sd.data_quality_score,
+                CASE
+                    WHEN sd.reading_value > s.threshold_high THEN 'high'
+                    WHEN sd.reading_value < s.threshold_low THEN 'low'
+                    ELSE 'normal'
+                END as threshold_status,
+                TIMESTAMPDIFF(SECOND, sd.reading_timestamp, NOW()) as seconds_ago
+            FROM sensor_data sd
+            JOIN sensors s ON sd.sensor_id = s.id
+            JOIN devices d ON s.device_id = d.id
+            WHERE d.company_id = ? AND sd.reading_timestamp >= DATE_SUB(NOW(), INTERVAL 5 MINUTE)
+            ORDER BY sd.reading_timestamp DESC
+            LIMIT 200
         ", [$this->user['company_id']]);
     }
 
-    private function getAnomalyDetection() {
+    private function getMonitoringDashboards() {
         return $this->db->query("
             SELECT
-                sr.*,
-                d.name as device_name,
-                d.device_id as device_code,
-                st.name as sensor_type_name,
-                ad.anomaly_score,
-                ad.detection_method
-            FROM sensor_readings sr
-            JOIN iot_devices d ON sr.device_id = d.id
-            JOIN sensor_types st ON sr.sensor_type_id = st.id
-            JOIN anomaly_detection ad ON sr.id = ad.sensor_reading_id
-            WHERE sr.company_id = ? AND sr.is_anomaly = true
-                AND sr.timestamp >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
-            ORDER BY ad.anomaly_score DESC
-            LIMIT 50
+                md.dashboard_name,
+                md.dashboard_type,
+                md.is_active,
+                md.refresh_interval_seconds,
+                COUNT(mdw.id) as widget_count,
+                md.created_by,
+                md.last_modified,
+                md.access_level
+            FROM monitoring_dashboards md
+            LEFT JOIN monitoring_dashboard_widgets mdw ON md.id = mdw.dashboard_id
+            WHERE md.company_id = ?
+            GROUP BY md.id
+            ORDER BY md.is_active DESC, md.dashboard_name ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getLiveReadings() {
+    private function getThresholdAlerts() {
         return $this->db->query("
             SELECT
-                sr.*,
-                d.name as device_name,
-                d.device_id as device_code,
-                st.name as sensor_type_name,
-                st.unit as measurement_unit,
-                TIMESTAMPDIFF(SECOND, sr.timestamp, NOW()) as seconds_ago
-            FROM sensor_readings sr
-            JOIN iot_devices d ON sr.device_id = d.id
-            JOIN sensor_types st ON sr.sensor_type_id = st.id
-            WHERE sr.company_id = ? AND sr.timestamp >= DATE_SUB(NOW(), INTERVAL 5 MINUTE)
-            ORDER BY sr.timestamp DESC
-            LIMIT 100
-        ", [$this->user['company_id']]);
-    }
-
-    private function getActiveAlerts() {
-        return $this->db->query("
-            SELECT
-                ia.*,
-                d.name as device_name,
-                d.device_id as device_code,
-                at.name as alert_type_name,
-                TIMESTAMPDIFF(MINUTE, ia.created_at, NOW()) as minutes_active
-            FROM iot_alerts ia
-            JOIN iot_devices d ON ia.device_id = d.id
-            JOIN alert_types at ON ia.alert_type_id = at.id
-            WHERE ia.company_id = ? AND ia.status = 'active'
-            ORDER BY ia.severity DESC, ia.created_at DESC
-            LIMIT 50
-        ", [$this->user['company_id']]);
-    }
-
-    private function getSystemStatus() {
-        return $this->db->querySingle("
-            SELECT
-                COUNT(CASE WHEN status = 'active' THEN 1 END) as active_devices,
-                COUNT(CASE WHEN last_seen > DATE_SUB(NOW(), INTERVAL 5 MINUTE) THEN 1 END) as online_devices,
-                COUNT(CASE WHEN battery_level < 20 THEN 1 END) as low_battery_devices,
-                AVG(battery_level) as avg_battery_level,
-                COUNT(CASE WHEN firmware_version != latest_firmware_version THEN 1 END) as outdated_firmware
-            FROM iot_devices
-            WHERE company_id = ?
+                ta.alert_name,
+                ta.threshold_type,
+                ta.threshold_value,
+                ta.condition,
+                d.device_name,
+                s.sensor_name,
+                ta.severity,
+                ta.is_active,
+                ta.last_triggered,
+                COUNT(a.id) as trigger_count
+            FROM threshold_alerts ta
+            LEFT JOIN devices d ON ta.device_id = d.id
+            LEFT JOIN sensors s ON ta.sensor_id = s.id
+            LEFT JOIN alerts a ON ta.id = a.threshold_alert_id
+            WHERE ta.company_id = ?
+            GROUP BY ta.id
+            ORDER BY ta.severity DESC, ta.last_triggered DESC
         ", [$this->user['company_id']]);
     }
 
     private function getPerformanceMetrics() {
         return $this->db->query("
             SELECT
-                DATE_TRUNC('hour', timestamp) as hour,
-                COUNT(*) as readings_per_hour,
-                AVG(response_time_ms) as avg_response_time,
-                COUNT(CASE WHEN response_time_ms > 1000 THEN 1 END) as slow_responses,
-                AVG(data_quality_score) as avg_data_quality
-            FROM sensor_readings
-            WHERE company_id = ? AND timestamp >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
-            GROUP BY DATE_TRUNC('hour', timestamp)
-            ORDER BY hour DESC
+                pm.metric_name,
+                pm.metric_type,
+                pm.current_value,
+                pm.target_value,
+                pm.unit,
+                ROUND(((pm.current_value - pm.target_value) / NULLIF(pm.target_value, 0)) * 100, 2) as performance_percentage,
+                pm.last_updated,
+                pm.trend_direction,
+                CASE
+                    WHEN pm.current_value >= pm.target_value * 0.95 THEN 'excellent'
+                    WHEN pm.current_value >= pm.target_value * 0.85 THEN 'good'
+                    WHEN pm.current_value >= pm.target_value * 0.75 THEN 'fair'
+                    ELSE 'poor'
+                END as performance_rating
+            FROM performance_metrics pm
+            WHERE pm.company_id = ?
+            ORDER BY pm.last_updated DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getConnectivityStatus() {
+    private function getSystemStatus() {
+        return $this->db->querySingle("
+            SELECT
+                COUNT(CASE WHEN d.status = 'online' THEN 1 END) as online_devices,
+                COUNT(CASE WHEN d.status = 'offline' THEN 1 END) as offline_devices,
+                COUNT(CASE WHEN TIMESTAMPDIFF(MINUTE, d.last_seen, NOW()) > 60 THEN 1 END) as devices_not_reporting,
+                COUNT(CASE WHEN s.battery_level < 20 THEN 1 END) as low_battery_sensors,
+                COUNT(CASE WHEN s.signal_strength < 30 THEN 1 END) as weak_signal_sensors,
+                COUNT(CASE WHEN a.status = 'active' THEN 1 END) as active_alerts,
+                COUNT(CASE WHEN pm.risk_level = 'high' THEN 1 END) as high_risk_predictions,
+                ROUND(AVG(d.uptime_percentage), 2) as system_uptime,
+                COUNT(CASE WHEN d.uptime_percentage >= 99 THEN 1 END) as high_performance_devices
+            FROM devices d
+            LEFT JOIN sensors s ON d.id = s.device_id
+            LEFT JOIN alerts a ON d.id = a.device_id
+            LEFT JOIN predictive_maintenance pm ON d.id = pm.device_id
+            WHERE d.company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getMonitoringLogs() {
         return $this->db->query("
             SELECT
-                d.name as device_name,
-                d.device_id as device_code,
-                d.last_seen,
-                TIMESTAMPDIFF(MINUTE, d.last_seen, NOW()) as minutes_since_last_seen,
-                CASE
-                    WHEN d.last_seen > DATE_SUB(NOW(), INTERVAL 5 MINUTE) THEN 'online'
-                    WHEN d.last_seen > DATE_SUB(NOW(), INTERVAL 1 HOUR) THEN 'recently_online'
-                    ELSE 'offline'
-                END as connectivity_status,
-                d.connection_quality
-            FROM iot_devices d
-            WHERE d.company_id = ?
-            ORDER BY d.last_seen DESC
+                ml.log_type,
+                ml.severity,
+                ml.message,
+                d.device_name,
+                s.sensor_name,
+                ml.log_timestamp,
+                ml.source_ip,
+                ml.user_agent,
+                TIMESTAMPDIFF(MINUTE, ml.log_timestamp, NOW()) as minutes_ago
+            FROM monitoring_logs ml
+            LEFT JOIN devices d ON ml.device_id = d.id
+            LEFT JOIN sensors s ON ml.sensor_id = s.id
+            WHERE ml.company_id = ?
+            ORDER BY ml.log_timestamp DESC
+            LIMIT 100
+        ", [$this->user['company_id']]);
+    }
+
+    private function getMonitoringAnalytics() {
+        return $this->db->querySingle("
+            SELECT
+                COUNT(ml.id) as total_logs,
+                COUNT(CASE WHEN ml.severity = 'error' THEN 1 END) as error_logs,
+                COUNT(CASE WHEN ml.severity = 'warning' THEN 1 END) as warning_logs,
+                COUNT(CASE WHEN ml.severity = 'info' THEN 1 END) as info_logs,
+                COUNT(DISTINCT ml.device_id) as devices_with_logs,
+                COUNT(DISTINCT DATE(ml.log_timestamp)) as days_with_logs,
+                AVG(TIMESTAMPDIFF(SECOND, LAG(ml.log_timestamp) OVER (ORDER BY ml.log_timestamp), ml.log_timestamp)) as avg_log_interval,
+                MAX(ml.log_timestamp) as latest_log
+            FROM monitoring_logs ml
+            WHERE ml.company_id = ? AND ml.log_timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+        ", [$this->user['company_id']]);
+    }
+
+    private function getMonitoringSettings() {
+        return $this->db->querySingle("
+            SELECT * FROM monitoring_settings
+            WHERE company_id = ?
         ", [$this->user['company_id']]);
     }
 
     private function getMaintenancePredictions() {
         return $this->db->query("
             SELECT
-                mp.*,
-                d.name as device_name,
-                d.device_id as device_code,
-                mt.name as maintenance_type_name,
-                TIMESTAMPDIFF(DAY, NOW(), mp.predicted_date) as days_until_maintenance
-            FROM maintenance_predictions mp
-            JOIN iot_devices d ON mp.device_id = d.id
-            JOIN maintenance_types mt ON mp.maintenance_type_id = mt.id
-            WHERE mp.company_id = ? AND mp.confidence_score > 0.8
-                AND mp.predicted_date >= NOW()
-            ORDER BY mp.confidence_score DESC, mp.predicted_date ASC
-            LIMIT 20
+                d.device_name,
+                pm.prediction_type,
+                pm.risk_level,
+                pm.predicted_failure_date,
+                pm.confidence_score,
+                pm.recommended_action,
+                pm.estimated_cost,
+                pm.priority_level,
+                TIMESTAMPDIFF(DAY, NOW(), pm.predicted_failure_date) as days_until_failure,
+                pm.last_updated,
+                pm.model_accuracy
+            FROM predictive_maintenance pm
+            JOIN devices d ON pm.device_id = d.id
+            WHERE d.company_id = ? AND pm.status = 'active'
+            ORDER BY pm.risk_level DESC, pm.predicted_failure_date ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getFailureProbability() {
+    private function getFailureAnalysis() {
         return $this->db->query("
             SELECT
-                d.name as device_name,
-                d.device_id as device_code,
-                fp.failure_type,
-                fp.probability_score,
-                fp.predicted_time_to_failure,
-                fp.recommended_action
-            FROM failure_probability fp
-            JOIN iot_devices d ON fp.device_id = d.id
-            WHERE fp.company_id = ? AND fp.probability_score > 0.1
-            ORDER BY fp.probability_score DESC
-            LIMIT 20
+                fa.failure_type,
+                fa.root_cause,
+                COUNT(fa.id) as occurrence_count,
+                AVG(fa.downtime_hours) as avg_downtime,
+                AVG(fa.repair_cost) as avg_repair_cost,
+                MAX(fa.failure_date) as last_occurrence,
+                fa.prevention_measures,
+                fa.risk_mitigation
+            FROM failure_analysis fa
+            JOIN devices d ON fa.device_id = d.id
+            WHERE d.company_id = ?
+            GROUP BY fa.failure_type, fa.root_cause, fa.prevention_measures, fa.risk_mitigation
+            ORDER BY occurrence_count DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getPredictiveMaintenanceSchedule() {
+    private function getMaintenanceSchedules() {
         return $this->db->query("
             SELECT
-                d.name as device_name,
-                d.device_id as device_code,
-                pms.scheduled_date,
-                pms.maintenance_type,
-                pms.estimated_cost,
-                pms.confidence_score,
-                TIMESTAMPDIFF(DAY, NOW(), pms.scheduled_date) as days_until_scheduled
-            FROM predictive_maintenance_schedule pms
-            JOIN iot_devices d ON pms.device_id = d.id
-            WHERE pms.company_id = ? AND pms.status = 'scheduled'
-                AND pms.scheduled_date >= NOW()
-            ORDER BY pms.scheduled_date ASC
+                d.device_name,
+                ms.schedule_type,
+                ms.next_maintenance_date,
+                ms.maintenance_type,
+                ms.estimated_duration_hours,
+                ms.estimated_cost,
+                ms.priority,
+                TIMESTAMPDIFF(DAY, NOW(), ms.next_maintenance_date) as days_until_due,
+                ms.preventive_measures,
+                ms.last_completed
+            FROM maintenance_schedules ms
+            JOIN devices d ON ms.device_id = d.id
+            WHERE d.company_id = ? AND ms.status = 'active'
+            ORDER BY ms.next_maintenance_date ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getMaintenanceCostSavings() {
+    private function getAnomalyDetection() {
+        return $this->db->query("
+            SELECT
+                d.device_name,
+                s.sensor_name,
+                ad.anomaly_type,
+                ad.severity,
+                ad.detected_value,
+                ad.expected_value,
+                ad.confidence_score,
+                ad.detection_timestamp,
+                TIMESTAMPDIFF(MINUTE, ad.detection_timestamp, NOW()) as minutes_ago,
+                ad.root_cause_analysis,
+                ad.recommended_action
+            FROM anomaly_detection ad
+            JOIN sensors s ON ad.sensor_id = s.id
+            JOIN devices d ON s.device_id = d.id
+            WHERE d.company_id = ? AND ad.status = 'active'
+            ORDER BY ad.severity DESC, ad.detection_timestamp DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getPredictiveModels() {
+        return $this->db->query("
+            SELECT
+                pm.model_name,
+                pm.model_type,
+                pm.target_variable,
+                pm.accuracy_score,
+                pm.training_data_size,
+                pm.last_trained,
+                pm.next_training_date,
+                pm.model_status,
+                pm.performance_metrics,
+                TIMESTAMPDIFF(DAY, NOW(), pm.next_training_date) as days_until_next_training
+            FROM predictive_models pm
+            WHERE pm.company_id = ?
+            ORDER BY pm.accuracy_score DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getMaintenanceHistory() {
+        return $this->db->query("
+            SELECT
+                d.device_name,
+                mh.maintenance_date,
+                mh.maintenance_type,
+                mh.description,
+                mh.technician,
+                mh.duration_hours,
+                mh.cost,
+                mh.parts_used,
+                mh.findings,
+                mh.preventive_measures
+            FROM maintenance_history mh
+            JOIN devices d ON mh.device_id = d.id
+            WHERE d.company_id = ?
+            ORDER BY mh.maintenance_date DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getPredictiveAnalytics() {
         return $this->db->querySingle("
             SELECT
-                SUM(predicted_savings) as total_predicted_savings,
-                SUM(actual_savings) as total_actual_savings,
-                AVG(roi_percentage) as avg_roi,
-                COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_predictions
-            FROM predictive_maintenance_savings
-            WHERE company_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 1 YEAR)
+                COUNT(pm.id) as total_predictions,
+                COUNT(CASE WHEN pm.risk_level = 'high' THEN 1 END) as high_risk_predictions,
+                COUNT(CASE WHEN pm.risk_level = 'medium' THEN 1 END) as medium_risk_predictions,
+                COUNT(CASE WHEN pm.risk_level = 'low' THEN 1 END) as low_risk_predictions,
+                AVG(pm.confidence_score) as avg_confidence,
+                COUNT(CASE WHEN pm.confidence_score >= 80 THEN 1 END) as high_confidence_predictions,
+                AVG(TIMESTAMPDIFF(DAY, NOW(), pm.predicted_failure_date)) as avg_days_to_failure,
+                SUM(pm.estimated_cost) as total_predicted_cost
+            FROM predictive_maintenance pm
+            JOIN devices d ON pm.device_id = d.id
+            WHERE d.company_id = ? AND pm.status = 'active'
         ", [$this->user['company_id']]);
     }
 
-    private function getModelAccuracy() {
-        return $this->db->query("
-            SELECT
-                model_name,
-                AVG(accuracy_score) as avg_accuracy,
-                COUNT(CASE WHEN accuracy_score >= 0.9 THEN 1 END) as high_accuracy_predictions,
-                COUNT(CASE WHEN accuracy_score < 0.7 THEN 1 END) as low_accuracy_predictions,
-                MAX(last_trained_at) as last_trained
-            FROM ml_model_accuracy
+    private function getMaintenanceSettings() {
+        return $this->db->querySingle("
+            SELECT * FROM predictive_maintenance_settings
             WHERE company_id = ?
-            GROUP BY model_name
-            ORDER BY avg_accuracy DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getSecurityEvents() {
+    private function getActiveAlerts() {
         return $this->db->query("
             SELECT
-                se.*,
-                d.name as device_name,
-                d.device_id as device_code,
-                set.name as event_type_name
-            FROM security_events se
-            JOIN iot_devices d ON se.device_id = d.id
-            JOIN security_event_types set ON se.event_type_id = set.id
-            WHERE se.company_id = ?
-            ORDER BY se.created_at DESC
-            LIMIT 100
+                a.alert_type,
+                a.severity,
+                a.message,
+                d.device_name,
+                s.sensor_name,
+                a.trigger_value,
+                a.threshold_value,
+                a.created_at,
+                TIMESTAMPDIFF(MINUTE, a.created_at, NOW()) as minutes_since_alert,
+                a.acknowledged_by,
+                a.acknowledged_at,
+                a.escalation_level
+            FROM alerts a
+            LEFT JOIN devices d ON a.device_id = d.id
+            LEFT JOIN sensors s ON a.sensor_id = s.id
+            WHERE a.company_id = ? AND a.status = 'active'
+            ORDER BY a.severity DESC, a.created_at DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getDeviceAuthentication() {
+    private function getAlertHistory() {
         return $this->db->query("
             SELECT
-                d.name as device_name,
-                d.device_id as device_code,
-                dc.status as auth_status,
-                dc.last_used_at,
-                dc.expires_at,
-                TIMESTAMPDIFF(DAY, NOW(), dc.expires_at) as days_until_expiry
-            FROM iot_devices d
-            JOIN device_credentials dc ON d.id = dc.device_id
-            WHERE d.company_id = ?
-            ORDER BY dc.expires_at ASC
+                a.alert_type,
+                a.severity,
+                a.message,
+                d.device_name,
+                s.sensor_name,
+                a.created_at,
+                a.resolved_at,
+                TIMESTAMPDIFF(MINUTE, a.created_at, a.resolved_at) as resolution_time_minutes,
+                a.resolved_by,
+                a.root_cause,
+                a.preventive_action
+            FROM alerts a
+            LEFT JOIN devices d ON a.device_id = d.id
+            LEFT JOIN sensors s ON a.sensor_id = s.id
+            WHERE a.company_id = ? AND a.status = 'resolved'
+            ORDER BY a.created_at DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getFirmwareUpdates() {
+    private function getAlertRules() {
         return $this->db->query("
             SELECT
-                fu.*,
-                d.name as device_name,
-                d.device_id as device_code,
-                COUNT(CASE WHEN fus.status = 'completed' THEN 1 END) as devices_updated,
-                COUNT(fus.id) as total_devices
-            FROM firmware_updates fu
-            LEFT JOIN iot_devices d ON fu.device_type = d.device_type
-            LEFT JOIN firmware_update_status fus ON fu.id = fus.firmware_update_id
-            WHERE fu.company_id = ?
-            GROUP BY fu.id, d.name, d.device_id
-            ORDER BY fu.release_date DESC
+                ar.rule_name,
+                ar.rule_type,
+                ar.condition,
+                ar.threshold_value,
+                ar.severity,
+                ar.is_active,
+                COUNT(a.id) as trigger_count,
+                MAX(a.created_at) as last_triggered,
+                ar.created_by,
+                ar.last_modified
+            FROM alert_rules ar
+            LEFT JOIN alerts a ON ar.id = a.alert_rule_id
+            WHERE ar.company_id = ?
+            GROUP BY ar.id
+            ORDER BY trigger_count DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getAccessControl() {
+    private function getAlertTemplates() {
+        return $this->db->query("
+            SELECT * FROM alert_templates
+            WHERE company_id = ? AND is_active = true
+            ORDER BY template_name ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getAlertNotifications() {
         return $this->db->query("
             SELECT
-                d.name as device_name,
-                d.device_id as device_code,
-                acl.permission_level,
-                acl.allowed_operations,
-                acl.ip_whitelist,
-                acl.last_access_at
-            FROM iot_devices d
-            JOIN access_control_list acl ON d.id = acl.device_id
-            WHERE d.company_id = ?
-            ORDER BY acl.last_access_at DESC
+                an.notification_type,
+                an.recipient,
+                an.delivery_method,
+                an.sent_at,
+                an.delivered_at,
+                an.opened_at,
+                TIMESTAMPDIFF(MINUTE, an.sent_at, an.delivered_at) as delivery_time,
+                an.status,
+                an.failure_reason
+            FROM alert_notifications an
+            WHERE an.company_id = ?
+            ORDER BY an.sent_at DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getEncryptionStatus() {
+    private function getAlertEscalation() {
+        return $this->db->query("
+            SELECT
+                ae.escalation_level,
+                ae.escalation_time_minutes,
+                ae.recipients,
+                ae.notification_methods,
+                ae.is_active,
+                COUNT(ae.id) as escalation_count,
+                AVG(TIMESTAMPDIFF(MINUTE, a.created_at, ae.escalated_at)) as avg_escalation_time
+            FROM alert_escalation ae
+            LEFT JOIN alerts a ON ae.alert_id = a.id
+            WHERE ae.company_id = ?
+            GROUP BY ae.escalation_level, ae.escalation_time_minutes, ae.recipients, ae.notification_methods, ae.is_active
+            ORDER BY ae.escalation_level ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getAlertAnalytics() {
         return $this->db->querySingle("
             SELECT
-                COUNT(CASE WHEN encryption_enabled = true THEN 1 END) as encrypted_devices,
-                COUNT(*) as total_devices,
-                ROUND(
-                    (COUNT(CASE WHEN encryption_enabled = true THEN 1 END) * 100.0 / COUNT(*)), 2
-                ) as encryption_percentage,
-                COUNT(CASE WHEN certificate_expiry < DATE_ADD(NOW(), INTERVAL 30 DAY) THEN 1 END) as expiring_certificates
-            FROM iot_devices
-            WHERE company_id = ?
+                COUNT(a.id) as total_alerts,
+                COUNT(CASE WHEN a.severity = 'critical' THEN 1 END) as critical_alerts,
+                COUNT(CASE WHEN a.severity = 'high' THEN 1 END) as high_alerts,
+                COUNT(CASE WHEN a.severity = 'medium' THEN 1 END) as medium_alerts,
+                COUNT(CASE WHEN a.severity = 'low' THEN 1 END) as low_alerts,
+                COUNT(CASE WHEN a.status = 'active' THEN 1 END) as active_alerts,
+                AVG(TIMESTAMPDIFF(MINUTE, a.created_at, a.resolved_at)) as avg_resolution_time,
+                COUNT(CASE WHEN TIMESTAMPDIFF(MINUTE, a.created_at, a.resolved_at) <= 15 THEN 1 END) as quick_resolutions,
+                COUNT(an.id) as total_notifications,
+                COUNT(CASE WHEN an.status = 'delivered' THEN 1 END) as delivered_notifications
+            FROM alerts a
+            LEFT JOIN alert_notifications an ON a.id = an.alert_id
+            WHERE a.company_id = ?
         ", [$this->user['company_id']]);
     }
 
-    private function getEdgeNodes() {
-        return $this->db->query("
-            SELECT
-                en.*,
-                COUNT(d.id) as connected_devices,
-                AVG(en.cpu_usage) as avg_cpu_usage,
-                AVG(en.memory_usage) as avg_memory_usage,
-                SUM(en.data_processed_gb) as total_data_processed
-            FROM edge_nodes en
-            LEFT JOIN iot_devices d ON en.id = d.edge_node_id
-            WHERE en.company_id = ?
-            GROUP BY en.id
-            ORDER BY en.created_at DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getLocalProcessing() {
-        return $this->db->query("
-            SELECT
-                lp.*,
-                d.name as device_name,
-                d.device_id as device_code,
-                lp.processing_time_ms,
-                lp.data_reduction_ratio
-            FROM local_processing lp
-            JOIN iot_devices d ON lp.device_id = d.id
-            WHERE lp.company_id = ?
-            ORDER BY lp.created_at DESC
-            LIMIT 100
-        ", [$this->user['company_id']]);
-    }
-
-    private function getDataRouting() {
-        return $this->db->query("
-            SELECT
-                dr.*,
-                d.name as device_name,
-                d.device_id as device_code,
-                en.name as edge_node_name,
-                dr.routing_efficiency,
-                dr.latency_ms
-            FROM data_routing dr
-            JOIN iot_devices d ON dr.device_id = d.id
-            LEFT JOIN edge_nodes en ON dr.edge_node_id = en.id
-            WHERE dr.company_id = ?
-            ORDER BY dr.created_at DESC
-            LIMIT 100
-        ", [$this->user['company_id']]);
-    }
-
-    private function getOfflineCapabilities() {
-        return $this->db->query("
-            SELECT
-                d.name as device_name,
-                d.device_id as device_code,
-                oc.offline_duration_hours,
-                oc.data_storage_capacity_mb,
-                oc.last_sync_at,
-                TIMESTAMPDIFF(HOUR, oc.last_sync_at, NOW()) as hours_since_sync
-            FROM iot_devices d
-            JOIN offline_capabilities oc ON d.id = oc.device_id
-            WHERE d.company_id = ?
-            ORDER BY oc.last_sync_at DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getEdgeAnalytics() {
-        return $this->db->query("
-            SELECT
-                ea.*,
-                en.name as edge_node_name,
-                ea.analytics_type,
-                ea.execution_time_ms,
-                ea.accuracy_score
-            FROM edge_analytics ea
-            JOIN edge_nodes en ON ea.edge_node_id = en.id
-            WHERE ea.company_id = ?
-            ORDER BY ea.created_at DESC
-            LIMIT 50
-        ", [$this->user['company_id']]);
-    }
-
-    private function getDeviceUtilization() {
-        return $this->db->query("
-            SELECT
-                d.name as device_name,
-                d.device_id as device_code,
-                COUNT(sr.id) as total_readings,
-                AVG(sr.value) as avg_reading_value,
-                MAX(sr.timestamp) as last_reading,
-                TIMESTAMPDIFF(HOUR, d.last_seen, NOW()) as hours_since_last_seen,
-                CASE
-                    WHEN d.last_seen > DATE_SUB(NOW(), INTERVAL 1 HOUR) THEN 'high'
-                    WHEN d.last_seen > DATE_SUB(NOW(), INTERVAL 24 HOUR) THEN 'medium'
-                    ELSE 'low'
-                END as utilization_level
-            FROM iot_devices d
-            LEFT JOIN sensor_readings sr ON d.id = sr.device_id
-                AND sr.timestamp >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
-            WHERE d.company_id = ?
-            GROUP BY d.id, d.name, d.device_id, d.last_seen
-            ORDER BY total_readings DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getDataVolume() {
-        return $this->db->query("
-            SELECT
-                DATE_TRUNC('day', timestamp) as date,
-                COUNT(*) as total_readings,
-                SUM(data_size_bytes) as total_data_size,
-                COUNT(DISTINCT device_id) as active_devices,
-                AVG(data_quality_score) as avg_quality
-            FROM sensor_readings
-            WHERE company_id = ? AND timestamp >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-            GROUP BY DATE_TRUNC('day', timestamp)
-            ORDER BY date DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getEnergyConsumption() {
-        return $this->db->query("
-            SELECT
-                d.name as device_name,
-                d.device_id as device_code,
-                AVG(ec.power_consumption_watts) as avg_power_consumption,
-                SUM(ec.energy_consumed_kwh) as total_energy_consumed,
-                MAX(ec.timestamp) as last_measurement
-            FROM iot_devices d
-            LEFT JOIN energy_consumption ec ON d.id = ec.device_id
-                AND ec.timestamp >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-            WHERE d.company_id = ?
-            GROUP BY d.id, d.name, d.device_id
-            ORDER BY total_energy_consumed DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getIoTROI() {
-        $totalInvestment = $this->getTotalIoTInvestment();
-        $totalBenefits = $this->getTotalIoTBenefits();
-
-        $roi = $totalInvestment > 0 ? (($totalBenefits - $totalInvestment) / $totalInvestment) * 100 : 0;
-
-        return [
-            'total_investment' => $totalInvestment,
-            'total_benefits' => $totalBenefits,
-            'net_benefit' => $totalBenefits - $totalInvestment,
-            'roi_percentage' => round($roi, 2),
-            'payback_period_months' => $this->calculatePaybackPeriod(),
-            'cost_savings_breakdown' => $this->getCostSavingsBreakdown()
-        ];
-    }
-
-    private function getTotalIoTInvestment() {
+    private function getAlertSettings() {
         return $this->db->querySingle("
-            SELECT
-                SUM(acquisition_cost) + SUM(maintenance_cost) + SUM(software_cost) as total_investment
-            FROM iot_devices
+            SELECT * FROM alert_settings
             WHERE company_id = ?
-        ", [$this->user['company_id']])['total_investment'] ?? 0;
-    }
-
-    private function getTotalIoTBenefits() {
-        return $this->db->querySingle("
-            SELECT
-                SUM(productivity_gain) + SUM(cost_savings) + SUM(revenue_increase) as total_benefits
-            FROM iot_roi_metrics
-            WHERE company_id = ?
-        ", [$this->user['company_id']])['total_benefits'] ?? 0;
-    }
-
-    private function calculatePaybackPeriod() {
-        // Implementation for calculating payback period
-        return 18; // months
-    }
-
-    private function getCostSavingsBreakdown() {
-        return $this->db->query("
-            SELECT
-                savings_category,
-                SUM(amount) as total_savings,
-                AVG(percentage) as avg_percentage
-            FROM iot_cost_savings
-            WHERE company_id = ?
-            GROUP BY savings_category
-            ORDER BY total_savings DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getPerformanceInsights() {
+    private function getConnectionStatus() {
         return $this->db->query("
             SELECT
-                insight_type,
-                COUNT(*) as insight_count,
-                AVG(confidence_score) as avg_confidence,
-                MAX(created_at) as latest_insight
-            FROM iot_performance_insights
-            WHERE company_id = ?
-            GROUP BY insight_type
-            ORDER BY insight_count DESC
+                d.device_name,
+                d.connection_type,
+                d.ip_address,
+                d.mac_address,
+                d.last_seen,
+                TIMESTAMPDIFF(MINUTE, d.last_seen, NOW()) as minutes_since_last_seen,
+                d.connection_status,
+                d.signal_strength,
+                d.bandwidth_usage,
+                d.latency_ms,
+                d.packet_loss_percentage
+            FROM devices d
+            WHERE d.company_id = ?
+            ORDER BY d.last_seen DESC
         ", [$this->user['company_id']]);
     }
 
-    // ============================================================================
-    // API ENDPOINTS
-    // ============================================================================
-
-    public function receiveSensorData() {
-        $data = $this->validateRequest([
-            'device_id' => 'required|string',
-            'sensor_data' => 'required|array',
-            'timestamp' => 'date'
-        ]);
-
-        try {
-            $this->db->beginTransaction();
-
-            $device = $this->db->querySingle("
-                SELECT id FROM iot_devices
-                WHERE device_id = ? AND company_id = ?
-            ", [$data['device_id'], $this->user['company_id']]);
-
-            if (!$device) {
-                throw new Exception('Device not found');
-            }
-
-            foreach ($data['sensor_data'] as $sensorData) {
-                $this->db->insert('sensor_readings', [
-                    'company_id' => $this->user['company_id'],
-                    'device_id' => $device['id'],
-                    'device_sensor_id' => $sensorData['sensor_id'],
-                    'sensor_type_id' => $sensorData['sensor_type_id'],
-                    'value' => $sensorData['value'],
-                    'unit' => $sensorData['unit'],
-                    'timestamp' => $data['timestamp'] ?? date('Y-m-d H:i:s'),
-                    'data_quality_score' => $sensorData['quality_score'] ?? 1.0,
-                    'metadata' => json_encode($sensorData['metadata'] ?? [])
-                ]);
-            }
-
-            // Update device last seen
-            $this->db->update('iot_devices', [
-                'last_seen' => date('Y-m-d H:i:s'),
-                'battery_level' => $data['battery_level'] ?? null
-            ], 'id = ?', [$device['id']]);
-
-            $this->db->commit();
-
-            $this->jsonResponse([
-                'success' => true,
-                'message' => 'Sensor data received successfully'
-            ]);
-
-        } catch (Exception $e) {
-            $this->db->rollback();
-            $this->jsonResponse([
-                'success' => false,
-                'error' => $e->getMessage()
-            ], 500);
-        }
+    private function getNetworkTopology() {
+        return $this->db->query("
+            SELECT
+                nt.node_type,
+                nt.node_name,
+                nt.parent_node,
+                nt.connection_type,
+                nt.bandwidth_capacity,
+                nt.current_utilization,
+                ROUND((nt.current_utilization / NULLIF(nt.bandwidth_capacity, 0)) * 100, 2) as utilization_percentage,
+                nt.latency_ms,
+                nt.status,
+                nt.last_updated
+            FROM network_topology nt
+            WHERE nt.company_id = ?
+            ORDER BY nt.node_type, nt.node_name
+        ", [$this->user['company_id']]);
     }
 
-    public function getDeviceStatus() {
-        $data = $this->validateRequest([
-            'device_id' => 'required|string'
-        ]);
-
-        try {
-            $device = $this->db->querySingle("
-                SELECT
-                    d.*,
-                    COUNT(sr.id) as recent_readings,
-                    MAX(sr.timestamp) as last_reading,
-                    AVG(sr.data_quality_score) as avg_data_quality
-                FROM iot_devices d
-                LEFT JOIN sensor_readings sr ON d.id = sr.device_id
-                    AND sr.timestamp >= DATE_SUB(NOW(), INTERVAL 1 HOUR)
-                WHERE d.device_id = ? AND d.company_id = ?
-                GROUP BY d.id
-            ", [$data['device_id'], $this->user['company_id']]);
-
-            if (!$device) {
-                throw new Exception('Device not found');
-            }
-
-            $this->jsonResponse([
-                'success' => true,
-                'device' => $device
-            ]);
-
-        } catch (Exception $e) {
-            $this->jsonResponse([
-                'success' => false,
-                'error' => $e->getMessage()
-            ], 404);
-        }
-    }
-
-    public function sendDeviceCommand() {
-        $this->requirePermission('iot.devices.control');
-
-        $data = $this->validateRequest([
-            'device_id' => 'required|string',
-            'command' => 'required|string',
-            'parameters' => 'array'
-        ]);
-
-        try {
-            $device = $
+    private function getCommunicationProtocols() {
+        return $this->db->query("
+            SELECT
+                cp.protocol_name,
+                cp.protocol_type,

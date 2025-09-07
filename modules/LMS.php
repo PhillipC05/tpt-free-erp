@@ -1,7 +1,7 @@
 <?php
 /**
  * TPT Free ERP - Learning Management System Module
- * Complete course management, student tracking, and certification system
+ * Complete course management, student enrollment, certification, and compliance training system
  */
 
 class LMS extends BaseController {
@@ -22,26 +22,31 @@ class LMS extends BaseController {
 
         $data = [
             'title' => 'Learning Management System',
-            'course_stats' => $this->getCourseStats(),
-            'student_progress' => $this->getStudentProgress(),
-            'upcoming_deadlines' => $this->getUpcomingDeadlines(),
+            'course_overview' => $this->getCourseOverview(),
+            'enrollment_stats' => $this->getEnrollmentStats(),
             'certification_status' => $this->getCertificationStatus(),
-            'learning_analytics' => $this->getLearningAnalytics()
+            'training_compliance' => $this->getTrainingCompliance(),
+            'assessment_results' => $this->getAssessmentResults(),
+            'learning_analytics' => $this->getLearningAnalytics(),
+            'upcoming_deadlines' => $this->getUpcomingDeadlines(),
+            'training_alerts' => $this->getTrainingAlerts()
         ];
 
         $this->render('modules/lms/dashboard', $data);
     }
 
     /**
-     * Course catalog and management
+     * Course management
      */
     public function courses() {
         $this->requirePermission('lms.courses.view');
 
         $filters = [
+            'status' => $_GET['status'] ?? null,
             'category' => $_GET['category'] ?? null,
-            'status' => $_GET['status'] ?? 'published',
             'instructor' => $_GET['instructor'] ?? null,
+            'date_from' => $_GET['date_from'] ?? null,
+            'date_to' => $_GET['date_to'] ?? null,
             'search' => $_GET['search'] ?? null
         ];
 
@@ -51,78 +56,36 @@ class LMS extends BaseController {
             'title' => 'Course Management',
             'courses' => $courses,
             'filters' => $filters,
-            'categories' => $this->getCourseCategories(),
+            'course_categories' => $this->getCourseCategories(),
+            'course_status' => $this->getCourseStatus(),
             'instructors' => $this->getInstructors(),
-            'course_summary' => $this->getCourseSummary($filters)
+            'course_templates' => $this->getCourseTemplates(),
+            'bulk_actions' => $this->getBulkActions(),
+            'course_analytics' => $this->getCourseAnalytics()
         ];
 
         $this->render('modules/lms/courses', $data);
     }
 
     /**
-     * Create new course
-     */
-    public function createCourse() {
-        $this->requirePermission('lms.courses.create');
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            return $this->processCourseCreation();
-        }
-
-        $data = [
-            'title' => 'Create Course',
-            'categories' => $this->getCourseCategories(),
-            'instructors' => $this->getInstructors(),
-            'course_types' => $this->getCourseTypes(),
-            'next_course_id' => $this->generateNextCourseId()
-        ];
-
-        $this->render('modules/lms/create_course', $data);
-    }
-
-    /**
-     * Student enrollments and progress
+     * Student enrollment management
      */
     public function enrollments() {
         $this->requirePermission('lms.enrollments.view');
 
-        $filters = [
-            'course_id' => $_GET['course_id'] ?? null,
-            'student_id' => $_GET['student_id'] ?? null,
-            'status' => $_GET['status'] ?? 'all',
-            'date_from' => $_GET['date_from'] ?? null,
-            'date_to' => $_GET['date_to'] ?? null
-        ];
-
-        $enrollments = $this->getEnrollments($filters);
-
         $data = [
             'title' => 'Student Enrollments',
-            'enrollments' => $enrollments,
-            'filters' => $filters,
-            'courses' => $this->getCourses(),
-            'students' => $this->getStudents(),
-            'enrollment_summary' => $this->getEnrollmentSummary($filters)
+            'enrollments' => $this->getEnrollments(),
+            'enrollment_stats' => $this->getEnrollmentStats(),
+            'enrollment_trends' => $this->getEnrollmentTrends(),
+            'student_progress' => $this->getStudentProgress(),
+            'enrollment_reports' => $this->getEnrollmentReports(),
+            'enrollment_templates' => $this->getEnrollmentTemplates(),
+            'enrollment_analytics' => $this->getEnrollmentAnalytics(),
+            'enrollment_settings' => $this->getEnrollmentSettings()
         ];
 
         $this->render('modules/lms/enrollments', $data);
-    }
-
-    /**
-     * Assessment and testing management
-     */
-    public function assessments() {
-        $this->requirePermission('lms.assessments.view');
-
-        $data = [
-            'title' => 'Assessments & Testing',
-            'assessments' => $this->getAssessments(),
-            'question_banks' => $this->getQuestionBanks(),
-            'grading_rules' => $this->getGradingRules(),
-            'assessment_analytics' => $this->getAssessmentAnalytics()
-        ];
-
-        $this->render('modules/lms/assessments', $data);
     }
 
     /**
@@ -131,190 +94,304 @@ class LMS extends BaseController {
     public function certifications() {
         $this->requirePermission('lms.certifications.view');
 
-        $filters = [
-            'status' => $_GET['status'] ?? 'active',
-            'type' => $_GET['type'] ?? null,
-            'student_id' => $_GET['student_id'] ?? null,
-            'expiry_from' => $_GET['expiry_from'] ?? null,
-            'expiry_to' => $_GET['expiry_to'] ?? null
-        ];
-
-        $certifications = $this->getCertifications($filters);
-
         $data = [
             'title' => 'Certification Management',
-            'certifications' => $certifications,
-            'filters' => $filters,
-            'certification_types' => $this->getCertificationTypes(),
-            'students' => $this->getStudents(),
-            'certification_summary' => $this->getCertificationSummary($filters)
+            'certifications' => $this->getCertifications(),
+            'certification_templates' => $this->getCertificationTemplates(),
+            'certification_requirements' => $this->getCertificationRequirements(),
+            'certification_exams' => $this->getCertificationExams(),
+            'certification_tracking' => $this->getCertificationTracking(),
+            'certification_reports' => $this->getCertificationReports(),
+            'certification_analytics' => $this->getCertificationAnalytics(),
+            'certification_settings' => $this->getCertificationSettings()
         ];
 
         $this->render('modules/lms/certifications', $data);
     }
 
     /**
-     * Student learning portal
+     * Assessment and testing
      */
-    public function studentPortal() {
-        $this->requirePermission('lms.student_portal.view');
+    public function assessments() {
+        $this->requirePermission('lms.assessments.view');
 
         $data = [
-            'title' => 'Learning Portal',
-            'my_courses' => $this->getMyCourses(),
-            'recommended_courses' => $this->getRecommendedCourses(),
-            'learning_path' => $this->getLearningPath(),
-            'achievements' => $this->getAchievements(),
-            'upcoming_assignments' => $this->getUpcomingAssignments()
+            'title' => 'Assessments & Testing',
+            'assessments' => $this->getAssessments(),
+            'assessment_templates' => $this->getAssessmentTemplates(),
+            'assessment_results' => $this->getAssessmentResults(),
+            'assessment_analytics' => $this->getAssessmentAnalytics(),
+            'question_bank' => $this->getQuestionBank(),
+            'assessment_reports' => $this->getAssessmentReports(),
+            'assessment_settings' => $this->getAssessmentSettings(),
+            'grading_system' => $this->getGradingSystem()
         ];
 
-        $this->render('modules/lms/student_portal', $data);
+        $this->render('modules/lms/assessments', $data);
     }
 
     /**
-     * Compliance training management
+     * Compliance training
      */
     public function compliance() {
         $this->requirePermission('lms.compliance.view');
 
         $data = [
             'title' => 'Compliance Training',
-            'mandatory_courses' => $this->getMandatoryCourses(),
-            'compliance_assignments' => $this->getComplianceAssignments(),
+            'compliance_requirements' => $this->getComplianceRequirements(),
+            'compliance_courses' => $this->getComplianceCourses(),
+            'compliance_tracking' => $this->getComplianceTracking(),
             'compliance_reports' => $this->getComplianceReports(),
-            'regulatory_requirements' => $this->getRegulatoryRequirements()
+            'compliance_alerts' => $this->getComplianceAlerts(),
+            'compliance_analytics' => $this->getComplianceAnalytics(),
+            'compliance_templates' => $this->getComplianceTemplates(),
+            'compliance_settings' => $this->getComplianceSettings()
         ];
 
         $this->render('modules/lms/compliance', $data);
     }
 
     /**
-     * Learning analytics and reporting
+     * Learning analytics
      */
     public function analytics() {
         $this->requirePermission('lms.analytics.view');
 
         $data = [
             'title' => 'Learning Analytics',
-            'engagement_metrics' => $this->getEngagementMetrics(),
-            'completion_rates' => $this->getCompletionRates(),
-            'assessment_performance' => $this->getAssessmentPerformance(),
-            'learning_outcomes' => $this->getLearningOutcomes(),
-            'roi_analysis' => $this->getLearningROI()
+            'learning_metrics' => $this->getLearningMetrics(),
+            'student_engagement' => $this->getStudentEngagement(),
+            'course_effectiveness' => $this->getCourseEffectiveness(),
+            'learning_trends' => $this->getLearningTrends(),
+            'performance_insights' => $this->getPerformanceInsights(),
+            'predictive_analytics' => $this->getPredictiveAnalytics(),
+            'benchmarking' => $this->getBenchmarking(),
+            'custom_reports' => $this->getCustomReports()
         ];
 
         $this->render('modules/lms/analytics', $data);
+    }
+
+    /**
+     * Content management
+     */
+    public function content() {
+        $this->requirePermission('lms.content.view');
+
+        $data = [
+            'title' => 'Content Management',
+            'content_library' => $this->getContentLibrary(),
+            'content_categories' => $this->getContentCategories(),
+            'content_authors' => $this->getContentAuthors(),
+            'content_reviews' => $this->getContentReviews(),
+            'content_analytics' => $this->getContentAnalytics(),
+            'content_templates' => $this->getContentTemplates(),
+            'content_settings' => $this->getContentSettings(),
+            'media_library' => $this->getMediaLibrary()
+        ];
+
+        $this->render('modules/lms/content', $data);
+    }
+
+    /**
+     * Instructor management
+     */
+    public function instructors() {
+        $this->requirePermission('lms.instructors.view');
+
+        $data = [
+            'title' => 'Instructor Management',
+            'instructors' => $this->getInstructors(),
+            'instructor_performance' => $this->getInstructorPerformance(),
+            'instructor_courses' => $this->getInstructorCourses(),
+            'instructor_ratings' => $this->getInstructorRatings(),
+            'instructor_analytics' => $this->getInstructorAnalytics(),
+            'instructor_templates' => $this->getInstructorTemplates(),
+            'instructor_settings' => $this->getInstructorSettings(),
+            'instructor_reports' => $this->getInstructorReports()
+        ];
+
+        $this->render('modules/lms/instructors', $data);
     }
 
     // ============================================================================
     // PRIVATE METHODS
     // ============================================================================
 
-    private function getCourseStats() {
+    private function getCourseOverview() {
         return $this->db->querySingle("
             SELECT
-                COUNT(*) as total_courses,
-                COUNT(CASE WHEN status = 'published' THEN 1 END) as published_courses,
-                COUNT(CASE WHEN status = 'draft' THEN 1 END) as draft_courses,
-                COUNT(DISTINCT category_id) as categories_used,
-                AVG(duration_hours) as avg_course_duration,
-                SUM(enrollment_count) as total_enrollments
-            FROM courses
-            WHERE company_id = ?
+                COUNT(DISTINCT c.id) as total_courses,
+                COUNT(CASE WHEN c.status = 'published' THEN 1 END) as published_courses,
+                COUNT(CASE WHEN c.status = 'draft' THEN 1 END) as draft_courses,
+                COUNT(CASE WHEN c.status = 'archived' THEN 1 END) as archived_courses,
+                SUM(c.enrollment_count) as total_enrollments,
+                AVG(c.completion_rate) as avg_completion_rate,
+                COUNT(CASE WHEN c.next_session_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY) THEN 1 END) as upcoming_sessions,
+                COUNT(CASE WHEN c.certification_expiry <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 1 END) as expiring_certifications,
+                AVG(c.student_rating) as avg_course_rating
+            FROM courses c
+            WHERE c.company_id = ?
         ", [$this->user['company_id']]);
     }
 
-    private function getStudentProgress() {
+    private function getEnrollmentStats() {
+        return $this->db->querySingle("
+            SELECT
+                COUNT(e.id) as total_enrollments,
+                COUNT(CASE WHEN e.status = 'active' THEN 1 END) as active_enrollments,
+                COUNT(CASE WHEN e.status = 'completed' THEN 1 END) as completed_enrollments,
+                COUNT(CASE WHEN e.status = 'dropped' THEN 1 END) as dropped_enrollments,
+                ROUND((COUNT(CASE WHEN e.status = 'completed' THEN 1 END) / NULLIF(COUNT(e.id), 0)) * 100, 2) as completion_rate,
+                AVG(e.progress_percentage) as avg_progress,
+                COUNT(CASE WHEN e.due_date <= CURDATE() AND e.status = 'active' THEN 1 END) as overdue_enrollments,
+                COUNT(CASE WHEN e.due_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY) AND e.status = 'active' THEN 1 END) as due_soon
+            FROM enrollments e
+            WHERE e.company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getCertificationStatus() {
         return $this->db->query("
             SELECT
-                u.first_name,
-                u.last_name,
-                COUNT(se.id) as enrolled_courses,
-                COUNT(CASE WHEN se.completion_percentage = 100 THEN 1 END) as completed_courses,
-                AVG(se.completion_percentage) as avg_completion,
-                MAX(se.last_accessed_at) as last_activity
+                ct.certification_name,
+                COUNT(sc.id) as total_certifications,
+                COUNT(CASE WHEN sc.status = 'active' THEN 1 END) as active_certifications,
+                COUNT(CASE WHEN sc.status = 'expired' THEN 1 END) as expired_certifications,
+                COUNT(CASE WHEN sc.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 1 END) as expiring_soon,
+                AVG(sc.score) as avg_score,
+                COUNT(CASE WHEN sc.score >= 80 THEN 1 END) as passed_certifications
+            FROM certification_templates ct
+            LEFT JOIN student_certifications sc ON ct.id = sc.certification_id
+            WHERE ct.company_id = ?
+            GROUP BY ct.id, ct.certification_name
+            ORDER BY total_certifications DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getTrainingCompliance() {
+        return $this->db->querySingle("
+            SELECT
+                COUNT(DISTINCT u.id) as total_employees,
+                COUNT(CASE WHEN tc.compliance_status = 'compliant' THEN 1 END) as compliant_employees,
+                ROUND((COUNT(CASE WHEN tc.compliance_status = 'compliant' THEN 1 END) / NULLIF(COUNT(DISTINCT u.id), 0)) * 100, 2) as compliance_rate,
+                COUNT(CASE WHEN tc.next_training_date <= CURDATE() THEN 1 END) as overdue_training,
+                COUNT(CASE WHEN tc.next_training_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 1 END) as training_due_soon,
+                AVG(tc.compliance_score) as avg_compliance_score,
+                COUNT(CASE WHEN tc.compliance_score < 70 THEN 1 END) as low_compliance
             FROM users u
-            LEFT JOIN student_enrollments se ON u.id = se.student_id
-            WHERE u.company_id = ? AND se.status = 'active'
-            GROUP BY u.id, u.first_name, u.last_name
-            ORDER BY avg_completion DESC
-            LIMIT 10
+            LEFT JOIN training_compliance tc ON u.id = tc.user_id
+            WHERE u.company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getAssessmentResults() {
+        return $this->db->query("
+            SELECT
+                a.assessment_name,
+                COUNT(ar.id) as total_attempts,
+                AVG(ar.score) as avg_score,
+                COUNT(CASE WHEN ar.passed = true THEN 1 END) as passed_attempts,
+                ROUND((COUNT(CASE WHEN ar.passed = true THEN 1 END) / NULLIF(COUNT(ar.id), 0)) * 100, 2) as pass_rate,
+                MIN(ar.score) as min_score,
+                MAX(ar.score) as max_score,
+                AVG(ar.completion_time) as avg_completion_time
+            FROM assessments a
+            LEFT JOIN assessment_results ar ON a.id = ar.assessment_id
+            WHERE a.company_id = ?
+            GROUP BY a.id, a.assessment_name
+            ORDER BY total_attempts DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getLearningAnalytics() {
+        return $this->db->querySingle("
+            SELECT
+                COUNT(DISTINCT c.id) as total_courses,
+                COUNT(DISTINCT e.student_id) as total_students,
+                AVG(e.progress_percentage) as avg_progress,
+                AVG(c.completion_rate) as avg_completion_rate,
+                SUM(c.total_learning_hours) as total_learning_hours,
+                AVG(c.student_rating) as avg_course_rating,
+                COUNT(CASE WHEN e.last_activity_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN 1 END) as active_students_week,
+                COUNT(CASE WHEN e.status = 'completed' THEN 1 END) as completed_enrollments
+            FROM courses c
+            LEFT JOIN enrollments e ON c.id = e.course_id
+            WHERE c.company_id = ?
         ", [$this->user['company_id']]);
     }
 
     private function getUpcomingDeadlines() {
         return $this->db->query("
             SELECT
-                se.*,
-                c.title as course_title,
+                c.course_name,
                 u.first_name,
                 u.last_name,
-                DATEDIFF(se.due_date, CURDATE()) as days_remaining
-            FROM student_enrollments se
-            JOIN courses c ON se.course_id = c.id
-            LEFT JOIN users u ON se.student_id = u.id
-            WHERE se.company_id = ? AND se.status = 'active'
-                AND se.due_date IS NOT NULL
-                AND se.due_date >= CURDATE()
-                AND se.due_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY)
-            ORDER BY se.due_date ASC
+                e.due_date,
+                e.progress_percentage,
+                TIMESTAMPDIFF(DAY, CURDATE(), e.due_date) as days_until_due,
+                CASE
+                    WHEN e.due_date <= CURDATE() THEN 'overdue'
+                    WHEN e.due_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY) THEN 'due_soon'
+                    ELSE 'upcoming'
+                END as deadline_status
+            FROM enrollments e
+            JOIN courses c ON e.course_id = c.id
+            JOIN users u ON e.student_id = u.id
+            WHERE e.company_id = ? AND e.status = 'active' AND e.due_date >= CURDATE()
+            ORDER BY e.due_date ASC
             LIMIT 20
         ", [$this->user['company_id']]);
     }
 
-    private function getCertificationStatus() {
-        return $this->db->querySingle("
+    private function getTrainingAlerts() {
+        return $this->db->query("
             SELECT
-                COUNT(*) as total_certifications,
-                COUNT(CASE WHEN status = 'active' THEN 1 END) as active_certifications,
-                COUNT(CASE WHEN expiry_date < CURDATE() THEN 1 END) as expired_certifications,
-                COUNT(CASE WHEN expiry_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 1 END) as expiring_soon,
-                AVG(validity_months) as avg_validity_period
-            FROM certifications
-            WHERE company_id = ?
+                ta.*,
+                ta.alert_type,
+                ta.severity,
+                ta.message,
+                ta.user_id,
+                ta.course_id,
+                ta.created_at,
+                TIMESTAMPDIFF(MINUTE, ta.created_at, NOW()) as minutes_since_alert
+            FROM training_alerts ta
+            WHERE ta.company_id = ? AND ta.status = 'active'
+            ORDER BY ta.severity DESC, ta.created_at DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getLearningAnalytics() {
-        return $this->db->query("
-            SELECT
-                DATE_TRUNC('month', created_at) as month,
-                COUNT(DISTINCT se.student_id) as active_students,
-                COUNT(se.id) as total_enrollments,
-                COUNT(CASE WHEN se.completion_percentage = 100 THEN 1 END) as completions,
-                AVG(se.completion_percentage) as avg_completion_rate
-            FROM student_enrollments se
-            WHERE se.company_id = ? AND se.created_at >= ?
-            GROUP BY DATE_TRUNC('month', se.created_at)
-            ORDER BY month DESC
-            LIMIT 12
-        ", [
-            $this->user['company_id'],
-            date('Y-m-d H:i:s', strtotime('-12 months'))
-        ]);
-    }
-
-    private function getCourses($filters) {
+    private function getCourses($filters = []) {
         $where = ["c.company_id = ?"];
         $params = [$this->user['company_id']];
 
-        if ($filters['category']) {
-            $where[] = "c.category_id = ?";
-            $params[] = $filters['category'];
-        }
-
-        if ($filters['status'] !== 'all') {
+        if (isset($filters['status'])) {
             $where[] = "c.status = ?";
             $params[] = $filters['status'];
         }
 
-        if ($filters['instructor']) {
+        if (isset($filters['category'])) {
+            $where[] = "c.category_id = ?";
+            $params[] = $filters['category'];
+        }
+
+        if (isset($filters['instructor'])) {
             $where[] = "c.instructor_id = ?";
             $params[] = $filters['instructor'];
         }
 
-        if ($filters['search']) {
-            $where[] = "(c.title LIKE ? OR c.description LIKE ? OR c.tags LIKE ?)";
+        if (isset($filters['date_from'])) {
+            $where[] = "c.created_date >= ?";
+            $params[] = $filters['date_from'] . ' 00:00:00';
+        }
+
+        if (isset($filters['date_to'])) {
+            $where[] = "c.created_date <= ?";
+            $params[] = $filters['date_to'] . ' 23:59:59';
+        }
+
+        if (isset($filters['search'])) {
+            $where[] = "(c.course_name LIKE ? OR c.description LIKE ? OR c.course_code LIKE ?)";
             $search_term = '%' . $filters['search'] . '%';
             $params[] = $search_term;
             $params[] = $search_term;
@@ -326,849 +403,716 @@ class LMS extends BaseController {
         return $this->db->query("
             SELECT
                 c.*,
-                cc.name as category_name,
+                cc.category_name,
                 u.first_name as instructor_first,
                 u.last_name as instructor_last,
-                COUNT(se.id) as enrollment_count,
-                COUNT(CASE WHEN se.completion_percentage = 100 THEN 1 END) as completion_count,
-                AVG(se.completion_percentage) as avg_completion_rate,
-                AVG(se.student_rating) as avg_rating
+                c.enrollment_count,
+                c.completion_rate,
+                c.student_rating,
+                c.total_learning_hours,
+                TIMESTAMPDIFF(DAY, CURDATE(), c.next_session_date) as days_until_next_session,
+                TIMESTAMPDIFF(DAY, CURDATE(), c.certification_expiry) as days_until_certification_expiry
             FROM courses c
             LEFT JOIN course_categories cc ON c.category_id = cc.id
             LEFT JOIN users u ON c.instructor_id = u.id
-            LEFT JOIN student_enrollments se ON c.id = se.course_id
             WHERE $whereClause
-            GROUP BY c.id, cc.name, u.first_name, u.last_name
-            ORDER BY c.created_at DESC
+            ORDER BY c.created_date DESC
         ", $params);
     }
 
     private function getCourseCategories() {
         return $this->db->query("
-            SELECT * FROM course_categories
-            WHERE company_id = ?
-            ORDER BY name ASC
+            SELECT
+                cc.*,
+                COUNT(c.id) as course_count,
+                SUM(c.enrollment_count) as total_enrollments,
+                AVG(c.completion_rate) as avg_completion_rate
+            FROM course_categories cc
+            LEFT JOIN courses c ON cc.id = c.category_id
+            WHERE cc.company_id = ?
+            GROUP BY cc.id
+            ORDER BY course_count DESC
         ", [$this->user['company_id']]);
+    }
+
+    private function getCourseStatus() {
+        return [
+            'draft' => 'Draft',
+            'review' => 'Under Review',
+            'published' => 'Published',
+            'archived' => 'Archived',
+            'retired' => 'Retired'
+        ];
     }
 
     private function getInstructors() {
         return $this->db->query("
             SELECT
-                u.*,
-                COUNT(c.id) as courses_created,
-                AVG(c.avg_rating) as avg_course_rating
+                u.id,
+                u.first_name,
+                u.last_name,
+                COUNT(c.id) as courses_taught,
+                SUM(c.enrollment_count) as total_students,
+                AVG(c.student_rating) as avg_rating,
+                AVG(c.completion_rate) as avg_completion_rate,
+                i.specialization,
+                i.certifications,
+                i.teaching_experience_years
             FROM users u
+            JOIN instructors i ON u.id = i.user_id
             LEFT JOIN courses c ON u.id = c.instructor_id
-            WHERE u.company_id = ? AND u.role_id IN (
-                SELECT id FROM roles WHERE name LIKE '%instructor%' OR name LIKE '%trainer%'
-            )
-            GROUP BY u.id
-            ORDER BY u.first_name, u.last_name
+            WHERE u.company_id = ?
+            GROUP BY u.id, u.first_name, u.last_name, i.specialization, i.certifications, i.teaching_experience_years
+            ORDER BY courses_taught DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getCourseTypes() {
+    private function getCourseTemplates() {
+        return $this->db->query("
+            SELECT * FROM course_templates
+            WHERE company_id = ? AND is_active = true
+            ORDER BY template_name ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getBulkActions() {
         return [
-            'self_paced' => 'Self-Paced Learning',
-            'instructor_led' => 'Instructor-Led',
-            'blended' => 'Blended Learning',
-            'compliance' => 'Compliance Training',
-            'certification' => 'Certification Course',
-            'workshop' => 'Workshop/Seminar'
+            'publish_courses' => 'Publish Courses',
+            'archive_courses' => 'Archive Courses',
+            'duplicate_courses' => 'Duplicate Courses',
+            'update_category' => 'Update Category',
+            'assign_instructor' => 'Assign Instructor',
+            'export_courses' => 'Export Course Data',
+            'import_courses' => 'Import Course Data',
+            'bulk_enrollment' => 'Bulk Enrollment',
+            'generate_reports' => 'Generate Reports'
         ];
     }
 
-    private function getCourseSummary($filters) {
-        $where = ["company_id = ?"];
-        $params = [$this->user['company_id']];
-
-        if ($filters['category']) {
-            $where[] = "category_id = ?";
-            $params[] = $filters['category'];
-        }
-
-        if ($filters['status'] !== 'all') {
-            $where[] = "status = ?";
-            $params[] = $filters['status'];
-        }
-
-        $whereClause = implode(' AND ', $where);
-
+    private function getCourseAnalytics() {
         return $this->db->querySingle("
             SELECT
-                COUNT(*) as total_courses,
-                COUNT(CASE WHEN status = 'published' THEN 1 END) as published_courses,
-                COUNT(CASE WHEN status = 'draft' THEN 1 END) as draft_courses,
-                AVG(duration_hours) as avg_duration,
-                SUM(enrollment_count) as total_enrollments,
-                AVG(avg_completion_rate) as overall_completion_rate
-            FROM courses
-            WHERE $whereClause
-        ", $params);
-    }
-
-    private function generateNextCourseId() {
-        $lastCourse = $this->db->querySingle("
-            SELECT course_id FROM courses
-            WHERE company_id = ? AND course_id LIKE 'CRS%'
-            ORDER BY course_id DESC
-            LIMIT 1
+                COUNT(c.id) as total_courses,
+                ROUND((COUNT(CASE WHEN c.status = 'published' THEN 1 END) / NULLIF(COUNT(c.id), 0)) * 100, 2) as published_percentage,
+                AVG(c.enrollment_count) as avg_enrollment,
+                AVG(c.completion_rate) as avg_completion_rate,
+                AVG(c.student_rating) as avg_rating,
+                SUM(c.total_learning_hours) as total_learning_hours,
+                COUNT(CASE WHEN c.next_session_date <= CURDATE() THEN 1 END) as courses_with_sessions,
+                COUNT(CASE WHEN c.certification_expiry <= CURDATE() THEN 1 END) as expired_certifications
+            FROM courses c
+            WHERE c.company_id = ?
         ", [$this->user['company_id']]);
-
-        if ($lastCourse) {
-            $number = (int)substr($lastCourse['course_id'], 3) + 1;
-            return 'CRS' . str_pad($number, 6, '0', STR_PAD_LEFT);
-        }
-
-        return 'CRS000001';
     }
 
-    private function processCourseCreation() {
-        $this->requirePermission('lms.courses.create');
-
-        $data = $this->validateCourseData($_POST);
-
-        if (!$data) {
-            $this->setFlash('error', 'Invalid course data');
-            $this->redirect('/lms/create-course');
-        }
-
-        try {
-            $this->db->beginTransaction();
-
-            $courseId = $this->db->insert('courses', [
-                'company_id' => $this->user['company_id'],
-                'course_id' => $data['course_id'],
-                'title' => $data['title'],
-                'description' => $data['description'],
-                'category_id' => $data['category_id'],
-                'instructor_id' => $data['instructor_id'],
-                'course_type' => $data['course_type'],
-                'duration_hours' => $data['duration_hours'],
-                'difficulty_level' => $data['difficulty_level'],
-                'prerequisites' => json_encode($data['prerequisites']),
-                'learning_objectives' => json_encode($data['learning_objectives']),
-                'tags' => $data['tags'],
-                'max_enrollments' => $data['max_enrollments'],
-                'enrollment_deadline' => $data['enrollment_deadline'],
-                'price' => $data['price'],
-                'certificate_issued' => $data['certificate_issued'],
-                'status' => 'draft',
-                'created_by' => $this->user['id']
-            ]);
-
-            $this->db->commit();
-
-            $this->setFlash('success', 'Course created successfully');
-            $this->redirect('/lms/courses');
-
-        } catch (Exception $e) {
-            $this->db->rollback();
-            $this->setFlash('error', 'Failed to create course: ' . $e->getMessage());
-            $this->redirect('/lms/create-course');
-        }
-    }
-
-    private function validateCourseData($data) {
-        if (empty($data['title']) || empty($data['category_id']) || empty($data['instructor_id'])) {
-            return false;
-        }
-
-        return [
-            'course_id' => $data['course_id'] ?? $this->generateNextCourseId(),
-            'title' => $data['title'],
-            'description' => $data['description'] ?? '',
-            'category_id' => $data['category_id'],
-            'instructor_id' => $data['instructor_id'],
-            'course_type' => $data['course_type'] ?? 'self_paced',
-            'duration_hours' => (float)($data['duration_hours'] ?? 0),
-            'difficulty_level' => $data['difficulty_level'] ?? 'beginner',
-            'prerequisites' => $data['prerequisites'] ?? [],
-            'learning_objectives' => $data['learning_objectives'] ?? [],
-            'tags' => $data['tags'] ?? '',
-            'max_enrollments' => (int)($data['max_enrollments'] ?? 0),
-            'enrollment_deadline' => $data['enrollment_deadline'] ?? null,
-            'price' => (float)($data['price'] ?? 0),
-            'certificate_issued' => isset($data['certificate_issued']) ? (bool)$data['certificate_issued'] : false
-        ];
-    }
-
-    private function getEnrollments($filters) {
-        $where = ["se.company_id = ?"];
-        $params = [$this->user['company_id']];
-
-        if ($filters['course_id']) {
-            $where[] = "se.course_id = ?";
-            $params[] = $filters['course_id'];
-        }
-
-        if ($filters['student_id']) {
-            $where[] = "se.student_id = ?";
-            $params[] = $filters['student_id'];
-        }
-
-        if ($filters['status'] !== 'all') {
-            $where[] = "se.status = ?";
-            $params[] = $filters['status'];
-        }
-
-        if ($filters['date_from']) {
-            $where[] = "se.enrolled_at >= ?";
-            $params[] = $filters['date_from'] . ' 00:00:00';
-        }
-
-        if ($filters['date_to']) {
-            $where[] = "se.enrolled_at <= ?";
-            $params[] = $filters['date_to'] . ' 23:59:59';
-        }
-
-        $whereClause = implode(' AND ', $where);
-
+    private function getEnrollments() {
         return $this->db->query("
             SELECT
-                se.*,
-                c.title as course_title,
-                c.duration_hours as course_duration,
+                e.*,
+                c.course_name,
+                c.course_code,
                 u.first_name as student_first,
                 u.last_name as student_last,
-                CASE
-                    WHEN se.due_date < CURDATE() AND se.completion_percentage < 100 THEN 'overdue'
-                    WHEN se.due_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY) AND se.completion_percentage < 100 THEN 'due_soon'
-                    ELSE 'on_track'
-                END as progress_status
-            FROM student_enrollments se
-            JOIN courses c ON se.course_id = c.id
-            LEFT JOIN users u ON se.student_id = u.id
-            WHERE $whereClause
-            ORDER BY se.enrolled_at DESC
-        ", $params);
-    }
-
-    private function getStudents() {
-        return $this->db->query("
-            SELECT
-                u.*,
-                COUNT(se.id) as enrolled_courses,
-                COUNT(CASE WHEN se.completion_percentage = 100 THEN 1 END) as completed_courses,
-                AVG(se.completion_percentage) as avg_completion,
-                MAX(se.last_accessed_at) as last_activity
-            FROM users u
-            LEFT JOIN student_enrollments se ON u.id = se.student_id
-            WHERE u.company_id = ?
-            GROUP BY u.id
-            ORDER BY u.first_name, u.last_name
+                e.enrollment_date,
+                e.progress_percentage,
+                e.last_activity_date,
+                e.due_date,
+                TIMESTAMPDIFF(DAY, CURDATE(), e.due_date) as days_until_due,
+                e.completion_date,
+                e.final_score,
+                e.certification_earned
+            FROM enrollments e
+            JOIN courses c ON e.course_id = c.id
+            JOIN users u ON e.student_id = u.id
+            WHERE e.company_id = ?
+            ORDER BY e.enrollment_date DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getEnrollmentSummary($filters) {
-        $where = ["company_id = ?"];
-        $params = [$this->user['company_id']];
+    private function getEnrollmentTrends() {
+        return $this->db->query("
+            SELECT
+                DATE_FORMAT(e.enrollment_date, '%Y-%m') as month,
+                COUNT(e.id) as enrollments,
+                COUNT(CASE WHEN e.status = 'completed' THEN 1 END) as completions,
+                ROUND((COUNT(CASE WHEN e.status = 'completed' THEN 1 END) / NULLIF(COUNT(e.id), 0)) * 100, 2) as completion_rate,
+                AVG(e.progress_percentage) as avg_progress
+            FROM enrollments e
+            WHERE e.company_id = ? AND e.enrollment_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+            GROUP BY DATE_FORMAT(e.enrollment_date, '%Y-%m')
+            ORDER BY month DESC
+        ", [$this->user['company_id']]);
+    }
 
-        if ($filters['course_id']) {
-            $where[] = "course_id = ?";
-            $params[] = $filters['course_id'];
-        }
+    private function getStudentProgress() {
+        return $this->db->query("
+            SELECT
+                u.first_name,
+                u.last_name,
+                COUNT(e.id) as enrolled_courses,
+                COUNT(CASE WHEN e.status = 'completed' THEN 1 END) as completed_courses,
+                ROUND((COUNT(CASE WHEN e.status = 'completed' THEN 1 END) / NULLIF(COUNT(e.id), 0)) * 100, 2) as completion_rate,
+                AVG(e.progress_percentage) as avg_progress,
+                SUM(c.total_learning_hours) as total_learning_hours,
+                AVG(e.final_score) as avg_score,
+                MAX(e.last_activity_date) as last_activity
+            FROM users u
+            LEFT JOIN enrollments e ON u.id = e.student_id
+            LEFT JOIN courses c ON e.course_id = c.id
+            WHERE u.company_id = ?
+            GROUP BY u.id, u.first_name, u.last_name
+            ORDER BY avg_progress DESC
+        ", [$this->user['company_id']]);
+    }
 
-        if ($filters['student_id']) {
-            $where[] = "student_id = ?";
-            $params[] = $filters['student_id'];
-        }
+    private function getEnrollmentReports() {
+        return $this->db->query("
+            SELECT
+                er.*,
+                er.report_type,
+                er.report_period,
+                er.generated_date,
+                er.total_enrollments,
+                er.completion_rate,
+                er.avg_progress
+            FROM enrollment_reports er
+            WHERE er.company_id = ?
+            ORDER BY er.generated_date DESC
+        ", [$this->user['company_id']]);
+    }
 
-        if ($filters['status'] !== 'all') {
-            $where[] = "status = ?";
-            $params[] = $filters['status'];
-        }
+    private function getEnrollmentTemplates() {
+        return $this->db->query("
+            SELECT * FROM enrollment_templates
+            WHERE company_id = ? AND is_active = true
+            ORDER BY template_name ASC
+        ", [$this->user['company_id']]);
+    }
 
-        $whereClause = implode(' AND ', $where);
-
+    private function getEnrollmentAnalytics() {
         return $this->db->querySingle("
             SELECT
-                COUNT(*) as total_enrollments,
-                COUNT(CASE WHEN status = 'active' THEN 1 END) as active_enrollments,
-                COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_enrollments,
-                COUNT(CASE WHEN status = 'dropped' THEN 1 END) as dropped_enrollments,
-                AVG(completion_percentage) as avg_completion_rate,
-                AVG(student_rating) as avg_student_rating
-            FROM student_enrollments
-            WHERE $whereClause
-        ", $params);
+                COUNT(DISTINCT u.id) as total_students,
+                COUNT(e.id) as total_enrollments,
+                AVG(e.progress_percentage) as avg_progress,
+                ROUND((COUNT(CASE WHEN e.status = 'completed' THEN 1 END) / NULLIF(COUNT(e.id), 0)) * 100, 2) as overall_completion_rate,
+                COUNT(CASE WHEN e.due_date <= CURDATE() AND e.status = 'active' THEN 1 END) as overdue_enrollments,
+                COUNT(CASE WHEN e.last_activity_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN 1 END) as active_students,
+                AVG(TIMESTAMPDIFF(DAY, e.enrollment_date, COALESCE(e.completion_date, CURDATE()))) as avg_completion_days
+            FROM users u
+            LEFT JOIN enrollments e ON u.id = e.student_id
+            WHERE u.company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getEnrollmentSettings() {
+        return $this->db->querySingle("
+            SELECT * FROM enrollment_settings
+            WHERE company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getCertifications() {
+        return $this->db->query("
+            SELECT
+                sc.*,
+                ct.certification_name,
+                ct.description,
+                u.first_name as student_first,
+                u.last_name as student_last,
+                sc.issue_date,
+                sc.expiry_date,
+                sc.score,
+                sc.status,
+                TIMESTAMPDIFF(DAY, CURDATE(), sc.expiry_date) as days_until_expiry
+            FROM student_certifications sc
+            JOIN certification_templates ct ON sc.certification_id = ct.id
+            JOIN users u ON sc.student_id = u.id
+            WHERE sc.company_id = ?
+            ORDER BY sc.issue_date DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getCertificationTemplates() {
+        return $this->db->query("
+            SELECT
+                ct.*,
+                COUNT(sc.id) as total_awarded,
+                COUNT(CASE WHEN sc.status = 'active' THEN 1 END) as active_certifications,
+                AVG(sc.score) as avg_score,
+                COUNT(CASE WHEN sc.expiry_date <= CURDATE() THEN 1 END) as expired_certifications
+            FROM certification_templates ct
+            LEFT JOIN student_certifications sc ON ct.id = sc.certification_id
+            WHERE ct.company_id = ?
+            GROUP BY ct.id
+            ORDER BY total_awarded DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getCertificationRequirements() {
+        return $this->db->query("
+            SELECT
+                cr.*,
+                ct.certification_name,
+                c.course_name,
+                cr.requirement_type,
+                cr.description,
+                cr.is_mandatory,
+                cr.minimum_score,
+                cr.validity_period_months
+            FROM certification_requirements cr
+            JOIN certification_templates ct ON cr.certification_id = ct.id
+            LEFT JOIN courses c ON cr.course_id = c.id
+            WHERE cr.company_id = ?
+            ORDER BY ct.certification_name, cr.requirement_order
+        ", [$this->user['company_id']]);
+    }
+
+    private function getCertificationExams() {
+        return $this->db->query("
+            SELECT
+                ce.*,
+                ct.certification_name,
+                ce.exam_name,
+                ce.total_questions,
+                ce.passing_score,
+                ce.time_limit_minutes,
+                COUNT(ar.id) as total_attempts,
+                AVG(ar.score) as avg_score,
+                COUNT(CASE WHEN ar.passed = true THEN 1 END) as passed_attempts
+            FROM certification_exams ce
+            JOIN certification_templates ct ON ce.certification_id = ct.id
+            LEFT JOIN assessment_results ar ON ce.id = ar.assessment_id
+            WHERE ce.company_id = ?
+            GROUP BY ce.id, ct.certification_name
+            ORDER BY total_attempts DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getCertificationTracking() {
+        return $this->db->query("
+            SELECT
+                u.first_name,
+                u.last_name,
+                ct.certification_name,
+                cr.requirement_type,
+                cr.description,
+                ctr.completion_date,
+                ctr.score,
+                ctr.status,
+                ctr.notes
+            FROM users u
+            JOIN certification_tracking ctr ON u.id = ctr.student_id
+            JOIN certification_requirements cr ON ctr.requirement_id = cr.id
+            JOIN certification_templates ct ON cr.certification_id = ct.id
+            WHERE ctr.company_id = ?
+            ORDER BY u.last_name, ct.certification_name, cr.requirement_order
+        ", [$this->user['company_id']]);
+    }
+
+    private function getCertificationReports() {
+        return $this->db->query("
+            SELECT
+                crp.*,
+                crp.report_type,
+                crp.report_period,
+                crp.generated_date,
+                crp.total_certifications,
+                crp.completion_rate,
+                crp.avg_score
+            FROM certification_reports crp
+            WHERE crp.company_id = ?
+            ORDER BY crp.generated_date DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getCertificationAnalytics() {
+        return $this->db->querySingle("
+            SELECT
+                COUNT(DISTINCT ct.id) as total_certification_types,
+                COUNT(sc.id) as total_certifications_awarded,
+                COUNT(CASE WHEN sc.status = 'active' THEN 1 END) as active_certifications,
+                ROUND((COUNT(CASE WHEN sc.status = 'active' THEN 1 END) / NULLIF(COUNT(sc.id), 0)) * 100, 2) as active_percentage,
+                AVG(sc.score) as avg_certification_score,
+                COUNT(CASE WHEN sc.expiry_date <= CURDATE() THEN 1 END) as expired_certifications,
+                COUNT(CASE WHEN sc.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 90 DAY) THEN 1 END) as expiring_soon
+            FROM certification_templates ct
+            LEFT JOIN student_certifications sc ON ct.id = sc.certification_id
+            WHERE ct.company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getCertificationSettings() {
+        return $this->db->querySingle("
+            SELECT * FROM certification_settings
+            WHERE company_id = ?
+        ", [$this->user['company_id']]);
     }
 
     private function getAssessments() {
         return $this->db->query("
             SELECT
                 a.*,
-                c.title as course_title,
-                COUNT(aq.id) as question_count,
-                COUNT(DISTINCT asa.student_id) as students_attempted,
-                AVG(asa.score_percentage) as avg_score
+                c.course_name,
+                a.assessment_name,
+                a.assessment_type,
+                a.total_questions,
+                a.passing_score,
+                a.time_limit_minutes,
+                COUNT(ar.id) as total_attempts,
+                AVG(ar.score) as avg_score,
+                COUNT(CASE WHEN ar.passed = true THEN 1 END) as passed_attempts,
+                ROUND((COUNT(CASE WHEN ar.passed = true THEN 1 END) / NULLIF(COUNT(ar.id), 0)) * 100, 2) as pass_rate
             FROM assessments a
-            JOIN courses c ON a.course_id = c.id
-            LEFT JOIN assessment_questions aq ON a.id = aq.assessment_id
-            LEFT JOIN assessment_submissions asa ON a.id = asa.assessment_id
-            WHERE a.company_id = ?
-            GROUP BY a.id, c.title
-            ORDER BY a.created_at DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getQuestionBanks() {
-        return $this->db->query("
-            SELECT
-                qb.*,
-                COUNT(aq.id) as question_count,
-                COUNT(DISTINCT c.id) as courses_used
-            FROM question_banks qb
-            LEFT JOIN assessment_questions aq ON qb.id = aq.question_bank_id
-            LEFT JOIN assessments a ON aq.assessment_id = a.id
             LEFT JOIN courses c ON a.course_id = c.id
-            WHERE qb.company_id = ?
-            GROUP BY qb.id
-            ORDER BY qb.name ASC
+            LEFT JOIN assessment_results ar ON a.id = ar.assessment_id
+            WHERE a.company_id = ?
+            GROUP BY a.id, c.course_name
+            ORDER BY total_attempts DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getGradingRules() {
+    private function getAssessmentTemplates() {
         return $this->db->query("
-            SELECT * FROM grading_rules
-            WHERE company_id = ?
-            ORDER BY passing_percentage DESC
+            SELECT * FROM assessment_templates
+            WHERE company_id = ? AND is_active = true
+            ORDER BY template_name ASC
         ", [$this->user['company_id']]);
     }
 
     private function getAssessmentAnalytics() {
-        return $this->db->query("
-            SELECT
-                DATE_TRUNC('month', asa.submitted_at) as month,
-                COUNT(asa.id) as total_submissions,
-                AVG(asa.score_percentage) as avg_score,
-                COUNT(CASE WHEN asa.passed = true THEN 1 END) as passed_count,
-                COUNT(CASE WHEN asa.passed = false THEN 1 END) as failed_count,
-                ROUND(
-                    (COUNT(CASE WHEN asa.passed = true THEN 1 END) * 100.0 / COUNT(asa.id)), 2
-                ) as pass_rate
-            FROM assessment_submissions asa
-            WHERE asa.company_id = ? AND asa.submitted_at >= ?
-            GROUP BY DATE_TRUNC('month', asa.submitted_at)
-            ORDER BY month DESC
-            LIMIT 12
-        ", [
-            $this->user['company_id'],
-            date('Y-m-d H:i:s', strtotime('-12 months'))
-        ]);
-    }
-
-    private function getCertifications($filters) {
-        $where = ["c.company_id = ?"];
-        $params = [$this->user['company_id']];
-
-        if ($filters['status'] !== 'all') {
-            $where[] = "c.status = ?";
-            $params[] = $filters['status'];
-        }
-
-        if ($filters['type']) {
-            $where[] = "c.certification_type = ?";
-            $params[] = $filters['type'];
-        }
-
-        if ($filters['student_id']) {
-            $where[] = "c.student_id = ?";
-            $params[] = $filters['student_id'];
-        }
-
-        if ($filters['expiry_from']) {
-            $where[] = "c.expiry_date >= ?";
-            $params[] = $filters['expiry_from'];
-        }
-
-        if ($filters['expiry_to']) {
-            $where[] = "c.expiry_date <= ?";
-            $params[] = $filters['expiry_to'];
-        }
-
-        $whereClause = implode(' AND ', $where);
-
-        return $this->db->query("
-            SELECT
-                c.*,
-                crs.title as course_title,
-                u.first_name as student_first,
-                u.last_name as student_last,
-                DATEDIFF(c.expiry_date, CURDATE()) as days_until_expiry,
-                CASE
-                    WHEN c.expiry_date < CURDATE() THEN 'expired'
-                    WHEN c.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 'expiring_soon'
-                    ELSE 'valid'
-                END as expiry_status
-            FROM certifications c
-            LEFT JOIN courses crs ON c.course_id = crs.id
-            LEFT JOIN users u ON c.student_id = u.id
-            WHERE $whereClause
-            ORDER BY c.issued_date DESC
-        ", $params);
-    }
-
-    private function getCertificationTypes() {
-        return [
-            'course_completion' => 'Course Completion Certificate',
-            'assessment_pass' => 'Assessment Certificate',
-            'compliance' => 'Compliance Certificate',
-            'professional' => 'Professional Certification',
-            'skill' => 'Skill Certification'
-        ];
-    }
-
-    private function getCertificationSummary($filters) {
-        $where = ["company_id = ?"];
-        $params = [$this->user['company_id']];
-
-        if ($filters['status'] !== 'all') {
-            $where[] = "status = ?";
-            $params[] = $filters['status'];
-        }
-
-        if ($filters['type']) {
-            $where[] = "certification_type = ?";
-            $params[] = $filters['type'];
-        }
-
-        $whereClause = implode(' AND ', $where);
-
         return $this->db->querySingle("
             SELECT
-                COUNT(*) as total_certifications,
-                COUNT(CASE WHEN status = 'active' THEN 1 END) as active_certifications,
-                COUNT(CASE WHEN status = 'expired' THEN 1 END) as expired_certifications,
-                COUNT(CASE WHEN expiry_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 1 END) as expiring_soon,
-                AVG(validity_months) as avg_validity_period
-            FROM certifications
-            WHERE $whereClause
-        ", $params);
-    }
-
-    private function getMyCourses() {
-        return $this->db->query("
-            SELECT
-                se.*,
-                c.title,
-                c.description,
-                c.duration_hours,
-                c.difficulty_level,
-                c.instructor_id,
-                u.first_name as instructor_first,
-                u.last_name as instructor_last
-            FROM student_enrollments se
-            JOIN courses c ON se.course_id = c.id
-            LEFT JOIN users u ON c.instructor_id = u.id
-            WHERE se.student_id = ? AND se.status = 'active'
-            ORDER BY se.enrolled_at DESC
-        ", [$this->user['id']]);
-    }
-
-    private function getRecommendedCourses() {
-        return $this->db->query("
-            SELECT
-                c.*,
-                cc.name as category_name,
-                u.first_name as instructor_first,
-                u.last_name as instructor_last,
-                COUNT(se.id) as enrollment_count,
-                AVG(se.student_rating) as avg_rating
-            FROM courses c
-            LEFT JOIN course_categories cc ON c.category_id = cc.id
-            LEFT JOIN users u ON c.instructor_id = u.id
-            LEFT JOIN student_enrollments se ON c.id = se.course_id
-            WHERE c.company_id = ? AND c.status = 'published'
-                AND c.id NOT IN (
-                    SELECT course_id FROM student_enrollments
-                    WHERE student_id = ?
-                )
-            GROUP BY c.id, cc.name, u.first_name, u.last_name
-            ORDER BY avg_rating DESC, enrollment_count DESC
-            LIMIT 10
-        ", [$this->user['company_id'], $this->user['id']]);
-    }
-
-    private function getLearningPath() {
-        return $this->db->query("
-            SELECT
-                lp.*,
-                c.title as course_title,
-                c.duration_hours,
-                c.difficulty_level,
-                se.completion_percentage,
-                se.status as enrollment_status
-            FROM learning_paths lp
-            JOIN courses c ON lp.course_id = c.id
-            LEFT JOIN student_enrollments se ON lp.course_id = se.course_id AND se.student_id = ?
-            WHERE lp.company_id = ? AND lp.student_id = ?
-            ORDER BY lp.sequence_order ASC
-        ", [$this->user['id'], $this->user['company_id'], $this->user['id']]);
-    }
-
-    private function getAchievements() {
-        return $this->db->query("
-            SELECT
-                sa.*,
-                c.title as course_title,
-                cert.certification_number
-            FROM student_achievements sa
-            LEFT JOIN courses c ON sa.course_id = c.id
-            LEFT JOIN certifications cert ON sa.certification_id = cert.id
-            WHERE sa.student_id = ?
-            ORDER BY sa.achieved_at DESC
-        ", [$this->user['id']]);
-    }
-
-    private function getUpcomingAssignments() {
-        return $this->db->query("
-            SELECT
-                se.*,
-                c.title as course_title,
-                DATEDIFF(se.due_date, CURDATE()) as days_remaining
-            FROM student_enrollments se
-            JOIN courses c ON se.course_id = c.id
-            WHERE se.student_id = ? AND se.status = 'active'
-                AND se.due_date IS NOT NULL
-                AND se.due_date >= CURDATE()
-                AND se.completion_percentage < 100
-            ORDER BY se.due_date ASC
-            LIMIT 5
-        ", [$this->user['id']]);
-    }
-
-    private function getMandatoryCourses() {
-        return $this->db->query("
-            SELECT
-                mc.*,
-                c.title as course_title,
-                c.duration_hours,
-                r.name as required_for_role,
-                d.name as required_for_department,
-                COUNT(se.id) as enrolled_students,
-                COUNT(CASE WHEN se.completion_percentage = 100 THEN 1 END) as completed_students
-            FROM mandatory_courses mc
-            JOIN courses c ON mc.course_id = c.id
-            LEFT JOIN roles r ON mc.required_role_id = r.id
-            LEFT JOIN departments d ON mc.required_department_id = d.id
-            LEFT JOIN student_enrollments se ON mc.course_id = se.course_id
-            WHERE mc.company_id = ?
-            GROUP BY mc.id, c.title, c.duration_hours, r.name, d.name
-            ORDER BY mc.created_at DESC
+                COUNT(a.id) as total_assessments,
+                COUNT(ar.id) as total_attempts,
+                AVG(ar.score) as avg_score,
+                ROUND((COUNT(CASE WHEN ar.passed = true THEN 1 END) / NULLIF(COUNT(ar.id), 0)) * 100, 2) as overall_pass_rate,
+                AVG(ar.completion_time) as avg_completion_time,
+                COUNT(CASE WHEN ar.score >= 90 THEN 1 END) as excellent_scores,
+                COUNT(CASE WHEN ar.score < 60 THEN 1 END) as failing_scores,
+                COUNT(DISTINCT ar.student_id) as students_assessed
+            FROM assessments a
+            LEFT JOIN assessment_results ar ON a.id = ar.assessment_id
+            WHERE a.company_id = ?
         ", [$this->user['company_id']]);
     }
 
-    private function getComplianceAssignments() {
+    private function getQuestionBank() {
         return $this->db->query("
             SELECT
-                ca.*,
-                c.title as course_title,
-                u.first_name as student_first,
-                u.last_name as student_last,
-                se.completion_percentage,
-                se.status as enrollment_status,
-                DATEDIFF(ca.due_date, CURDATE()) as days_remaining
-            FROM compliance_assignments ca
-            JOIN courses c ON ca.course_id = c.id
-            JOIN users u ON ca.student_id = u.id
-            LEFT JOIN student_enrollments se ON ca.course_id = se.course_id AND ca.student_id = se.student_id
-            WHERE ca.company_id = ?
-            ORDER BY ca.due_date ASC
+                qb.*,
+                qb.question_text,
+                qb.question_type,
+                qb.difficulty_level,
+                qb.category,
+                COUNT(qba.id) as times_used,
+                AVG(qba.score) as avg_score,
+                COUNT(CASE WHEN qba.is_correct = true THEN 1 END) as correct_answers
+            FROM question_bank qb
+            LEFT JOIN question_bank_answers qba ON qb.id = qba.question_id
+            WHERE qb.company_id = ?
+            GROUP BY qb.id
+            ORDER BY times_used DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getAssessmentReports() {
+        return $this->db->query("
+            SELECT
+                arp.*,
+                arp.report_type,
+                arp.report_period,
+                arp.generated_date,
+                arp.total_assessments,
+                arp.avg_score,
+                arp.pass_rate
+            FROM assessment_reports arp
+            WHERE arp.company_id = ?
+            ORDER BY arp.generated_date DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getAssessmentSettings() {
+        return $this->db->querySingle("
+            SELECT * FROM assessment_settings
+            WHERE company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getGradingSystem() {
+        return $this->db->query("
+            SELECT * FROM grading_system
+            WHERE company_id = ?
+            ORDER BY min_score ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getComplianceRequirements() {
+        return $this->db->query("
+            SELECT
+                cr.*,
+                cr.requirement_name,
+                cr.description,
+                cr.frequency,
+                cr.is_mandatory,
+                cr.target_completion_date,
+                COUNT(tc.id) as enrolled_users,
+                COUNT(CASE WHEN tc.compliance_status = 'compliant' THEN 1 END) as compliant_users,
+                ROUND((COUNT(CASE WHEN tc.compliance_status = 'compliant' THEN 1 END) / NULLIF(COUNT(tc.id), 0)) * 100, 2) as compliance_rate
+            FROM compliance_requirements cr
+            LEFT JOIN training_compliance tc ON cr.id = tc.requirement_id
+            WHERE cr.company_id = ?
+            GROUP BY cr.id
+            ORDER BY cr.target_completion_date ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getComplianceCourses() {
+        return $this->db->query("
+            SELECT
+                c.*,
+                cr.requirement_name,
+                c.course_name,
+                c.enrollment_count,
+                c.completion_rate,
+                c.student_rating,
+                COUNT(tc.id) as compliance_enrollments,
+                COUNT(CASE WHEN tc.compliance_status = 'compliant' THEN 1 END) as compliant_completions
+            FROM courses c
+            JOIN compliance_requirements cr ON c.id = cr.course_id
+            LEFT JOIN training_compliance tc ON cr.id = tc.requirement_id
+            WHERE c.company_id = ?
+            GROUP BY c.id, cr.requirement_name
+            ORDER BY c.enrollment_count DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getComplianceTracking() {
+        return $this->db->query("
+            SELECT
+                u.first_name,
+                u.last_name,
+                cr.requirement_name,
+                tc.compliance_status,
+                tc.enrollment_date,
+                tc.completion_date,
+                tc.next_training_date,
+                tc.compliance_score,
+                tc.last_updated,
+                TIMESTAMPDIFF(DAY, CURDATE(), tc.next_training_date) as days_until_next
+            FROM users u
+            JOIN training_compliance tc ON u.id = tc.user_id
+            JOIN compliance_requirements cr ON tc.requirement_id = cr.id
+            WHERE tc.company_id = ?
+            ORDER BY tc.next_training_date ASC
         ", [$this->user['company_id']]);
     }
 
     private function getComplianceReports() {
         return $this->db->query("
             SELECT
-                cr.*,
-                COUNT(ca.id) as total_assignments,
-                COUNT(CASE WHEN ca.status = 'completed' THEN 1 END) as completed_assignments,
-                COUNT(CASE WHEN ca.due_date < CURDATE() AND ca.status != 'completed' THEN 1 END) as overdue_assignments,
-                ROUND(
-                    (COUNT(CASE WHEN ca.status = 'completed' THEN 1 END) * 100.0 / COUNT(ca.id)), 2
-                ) as compliance_rate
-            FROM compliance_reports cr
-            LEFT JOIN compliance_assignments ca ON cr.id = ca.report_id
+                crp.*,
+                crp.report_type,
+                crp.report_period,
+                crp.generated_date,
+                crp.compliance_rate,
+                crp.non_compliant_users,
+                crp.upcoming_deadlines
+            FROM compliance_reports crp
+            WHERE crp.company_id = ?
+            ORDER BY crp.generated_date DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getComplianceAlerts() {
+        return $this->db->query("
+            SELECT
+                ca.*,
+                ca.alert_type,
+                ca.severity,
+                ca.message,
+                ca.user_id,
+                ca.requirement_id,
+                ca.created_at,
+                TIMESTAMPDIFF(MINUTE, ca.created_at, NOW()) as minutes_since_alert
+            FROM compliance_alerts ca
+            WHERE ca.company_id = ? AND ca.status = 'active'
+            ORDER BY ca.severity DESC, ca.created_at DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getComplianceAnalytics() {
+        return $this->db->querySingle("
+            SELECT
+                COUNT(DISTINCT cr.id) as total_requirements,
+                COUNT(DISTINCT u.id) as total_users,
+                COUNT(tc.id) as total_compliance_records,
+                ROUND((COUNT(CASE WHEN tc.compliance_status = 'compliant' THEN 1 END) / NULLIF(COUNT(tc.id), 0)) * 100, 2) as overall_compliance_rate,
+                COUNT(CASE WHEN tc.next_training_date <= CURDATE() THEN 1 END) as overdue_training,
+                COUNT(CASE WHEN tc.compliance_score < 70 THEN 1 END) as low_compliance_scores,
+                AVG(tc.compliance_score) as avg_compliance_score
+            FROM compliance_requirements cr
+            CROSS JOIN users u
+            LEFT JOIN training_compliance tc ON u.id = tc.user_id AND cr.id = tc.requirement_id
             WHERE cr.company_id = ?
-            GROUP BY cr.id
-            ORDER BY cr.generated_at DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getRegulatoryRequirements() {
+    private function getComplianceTemplates() {
         return $this->db->query("
-            SELECT * FROM regulatory_requirements
+            SELECT * FROM compliance_templates
+            WHERE company_id = ? AND is_active = true
+            ORDER BY template_name ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getComplianceSettings() {
+        return $this->db->querySingle("
+            SELECT * FROM compliance_settings
             WHERE company_id = ?
-            ORDER BY effective_date DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getEngagementMetrics() {
-        return $this->db->query("
+    private function getLearningMetrics() {
+        return $this->db->querySingle("
             SELECT
-                DATE_TRUNC('week', se.last_accessed_at) as week,
-                COUNT(DISTINCT se.student_id) as active_students,
-                AVG(se.time_spent_minutes) as avg_time_spent,
-                COUNT(se.id) as total_sessions,
-                AVG(se.completion_percentage) as avg_progress
-            FROM student_enrollments se
-            WHERE se.company_id = ? AND se.last_accessed_at >= ?
-            GROUP BY DATE_TRUNC('week', se.last_accessed_at)
-            ORDER BY week DESC
-            LIMIT 12
-        ", [
-            $this->user['company_id'],
-            date('Y-m-d H:i:s', strtotime('-12 weeks'))
-        ]);
-    }
-
-    private function getCompletionRates() {
-        return $this->db->query("
-            SELECT
-                c.title as course_title,
-                c.category_id,
-                COUNT(se.id) as enrolled_students,
-                COUNT(CASE WHEN se.completion_percentage = 100 THEN 1 END) as completed_students,
-                ROUND(
-                    (COUNT(CASE WHEN se.completion_percentage = 100 THEN 1 END) * 100.0 / COUNT(se.id)), 2
-                ) as completion_rate,
-                AVG(se.time_spent_minutes) as avg_time_spent,
-                AVG(DATEDIFF(se.completed_at, se.enrolled_at)) as avg_completion_days
+                COUNT(DISTINCT c.id) as total_courses,
+                COUNT(DISTINCT e.student_id) as total_students,
+                COUNT(e.id) as total_enrollments,
+                ROUND((COUNT(CASE WHEN e.status = 'completed' THEN 1 END) / NULLIF(COUNT(e.id), 0)) * 100, 2) as completion_rate,
+                AVG(e.progress_percentage) as avg_progress,
+                AVG(c.student_rating) as avg_course_rating,
+                SUM(c.total_learning_hours) as total_learning_hours,
+                COUNT(CASE WHEN e.last_activity_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) THEN 1 END) as active_students_week
             FROM courses c
-            LEFT JOIN student_enrollments se ON c.id = se.course_id
+            LEFT JOIN enrollments e ON c.id = e.course_id
             WHERE c.company_id = ?
-            GROUP BY c.id, c.title, c.category_id
-            HAVING enrolled_students > 0
-            ORDER BY completion_rate DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getAssessmentPerformance() {
+    private function getStudentEngagement() {
         return $this->db->query("
             SELECT
-                c.title as course_title,
-                COUNT(asa.id) as total_attempts,
-                AVG(asa.score_percentage) as avg_score,
-                COUNT(CASE WHEN asa.passed = true THEN 1 END) as passed_attempts,
-                ROUND(
-                    (COUNT(CASE WHEN asa.passed = true THEN 1 END) * 100.0 / COUNT(asa.id)), 2
-                ) as pass_rate,
-                AVG(asa.time_taken_minutes) as avg_time_taken
+                DATE_FORMAT(e.last_activity_date, '%Y-%m-%d') as date,
+                COUNT(DISTINCT e.student_id) as active_students,
+                COUNT(e.id) as total_activities,
+                AVG(e.progress_percentage) as avg_progress,
+                COUNT(CASE WHEN e.status = 'completed' THEN 1 END) as completions
+            FROM enrollments e
+            WHERE e.company_id = ? AND e.last_activity_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+            GROUP BY DATE_FORMAT(e.last_activity_date, '%Y-%m-%d')
+            ORDER BY date DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getCourseEffectiveness() {
+        return $this->db->query("
+            SELECT
+                c.course_name,
+                c.enrollment_count,
+                c.completion_rate,
+                c.student_rating,
+                AVG(ar.score) as avg_assessment_score,
+                COUNT(ar.id) as total_assessments,
+                ROUND((COUNT(CASE WHEN ar.passed = true THEN 1 END) / NULLIF(COUNT(ar.id), 0)) * 100, 2) as assessment_pass_rate,
+                AVG(e.progress_percentage) as avg_progress
             FROM courses c
             LEFT JOIN assessments a ON c.id = a.course_id
-            LEFT JOIN assessment_submissions asa ON a.id = asa.assessment_id
+            LEFT JOIN assessment_results ar ON a.id = ar.assessment_id
+            LEFT JOIN enrollments e ON c.id = e.course_id
             WHERE c.company_id = ?
-            GROUP BY c.id, c.title
-            HAVING total_attempts > 0
-            ORDER BY pass_rate DESC
+            GROUP BY c.id, c.course_name, c.enrollment_count, c.completion_rate, c.student_rating
+            ORDER BY c.completion_rate DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getLearningOutcomes() {
+    private function getLearningTrends() {
         return $this->db->query("
             SELECT
-                lo.*,
-                c.title as course_title,
-                COUNT(CASE WHEN lo.achieved = true THEN 1 END) as students_achieved,
-                COUNT(lo.id) as total_students,
-                ROUND(
-                    (COUNT(CASE WHEN lo.achieved = true THEN 1 END) * 100.0 / COUNT(lo.id)), 2
-                ) as achievement_rate
-            FROM learning_outcomes lo
-            JOIN courses c ON lo.course_id = c.id
-            WHERE lo.company_id = ?
-            GROUP BY lo.id, c.title
-            ORDER BY achievement_rate DESC
+                DATE_FORMAT(e.enrollment_date, '%Y-%m') as month,
+                COUNT(e.id) as new_enrollments,
+                COUNT(CASE WHEN e.status = 'completed' THEN 1 END) as completions,
+                AVG(e.progress_percentage) as avg_progress,
+                AVG(c.student_rating) as avg_rating
+            FROM enrollments e
+            JOIN courses c ON e.course_id = c.id
+            WHERE e.company_id = ? AND e.enrollment_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+            GROUP BY DATE_FORMAT(e.enrollment_date, '%Y-%m')
+            ORDER BY month ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getLearningROI() {
-        $totalTrainingCost = $this->getTotalTrainingCost();
-        $totalProductivityGain = $this->getTotalProductivityGain();
-
-        $roi = $totalTrainingCost > 0 ? (($totalProductivityGain - $totalTrainingCost) / $totalTrainingCost) * 100 : 0;
-
-        return [
-            'total_training_cost' => $totalTrainingCost,
-            'total_productivity_gain' => $totalProductivityGain,
-            'net_benefit' => $totalProductivityGain - $totalTrainingCost,
-            'roi_percentage' => round($roi, 2),
-            'cost_per_employee' => $this->getCostPerEmployee(),
-            'training_hours_per_employee' => $this->getTrainingHoursPerEmployee()
-        ];
-    }
-
-    private function getTotalTrainingCost() {
-        return $this->db->querySingle("
+    private function getPerformanceInsights() {
+        return $this->db->query("
             SELECT
-                SUM(c.price) + SUM(se.training_cost) as total_cost
+                'Top Performing Courses' as insight_type,
+                c.course_name as insight_value,
+                c.completion_rate as metric_value,
+                CONCAT('Completion rate: ', ROUND(c.completion_rate, 1), '%') as description
             FROM courses c
-            LEFT JOIN student_enrollments se ON c.id = se.course_id
             WHERE c.company_id = ?
-        ", [$this->user['company_id']])['total_cost'] ?? 0;
+            ORDER BY c.completion_rate DESC
+            LIMIT 5
+            UNION ALL
+            SELECT
+                'Most Popular Courses' as insight_type,
+                c.course_name as insight_value,
+                c.enrollment_count as metric_value,
+                CONCAT('Enrollments: ', c.enrollment_count) as description
+            FROM courses c
+            WHERE c.company_id = ?
+            ORDER BY c.enrollment_count DESC
+            LIMIT 5
+            UNION ALL
+            SELECT
+                'High Rated Courses' as insight_type,
+                c.course_name as insight_value,
+                c.student_rating as metric_value,
+                CONCAT('Rating: ', ROUND(c.student_rating, 1), '/5') as description
+            FROM courses c
+            WHERE c.company_id = ?
+            ORDER BY c.student_rating DESC
+            LIMIT 5
+        ", [$this->user['company_id'], $this->user['company_id'], $this->user['company_id']]);
     }
 
-    private function getTotalProductivityGain() {
+    private function getPredictiveAnalytics() {
+        return $this->db->query("
+            SELECT
+                u.first_name,
+                u.last_name,
+                e.progress_percentage,
+                e.last_activity_date,
+                TIMESTAMPDIFF(DAY, e.last_activity_date, CURDATE()) as days_since_activity,
+                CASE
+                    WHEN e.progress_percentage < 25 AND TIMESTAMPDIFF(DAY, e.last_activity_date, CURDATE()) > 14 THEN 'at_risk'
+                    WHEN e.progress_percentage >= 25 AND e.progress_percentage < 50 AND TIMESTAMPDIFF(DAY, e.last_activity_date, CURDATE()) > 7 THEN 'needs_attention'
+                    WHEN e.progress_percentage >= 75 THEN 'on_track'
+                    ELSE 'normal'
+                END as risk_level,
+                CASE
+                    WHEN e.due_date <= CURDATE() THEN 'overdue'
+                    WHEN e.due_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY) THEN 'due_soon'
+                    ELSE 'on_track'
+                END as deadline_status
+            FROM users u
+            JOIN enrollments e ON u.id = e.student_id
+            WHERE e.company_id = ? AND e.status = 'active'
+            ORDER BY
+                CASE
+                    WHEN e.progress_percentage < 25 AND TIMESTAMPDIFF(DAY, e.last_activity_date, CURDATE()) > 14 THEN 1
+                    WHEN e.progress_percentage >= 25 AND e.progress_percentage < 50 AND TIMESTAMPDIFF(DAY, e.last_activity_date, CURDATE()) > 7 THEN 2
+                    ELSE 3
+                END,
+                e.progress_percentage ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getBenchmarking() {
         return $this->db->querySingle("
             SELECT
-                SUM(productivity_gain_value) as total_gain
-            FROM learning_roi_metrics
-            WHERE company_id = ?
-        ", [$this->user['company_id']])['total_gain'] ?? 0;
-    }
-
-    private function getCostPerEmployee() {
-        $totalCost = $this->getTotalTrainingCost();
-        $totalEmployees = $this->db->querySingle("
-            SELECT COUNT(*) as count FROM users WHERE company_id = ?
-        ", [$this->user['company_id']])['count'];
-
-        return $totalEmployees > 0 ? $totalCost / $totalEmployees : 0;
-    }
-
-    private function getTrainingHoursPerEmployee() {
-        return $this->db->querySingle("
-            SELECT
-                AVG(total_training_hours) as avg_hours
-            FROM (
-                SELECT
-                    se.student_id,
-                    SUM(c.duration_hours) as total_training_hours
-                FROM student_enrollments se
-                JOIN courses c ON se.course_id = c.id
-                WHERE se.company_id = ?
-                GROUP BY se.student_id
-            ) student_hours
-        ", [$this->user['company_id']])['avg_hours'] ?? 0;
-    }
-
-    // ============================================================================
-    // API ENDPOINTS
-    // ============================================================================
-
-    public function enrollStudent() {
-        $this->requirePermission('lms.enrollments.create');
-
-        $data = $this->validateRequest([
-            'student_id' => 'required|integer',
-            'course_id' => 'required|integer'
-        ]);
-
-        try {
-            // Check if already enrolled
-            $existing = $this->db->querySingle("
-                SELECT id FROM student_enrollments
-                WHERE student_id = ? AND course_id = ?
-            ", [$data['student_id'], $data['course_id']]);
-
-            if ($existing) {
-                throw new Exception('Student is already enrolled in this course');
-            }
-
-            $enrollmentId = $this->db->insert('student_enrollments', [
-                'company_id' => $this->user['company_id'],
-                'student_id' => $data['student_id'],
-                'course_id' => $data['course_id'],
-                'status' => 'active',
-                'enrolled_at' => date('Y-m-d H:i:s')
-            ]);
-
-            $this->jsonResponse([
-                'success' => true,
-                'enrollment_id' => $enrollmentId,
-                'message' => 'Student enrolled successfully'
-            ]);
-
-        } catch (Exception $e) {
-            $this->jsonResponse([
-                'success' => false,
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function submitAssessment() {
-        $this->requirePermission('lms.assessments.submit');
-
-        $data = $this->validateRequest([
-            'assessment_id' => 'required|integer',
-            'answers' => 'required|array'
-        ]);
-
-        try {
-            $this->db->beginTransaction();
-
-            // Calculate score
-            $score = $this->calculateAssessmentScore($data['assessment_id'], $data['answers']);
-
-            $submissionId = $this->db->insert('assessment_submissions', [
-                'company_id' => $this->user['company_id'],
-                'assessment_id' => $data['assessment_id'],
-                'student_id' => $this->user['id'],
-                'answers' => json_encode($data['answers']),
-                'score_percentage' => $score['percentage'],
-                'passed' => $score['passed'],
-                'submitted_at' => date('Y-m-d H:i:s')
-            ]);
-
-            $this->db->commit();
-
-            $this->jsonResponse([
-                'success' => true,
-                'score' => $score['percentage'],
-                'passed' => $score['passed'],
-                'message' => 'Assessment submitted successfully'
-            ]);
-
-        } catch (Exception $e) {
-            $this->db->rollback();
-            $this->jsonResponse([
-                'success' => false,
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    private function calculateAssessmentScore($assessmentId, $answers) {
-        // Implementation for scoring assessment
-        // This would compare answers with correct answers and calculate score
-        return [
-            'percentage' => 85.5,
-            'passed' => true
-        ];
-    }
-
-    public function updateProgress() {
-        $this->requirePermission('lms.progress.update');
-
-        $data = $this->validateRequest([
-            'enrollment_id' => 'required|integer',
-            'completion_percentage' => 'required|numeric|min:0|max:100',
-            'time_spent_minutes' => 'numeric|min:0'
-        ]);
-
-        try {
-            $this->db->update('student_enrollments', [
-                'completion_percentage' => $data['completion_percentage'],
-                'time_spent_minutes' => ($data['time_spent_minutes'] ?? 0),
-                'last_accessed_at' => date('Y-m-d H:i:s')
-            ], 'id = ? AND student_id = ?', [
-                $data['enrollment_id'],
-                $this->user['id']
-            ]);
-
-            $this->jsonResponse([
-                'success' => true,
-                'message' => 'Progress updated successfully'
-            ]);
-
-        } catch (Exception $e) {
-            $this->jsonResponse([
-                'success' => false,
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-}
-?>
+                AVG(c.completion_rate) as avg_completion_rate,
+                AVG(c.student_rating) as avg_student_rating,
+                AVG(c.enrollment_count) as avg_enrollment_count,
+                COUNT(CASE WHEN c.completion_rate >= 80 THEN 1 END) as high_completion_courses,
+                COUNT(CASE WHEN c.student_rating >= 4.5 THEN 1 END) as high_rated_courses,

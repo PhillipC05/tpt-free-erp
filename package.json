@@ -1,0 +1,35 @@
+{
+  "name": "tpt-free-erp",
+  "version": "1.0.0",
+  "description": "Comprehensive ERP system with AI automation - Frontend",
+  "main": "public/js/app.js",
+  "scripts": {
+    "dev": "http-server public -p 3000",
+    "build": "mkdir -p public/dist && cp -r public/* public/dist/",
+    "test": "echo \"No tests specified\" && exit 0",
+    "lint": "echo \"No linting configured\" && exit 0"
+  },
+  "keywords": [
+    "erp",
+    "business",
+    "automation",
+    "ai",
+    "javascript"
+  ],
+  "author": "TPT Development Team",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tpt/open-erp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tpt/open-erp/issues"
+  },
+  "homepage": "https://github.com/tpt/open-erp#readme"
+}

@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<ruleset name="TPT ERP">
+    <description>TPT ERP PHP CodeSniffer Rules</description>
+    <file>.</file>
+    <exclude-pattern>vendor/*</exclude-pattern>
+    <exclude-pattern>node_modules/*</exclude-pattern>
+    <rule ref="PSR12" />
+</ruleset>

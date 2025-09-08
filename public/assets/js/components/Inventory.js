@@ -1,62 +1,54 @@
 /**
- * TPT Free ERP - Inventory Management Component
+ * TPT Free ERP - Inventory Management Component (Refactored)
  * Main inventory dashboard and management interface
+ * Uses shared utilities for reduced complexity and improved maintainability
  */
 
-class Inventory extends Component {
+class Inventory extends BaseComponent {
     constructor(props = {}) {
         super(props);
-        this.props = {
-            title: 'Inventory Management',
-            currentView: 'dashboard',
-            ...props
-        };
 
-        this.state = {
-            loading: false,
-            currentView: this.props.currentView,
-            overview: {},
-            products: [],
-            stockMovements: [],
-            warehouses: [],
-            suppliers: [],
-            categories: [],
-            filters: {
-                category: '',
-                supplier: '',
-                status: '',
-                stock_level: '',
-                search: '',
-                page: 1,
-                limit: 50
-            },
-            selectedProducts: [],
-            showProductModal: false,
-            showMovementModal: false,
-            editingProduct: null,
-            pagination: {
-                page: 1,
-                limit: 50,
-                total: 0,
-                pages: 0
-            }
-        };
+        // Initialize table renderer for products
+        this.tableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
 
-        // Bind methods
-        this.loadOverview = this.loadOverview.bind(this);
-        this.loadProducts = this.loadProducts.bind(this);
-        this.loadStockMovements = this.loadStockMovements.bind(this);
-        this.handleViewChange = this.handleViewChange.bind(this);
-        this.handleFilterChange = this.handleFilterChange.bind(this);
-        this.handleProductSelect = this.handleProductSelect.bind(this);
-        this.handleBulkAction = this.handleBulkAction.bind(this);
-        this.showProductModal = this.showProductModal.bind(this);
-        this.hideProductModal = this.hideProductModal.bind(this);
-        this.saveProduct = this.saveProduct.bind(this);
-        this.deleteProduct = this.deleteProduct.bind(this);
-        this.showMovementModal = this.showMovementModal.bind(this);
-        this.hideMovementModal = this.hideMovementModal.bind(this);
-        this.saveStockMovement = this.saveStockMovement.bind(this);
+        // Setup table callbacks
+        this.tableRenderer.setDataCallback(() => this.state.products || []);
+        this.tableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedProducts: selectedIds });
+        });
+        this.tableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.tableRenderer.setDataChangeCallback(() => {
+            this.loadProducts();
+        });
+    }
+
+    get bindMethods() {
+        return [
+            'loadOverview',
+            'loadProducts',
+            'loadStockMovements',
+            'loadWarehouses',
+            'loadSuppliers',
+            'loadCategories',
+            'handleViewChange',
+            'handleFilterChange',
+            'handleBulkAction',
+            'showProductModal',
+            'hideProductModal',
+            'saveProduct',
+            'deleteProduct',
+            'showMovementModal',
+            'hideMovementModal',
+            'saveStockMovement'
+        ];
     }
 
     async componentDidMount() {
@@ -78,10 +70,7 @@ class Inventory extends Component {
             await this.loadCurrentViewData();
         } catch (error) {
             console.error('Error loading inventory data:', error);
-            App.showNotification({
-                type: 'error',
-                message: 'Failed to load inventory data'
-            });
+            this.showErrorNotification('Failed to load inventory data');
         } finally {
             this.setState({ loading: false });
         }
@@ -196,63 +185,50 @@ class Inventory extends Component {
         this.setState({ selectedProducts });
     }
 
-    async handleBulkAction(action) {
-        if (this.state.selectedProducts.length === 0) {
-            App.showNotification({
-                type: 'warning',
-                message: 'Please select products first'
-            });
+    async handleBulkAction(action, selectedIds = null) {
+        const productsToUse = selectedIds || this.state.selectedProducts;
+
+        if (productsToUse.length === 0) {
+            this.showWarningNotification('Please select products first');
             return;
         }
 
         try {
             switch (action) {
                 case 'delete':
-                    if (confirm(`Delete ${this.state.selectedProducts.length} products?`)) {
-                        await this.bulkDeleteProducts();
+                    if (await this.confirm(`Delete ${productsToUse.length} products?`)) {
+                        await this.bulkDeleteProducts(productsToUse);
                     }
                     break;
                 case 'update_status':
-                    await this.showBulkUpdateModal('status');
+                    await this.showBulkUpdateModal('status', productsToUse);
                     break;
                 case 'update_category':
-                    await this.showBulkUpdateModal('category');
+                    await this.showBulkUpdateModal('category', productsToUse);
                     break;
                 case 'export':
-                    await this.exportProducts();
+                    await this.exportProducts(productsToUse);
                     break;
             }
         } catch (error) {
             console.error('Bulk action failed:', error);
-            App.showNotification({
-                type: 'error',
-                message: 'Bulk action failed'
-            });
+            this.showErrorNotification('Bulk action failed');
         }
     }
 
-    async bulkDeleteProducts() {
+    async bulkDeleteProducts(productsToDelete) {
         // Implementation for bulk delete
-        App.showNotification({
-            type: 'info',
-            message: 'Bulk delete not yet implemented'
-        });
+        this.showInfoNotification('Bulk delete not yet implemented');
     }
 
-    async showBulkUpdateModal(field) {
+    async showBulkUpdateModal(field, productsToUpdate) {
         // Implementation for bulk update modal
-        App.showNotification({
-            type: 'info',
-            message: 'Bulk update not yet implemented'
-        });
+        this.showInfoNotification('Bulk update not yet implemented');
     }
 
-    async exportProducts() {
+    async exportProducts(productsToExport) {
         // Implementation for export
-        App.showNotification({
-            type: 'info',
-            message: 'Export not yet implemented'
-        });
+        this.showInfoNotification('Export not yet implemented');
     }
 
     showProductModal(product = null) {
@@ -272,48 +248,33 @@ class Inventory extends Component {
     async saveProduct(productData) {
         try {
             if (this.state.editingProduct) {
-                await API.put(`/inventory/products/${this.state.editingProduct.id}`, productData);
-                App.showNotification({
-                    type: 'success',
-                    message: 'Product updated successfully'
-                });
+                await this.apiRequest('PUT', `/inventory/products/${this.state.editingProduct.id}`, productData);
+                this.showSuccessNotification('Product updated successfully');
             } else {
-                await API.post('/inventory/products', productData);
-                App.showNotification({
-                    type: 'success',
-                    message: 'Product created successfully'
-                });
+                await this.apiRequest('POST', '/inventory/products', productData);
+                this.showSuccessNotification('Product created successfully');
             }
 
             this.hideProductModal();
             await this.loadProducts();
         } catch (error) {
             console.error('Error saving product:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save product'
-            });
+            this.showErrorNotification(error.message || 'Failed to save product');
         }
     }
 
     async deleteProduct(productId) {
-        if (!confirm('Are you sure you want to delete this product?')) {
+        if (!(await this.confirm('Are you sure you want to delete this product?'))) {
             return;
         }
 
         try {
-            await API.delete(`/inventory/products/${productId}`);
-            App.showNotification({
-                type: 'success',
-                message: 'Product deleted successfully'
-            });
+            await this.apiRequest('DELETE', `/inventory/products/${productId}`);
+            this.showSuccessNotification('Product deleted successfully');
             await this.loadProducts();
         } catch (error) {
             console.error('Error deleting product:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to delete product'
-            });
+            this.showErrorNotification(error.message || 'Failed to delete product');
         }
     }
 
@@ -333,20 +294,14 @@ class Inventory extends Component {
 
     async saveStockMovement(movementData) {
         try {
-            await API.post('/inventory/stock-movements', movementData);
-            App.showNotification({
-                type: 'success',
-                message: 'Stock movement recorded successfully'
-            });
+            await this.apiRequest('POST', '/inventory/stock-movements', movementData);
+            this.showSuccessNotification('Stock movement recorded successfully');
             this.hideMovementModal();
             await this.loadStockMovements();
             await this.loadOverview(); // Refresh overview data
         } catch (error) {
             console.error('Error saving stock movement:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to record stock movement'
-            });
+            this.showErrorNotification(error.message || 'Failed to record stock movement');
         }
     }
 

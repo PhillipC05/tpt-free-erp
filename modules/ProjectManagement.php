@@ -1154,3 +1154,424 @@ class ProjectManagement extends BaseController {
 
     private function getTemplateUsage() {
         return $this->db->query("
+            SELECT
+                pt.template_name,
+                COUNT(p.id) as usage_count,
+                AVG(p.progress_percentage) as avg_success_rate,
+                MAX(p.created_at) as last_used,
+                pt.category
+            FROM project_templates pt
+            LEFT JOIN projects p ON pt.id = p.template_id
+            WHERE pt.company_id = ?
+            GROUP BY pt.id, pt.template_name, pt.category
+            ORDER BY usage_count DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getTemplateAnalytics() {
+        return $this->db->querySingle("
+            SELECT
+                COUNT(pt.id) as total_templates,
+                COUNT(CASE WHEN pt.is_active = true THEN 1 END) as active_templates,
+                AVG(usage_count) as avg_usage_per_template,
+                COUNT(DISTINCT pt.category) as template_categories,
+                MAX(pt.created_at) as latest_template,
+                SUM(usage_count) as total_usage
+            FROM project_templates pt
+            LEFT JOIN (
+                SELECT template_id, COUNT(*) as usage_count
+                FROM projects
+                GROUP BY template_id
+            ) pu ON pt.id = pu.template_id
+            WHERE pt.company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getTemplateManagement() {
+        return [
+            'create_template' => 'Create New Template',
+            'edit_template' => 'Edit Template',
+            'duplicate_template' => 'Duplicate Template',
+            'delete_template' => 'Delete Template',
+            'export_template' => 'Export Template',
+            'import_template' => 'Import Template',
+            'template_permissions' => 'Manage Permissions'
+        ];
+    }
+
+    private function getProjectPerformance() {
+        return $this->db->query("
+            SELECT
+                p.project_name,
+                p.progress_percentage,
+                p.budget,
+                SUM(e.actual_cost) as actual_cost,
+                ROUND((SUM(e.actual_cost) / NULLIF(p.budget, 0)) * 100, 2) as budget_performance,
+                COUNT(t.id) as total_tasks,
+                COUNT(CASE WHEN t.status = 'completed' THEN 1 END) as completed_tasks,
+                ROUND((COUNT(CASE WHEN t.status = 'completed' THEN 1 END) / NULLIF(COUNT(t.id), 0)) * 100, 2) as task_completion_rate,
+                TIMESTAMPDIFF(DAY, p.start_date, COALESCE(p.end_date, CURDATE())) as planned_duration,
+                TIMESTAMPDIFF(DAY, p.start_date, CURDATE()) as actual_duration
+            FROM projects p
+            LEFT JOIN expenses e ON p.id = e.project_id
+            LEFT JOIN tasks t ON p.id = t.project_id
+            WHERE p.company_id = ?
+            GROUP BY p.id, p.project_name, p.progress_percentage, p.budget, p.start_date, p.end_date
+            ORDER BY budget_performance DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getBudgetAnalytics() {
+        return $this->db->query("
+            SELECT
+                DATE_FORMAT(p.created_at, '%Y-%m') as month,
+                COUNT(p.id) as projects_created,
+                SUM(p.budget) as total_budget,
+                AVG(p.budget) as avg_budget,
+                SUM(e.actual_cost) as total_actual_cost,
+                ROUND((SUM(e.actual_cost) / NULLIF(SUM(p.budget), 0)) * 100, 2) as avg_budget_utilization
+            FROM projects p
+            LEFT JOIN expenses e ON p.id = e.project_id
+            WHERE p.company_id = ?
+            GROUP BY DATE_FORMAT(p.created_at, '%Y-%m')
+            ORDER BY month DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getTimelineAnalytics() {
+        return $this->db->querySingle("
+            SELECT
+                COUNT(p.id) as total_projects,
+                COUNT(CASE WHEN p.end_date < CURDATE() AND p.status != 'completed' THEN 1 END) as overdue_projects,
+                COUNT(CASE WHEN p.end_date >= CURDATE() AND p.end_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 1 END) as due_soon_projects,
+                AVG(TIMESTAMPDIFF(DAY, p.start_date, COALESCE(p.actual_end_date, CURDATE()))) as avg_actual_duration,
+                AVG(TIMESTAMPDIFF(DAY, p.start_date, p.end_date)) as avg_planned_duration,
+                ROUND((AVG(TIMESTAMPDIFF(DAY, p.start_date, COALESCE(p.actual_end_date, CURDATE()))) / NULLIF(AVG(TIMESTAMPDIFF(DAY, p.start_date, p.end_date)), 0)) * 100, 2) as schedule_performance
+            FROM projects p
+            WHERE p.company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getQualityAnalytics() {
+        return $this->db->query("
+            SELECT
+                p.project_name,
+                COUNT(qi.id) as quality_inspections,
+                COUNT(CASE WHEN qi.result = 'pass' THEN 1 END) as passed_inspections,
+                ROUND((COUNT(CASE WHEN qi.result = 'pass' THEN 1 END) / NULLIF(COUNT(qi.id), 0)) * 100, 2) as quality_rate,
+                COUNT(CASE WHEN t.status = 'completed' AND t.due_date >= t.completed_at THEN 1 END) as on_time_completions,
+                ROUND((COUNT(CASE WHEN t.status = 'completed' AND t.due_date >= t.completed_at THEN 1 END) / NULLIF(COUNT(CASE WHEN t.status = 'completed' THEN 1 END), 0)) * 100, 2) as on_time_rate
+            FROM projects p
+            LEFT JOIN tasks t ON p.id = t.project_id
+            LEFT JOIN quality_inspections qi ON p.id = qi.project_id
+            WHERE p.company_id = ?
+            GROUP BY p.id, p.project_name
+            ORDER BY quality_rate DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getRiskAnalytics() {
+        return $this->db->query("
+            SELECT
+                p.project_name,
+                COUNT(r.id) as total_risks,
+                COUNT(CASE WHEN r.status = 'open' THEN 1 END) as open_risks,
+                COUNT(CASE WHEN r.severity = 'high' THEN 1 END) as high_severity_risks,
+                AVG(r.probability) as avg_risk_probability,
+                AVG(r.impact) as avg_risk_impact,
+                COUNT(CASE WHEN r.status = 'mitigated' THEN 1 END) as mitigated_risks
+            FROM projects p
+            LEFT JOIN risks r ON p.id = r.project_id
+            WHERE p.company_id = ?
+            GROUP BY p.id, p.project_name
+            ORDER BY high_severity_risks DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getProductivityAnalytics() {
+        return $this->db->query("
+            SELECT
+                u.first_name,
+                u.last_name,
+                COUNT(t.id) as tasks_assigned,
+                COUNT(CASE WHEN t.status = 'completed' THEN 1 END) as tasks_completed,
+                ROUND((COUNT(CASE WHEN t.status = 'completed' THEN 1 END) / NULLIF(COUNT(t.id), 0)) * 100, 2) as completion_rate,
+                SUM(tt.hours_logged) as total_hours,
+                AVG(tt.hours_logged) as avg_hours_per_task,
+                COUNT(CASE WHEN t.due_date < CURDATE() AND t.status != 'completed' THEN 1 END) as overdue_tasks
+            FROM users u
+            LEFT JOIN tasks t ON u.id = t.assigned_to
+            LEFT JOIN time_tracking tt ON t.id = tt.task_id AND u.id = tt.user_id
+            WHERE u.company_id = ?
+            GROUP BY u.id, u.first_name, u.last_name
+            ORDER BY completion_rate DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getPredictiveAnalytics() {
+        return $this->db->query("
+            SELECT
+                p.project_name,
+                pa.prediction_type,
+                pa.predicted_value,
+                pa.actual_value,
+                pa.accuracy_percentage,
+                pa.prediction_date,
+                TIMESTAMPDIFF(DAY, pa.prediction_date, CURDATE()) as days_since_prediction
+            FROM projects p
+            JOIN predictive_analytics pa ON p.id = pa.project_id
+            WHERE p.company_id = ?
+            ORDER BY pa.prediction_date DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getTeamCommunication() {
+        return $this->db->query("
+            SELECT
+                tc.*,
+                p.project_name,
+                u.first_name as sender_first,
+                u.last_name as sender_last,
+                tc.message_type,
+                tc.sent_at,
+                tc.is_read,
+                tc.priority
+            FROM team_communication tc
+            JOIN projects p ON tc.project_id = p.id
+            LEFT JOIN users u ON tc.sender_id = u.id
+            WHERE tc.company_id = ?
+            ORDER BY tc.sent_at DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getDocumentSharing() {
+        return $this->db->query("
+            SELECT
+                ds.*,
+                p.project_name,
+                u.first_name as uploaded_by_first,
+                u.last_name as uploaded_by_last,
+                ds.file_name,
+                ds.file_size,
+                ds.upload_date,
+                ds.download_count,
+                ds.version_number
+            FROM document_sharing ds
+            JOIN projects p ON ds.project_id = p.id
+            LEFT JOIN users u ON ds.uploaded_by = u.id
+            WHERE ds.company_id = ?
+            ORDER BY ds.upload_date DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getMeetingManagement() {
+        return $this->db->query("
+            SELECT
+                mm.*,
+                p.project_name,
+                mm.meeting_title,
+                mm.scheduled_date,
+                mm.duration_minutes,
+                mm.status,
+                COUNT(mma.id) as attendees_count,
+                mm.meeting_type
+            FROM meeting_management mm
+            JOIN projects p ON mm.project_id = p.id
+            LEFT JOIN meeting_attendees mma ON mm.id = mma.meeting_id
+            WHERE mm.company_id = ?
+            GROUP BY mm.id, p.project_name
+            ORDER BY mm.scheduled_date DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getFeedbackSystem() {
+        return $this->db->query("
+            SELECT
+                fs.*,
+                p.project_name,
+                u.first_name as feedback_from_first,
+                u.last_name as feedback_from_last,
+                fs.feedback_type,
+                fs.rating,
+                fs.comments,
+                fs.created_at
+            FROM feedback_system fs
+            JOIN projects p ON fs.project_id = p.id
+            LEFT JOIN users u ON fs.feedback_from = u.id
+            WHERE fs.company_id = ?
+            ORDER BY fs.created_at DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getCollaborationAnalytics() {
+        return $this->db->querySingle("
+            SELECT
+                COUNT(tc.id) as total_messages,
+                COUNT(DISTINCT tc.sender_id) as active_users,
+                COUNT(ds.id) as total_documents,
+                SUM(ds.download_count) as total_downloads,
+                COUNT(mm.id) as total_meetings,
+                AVG(mm.duration_minutes) as avg_meeting_duration,
+                COUNT(fs.id) as total_feedback,
+                AVG(fs.rating) as avg_feedback_rating
+            FROM projects p
+            LEFT JOIN team_communication tc ON p.id = tc.project_id
+            LEFT JOIN document_sharing ds ON p.id = ds.project_id
+            LEFT JOIN meeting_management mm ON p.id = mm.project_id
+            LEFT JOIN feedback_system fs ON p.id = fs.project_id
+            WHERE p.company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getNotificationCenter() {
+        return $this->db->query("
+            SELECT
+                nc.*,
+                p.project_name,
+                u.first_name as recipient_first,
+                u.last_name as recipient_last,
+                nc.notification_type,
+                nc.message,
+                nc.sent_at,
+                nc.is_read,
+                nc.priority
+            FROM notification_center nc
+            LEFT JOIN projects p ON nc.project_id = p.id
+            LEFT JOIN users u ON nc.recipient_id = u.id
+            WHERE nc.company_id = ?
+            ORDER BY nc.sent_at DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getCollaborationSettings() {
+        return $this->db->querySingle("
+            SELECT * FROM collaboration_settings
+            WHERE company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getIntegrationTools() {
+        return [
+            'slack' => 'Slack Integration',
+            'teams' => 'Microsoft Teams',
+            'zoom' => 'Zoom Meetings',
+            'google_drive' => 'Google Drive',
+            'dropbox' => 'Dropbox',
+            'trello' => 'Trello',
+            'jira' => 'Jira',
+            'github' => 'GitHub'
+        ];
+    }
+
+    private function getRiskRegister() {
+        return $this->db->query("
+            SELECT
+                rr.*,
+                p.project_name,
+                rr.risk_description,
+                rr.probability,
+                rr.impact,
+                rr.severity,
+                rr.status,
+                rr.identified_date
+            FROM risk_register rr
+            JOIN projects p ON rr.project_id = p.id
+            WHERE rr.company_id = ?
+            ORDER BY rr.severity DESC, rr.probability DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getRiskAssessment() {
+        return $this->db->query("
+            SELECT
+                ra.*,
+                p.project_name,
+                ra.assessment_date,
+                ra.overall_risk_score,
+                ra.risk_trend,
+                ra.recommendations,
+                COUNT(rr.id) as risks_assessed
+            FROM risk_assessment ra
+            JOIN projects p ON ra.project_id = p.id
+            LEFT JOIN risk_register rr ON p.id = rr.project_id
+            WHERE ra.company_id = ?
+            GROUP BY ra.id, p.project_name
+            ORDER BY ra.assessment_date DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getMitigationPlans() {
+        return $this->db->query("
+            SELECT
+                mp.*,
+                rr.risk_description,
+                mp.mitigation_strategy,
+                mp.responsible_party,
+                mp.target_completion_date,
+                mp.progress_percentage,
+                mp.status
+            FROM mitigation_plans mp
+            JOIN risk_register rr ON mp.risk_id = rr.id
+            WHERE mp.company_id = ?
+            ORDER BY mp.target_completion_date ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getRiskMonitoring() {
+        return $this->db->query("
+            SELECT
+                rm.*,
+                p.project_name,
+                rm.monitoring_date,
+                rm.risk_status,
+                rm.trigger_events,
+                rm.response_actions,
+                rm.next_review_date
+            FROM risk_monitoring rm
+            JOIN projects p ON rm.project_id = p.id
+            WHERE rm.company_id = ?
+            ORDER BY rm.monitoring_date DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getContingencyPlanning() {
+        return $this->db->query("
+            SELECT
+                cp.*,
+                p.project_name,
+                cp.contingency_scenario,
+                cp.trigger_conditions,
+                cp.response_plan,
+                cp.estimated_cost,
+                cp.probability_percentage
+            FROM contingency_planning cp
+            JOIN projects p ON cp.project_id = p.id
+            WHERE cp.company_id = ?
+            ORDER BY cp.probability_percentage DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getRiskReporting() {
+        return $this->db->query("
+            SELECT
+                rr.*,
+                rr.report_type,
+                rr.report_period,
+                rr.generated_date,
+                rr.total_risks,
+                rr.high_severity_risks,
+                rr.mitigated_risks
+            FROM risk_reports rr
+            WHERE rr.company_id = ?
+            ORDER BY rr.generated_date DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getRiskTemplates() {
+        return $this->db->query("
+            SELECT * FROM risk_templates
+            WHERE company_id = ? AND is_active = true
+            ORDER BY template_name ASC
+        ", [$this->user['company_id']]);
+    }
+}

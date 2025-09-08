@@ -43,7 +43,7 @@ class Collaboration extends BaseController {
             'channels' => $this->getChannels(),
             'direct_messages' => $this->getDirectMessages(),
             'message_history' => $this->getMessageHistory(),
-            'online_users' => $this->getOnlineUsers(),
+            'online_users' => $this->getOnlineUsersData(),
             'message_templates' => $this->getMessageTemplates()
         ];
 
@@ -338,7 +338,7 @@ class Collaboration extends BaseController {
         ", [$this->user['company_id']]);
     }
 
-    private function getOnlineUsers() {
+    private function getOnlineUsersData() {
         return $this->db->query("
             SELECT
                 u.*,

@@ -1334,4 +1334,28 @@ class SecurityFeatures extends BaseController {
         } catch (Exception $e) {
             // Log failed decryption
             $this->db->insert('encryption_logs', [
-                'company_id' => $this->
+                'company_id' => $this->user['company_id'],
+                'operation_type' => 'decrypt',
+                'encryption_key_id' => $data['key_id'],
+                'operation_time' => date('Y-m-d H:i:s'),
+                'success' => false,
+                'error_message' => $e->getMessage()
+            ]);
+
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // ============================================================================
+    // HELPER METHODS
+    // ============================================================================
+
+    private function triggerAlertNotifications($alertId, $alertData) {
+        // Implementation for triggering alert notifications
+        // This would typically send emails, SMS, or push notifications
+        // based on the alert severity and configured notification rules
+    }
+}

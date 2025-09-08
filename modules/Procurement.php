@@ -1255,4 +1255,130 @@ class Procurement extends BaseController {
         ", [$this->user['company_id']]);
     }
 
-    private function getProc
+    private function getProcurementMetrics() {
+        return $this->db->querySingle("
+            SELECT
+                COUNT(po.id) as total_orders,
+                SUM(po.total_amount) as total_spend,
+                AVG(po.total_amount) as avg_order_value,
+                COUNT(DISTINCT po.vendor_id) as unique_vendors,
+                COUNT(CASE WHEN po.status = 'delivered' THEN 1 END) as completed_orders,
+                ROUND((COUNT(CASE WHEN po.status = 'delivered' THEN 1 END) / NULLIF(COUNT(po.id), 0)) * 100, 2) as completion_rate,
+                AVG(TIMESTAMPDIFF(DAY, po.order_date, po.actual_delivery_date)) as avg_delivery_time
+            FROM purchase_orders po
+            WHERE po.company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getSupplierAnalytics() {
+        return $this->db->query("
+            SELECT
+                v.vendor_name,
+                COUNT(po.id) as order_count,
+                SUM(po.total_amount) as total_spend,
+                AVG(po.total_amount) as avg_order_value,
+                AVG(v.rating) as avg_rating,
+                AVG(TIMESTAMPDIFF(DAY, po.order_date, po.actual_delivery_date)) as avg_delivery_time,
+                ROUND((COUNT(CASE WHEN po.status = 'delivered' THEN 1 END) / NULLIF(COUNT(po.id), 0)) * 100, 2) as on_time_delivery_rate
+            FROM vendors v
+            LEFT JOIN purchase_orders po ON v.id = po.vendor_id
+            WHERE v.company_id = ?
+            GROUP BY v.vendor_name, v.id
+            ORDER BY total_spend DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getCategoryAnalytics() {
+        return $this->db->query("
+            SELECT
+                pc.category_name,
+                COUNT(po.id) as order_count,
+                SUM(po.total_amount) as total_spend,
+                AVG(po.total_amount) as avg_order_value,
+                COUNT(DISTINCT po.vendor_id) as unique_vendors,
+                ROUND((SUM(po.total_amount) / NULLIF((SELECT SUM(total_amount) FROM purchase_orders WHERE company_id = po.company_id), 0)) * 100, 2) as spend_percentage
+            FROM purchase_orders po
+            JOIN purchase_order_items poi ON po.id = poi.purchase_order_id
+            LEFT JOIN product_categories pc ON poi.category_id = pc.id
+            WHERE po.company_id = ?
+            GROUP BY pc.category_name
+            ORDER BY total_spend DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getComplianceAnalytics() {
+        return $this->db->querySingle("
+            SELECT
+                COUNT(c.id) as total_contracts,
+                COUNT(CASE WHEN c.end_date >= CURDATE() THEN 1 END) as active_contracts,
+                COUNT(CASE WHEN c.end_date <= DATE_ADD(CURDATE(), INTERVAL 90 DAY) THEN 1 END) as expiring_contracts,
+                COUNT(cc.id) as total_compliance_checks,
+                COUNT(CASE WHEN cc.status = 'compliant' THEN 1 END) as compliant_checks,
+                ROUND((COUNT(CASE WHEN cc.status = 'compliant' THEN 1 END) / NULLIF(COUNT(cc.id), 0)) * 100, 2) as compliance_rate
+            FROM contracts c
+            LEFT JOIN contract_compliance cc ON c.id = cc.contract_id
+            WHERE c.company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getRiskAnalytics() {
+        return $this->db->query("
+            SELECT
+                v.vendor_name,
+                COUNT(po.id) as order_count,
+                SUM(po.total_amount) as total_spend,
+                AVG(v.rating) as avg_rating,
+                COUNT(CASE WHEN po.status = 'delayed' THEN 1 END) as delayed_orders,
+                COUNT(CASE WHEN po.status = 'cancelled' THEN 1 END) as cancelled_orders,
+                ROUND((COUNT(CASE WHEN po.status IN ('delayed', 'cancelled') THEN 1 END) / NULLIF(COUNT(po.id), 0)) * 100, 2) as risk_percentage
+            FROM vendors v
+            LEFT JOIN purchase_orders po ON v.id = po.vendor_id
+            WHERE v.company_id = ?
+            GROUP BY v.vendor_name, v.id
+            ORDER BY risk_percentage DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getPerformanceAnalytics() {
+        return $this->db->querySingle("
+            SELECT
+                COUNT(se.id) as total_evaluations,
+                AVG(se.rating_score) as avg_rating,
+                COUNT(CASE WHEN se.rating_score >= 4 THEN 1 END) as high_performers,
+                COUNT(CASE WHEN se.rating_score < 3 THEN 1 END) as low_performers,
+                COUNT(DISTINCT se.vendor_id) as evaluated_vendors,
+                MAX(se.evaluation_date) as last_evaluation_date
+            FROM supplier_evaluations se
+            WHERE se.company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getForecastingAnalytics() {
+        return $this->db->query("
+            SELECT
+                sf.forecast_period,
+                sf.forecast_amount,
+                sf.actual_amount,
+                sf.confidence_level,
+                ROUND(((sf.actual_amount - sf.forecast_amount) / NULLIF(sf.forecast_amount, 0)) * 100, 2) as accuracy_percentage
+            FROM spend_forecasting sf
+            WHERE sf.company_id = ?
+            ORDER BY sf.forecast_period ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getBenchmarkingAnalytics() {
+        return $this->db->query("
+            SELECT
+                ba.*,
+                ba.benchmark_category,
+                ba.company_performance,
+                ba.industry_average,
+                ba.top_performer,
+                ROUND(((ba.company_performance - ba.industry_average) / NULLIF(ba.industry_average, 0)) * 100, 2) as variance_percentage
+            FROM benchmarking_analytics ba
+            WHERE ba.company_id = ?
+            ORDER BY ABS(ba.company_performance - ba.industry_average) DESC
+        ", [$this->user['company_id']]);
+    }
+}

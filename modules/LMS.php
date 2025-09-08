@@ -1215,4 +1215,116 @@ class LMS extends BaseController {
                 COUNT(e.id) as total_students,
                 AVG(c.cost_per_student) as avg_course_price
             FROM instructors i
-            LEFT JOIN courses c ON i.id = c.instructor_id AND c.status = 'active
+            LEFT JOIN courses c ON i.id = c.instructor_id AND c.status = 'active'
+            LEFT JOIN enrollments e ON c.id = e.course_id
+            WHERE i.company_id = ?
+            GROUP BY i.id, i.first_name, i.last_name
+            ORDER BY total_teaching_hours DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getInstructorDevelopment() {
+        return $this->db->query("
+            SELECT
+                id.*,
+                id.development_area,
+                id.target_completion_date,
+                id.progress_percentage,
+                id.status,
+                i.first_name,
+                i.last_name
+            FROM instructor_development id
+            JOIN instructors i ON id.instructor_id = i.id
+            WHERE i.company_id = ?
+            ORDER BY id.target_completion_date ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getInstructorAvailability() {
+        return $this->db->query("
+            SELECT
+                ia.*,
+                ia.day_of_week,
+                ia.start_time,
+                ia.end_time,
+                ia.is_available,
+                i.first_name,
+                i.last_name
+            FROM instructor_availability ia
+            JOIN instructors i ON ia.instructor_id = i.id
+            WHERE i.company_id = ?
+            ORDER BY ia.day_of_week, ia.start_time
+        ", [$this->user['company_id']]);
+    }
+
+    private function getRoomCapacity() {
+        return $this->db->query("
+            SELECT
+                rc.*,
+                rc.room_name,
+                rc.capacity,
+                rc.location,
+                rc.equipment_available
+            FROM room_capacity rc
+            WHERE rc.company_id = ?
+            ORDER BY rc.capacity DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getTechnicalRequirements() {
+        return [
+            'video_conferencing' => [
+                'bandwidth' => '2 Mbps minimum',
+                'camera' => 'HD webcam',
+                'microphone' => 'Built-in or external mic',
+                'speakers' => 'Built-in or external speakers'
+            ],
+            'screen_sharing' => [
+                'resolution' => '1920x1080 minimum',
+                'frame_rate' => '30 FPS',
+                'software' => 'Screen sharing application'
+            ],
+            'recording' => [
+                'storage' => 'Sufficient disk space',
+                'format' => 'MP4, WebM',
+                'quality' => 'HD 1080p'
+            ]
+        ];
+    }
+
+    private function getSupportedTimeZones() {
+        return [
+            'Pacific/Auckland' => 'New Zealand',
+            'Australia/Sydney' => 'Australia (Sydney)',
+            'Asia/Tokyo' => 'Japan',
+            'Asia/Shanghai' => 'China',
+            'Asia/Kolkata' => 'India',
+            'Europe/London' => 'United Kingdom',
+            'Europe/Paris' => 'France',
+            'America/New_York' => 'Eastern Time',
+            'America/Chicago' => 'Central Time',
+            'America/Denver' => 'Mountain Time',
+            'America/Los_Angeles' => 'Pacific Time'
+        ];
+    }
+
+    private function getVideoIntegrations() {
+        return [
+            'zoom' => [
+                'api_available' => true,
+                'recording_sync' => true,
+                'attendance_tracking' => true
+            ],
+            'teams' => [
+                'api_available' => true,
+                'recording_sync' => true,
+                'attendance_tracking' => true
+            ],
+            'meet' => [
+                'api_available' => false,
+                'recording_sync' => false,
+                'attendance_tracking' => false
+            ]
+        ];
+    }
+}

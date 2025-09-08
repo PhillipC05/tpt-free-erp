@@ -1,0 +1,455 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18'
+  PHP_VERSION: '8.1'
+  COMPOSER_VERSION: '2'
+
+jobs:
+  # Quality Assurance Job
+  quality-assurance:
+    name: Quality Assurance
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ env.PHP_VERSION }}
+        extensions: pdo, pdo_mysql, mbstring, xml, curl
+        coverage: pcov
+
+    - name: Cache Composer dependencies
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install PHP dependencies
+      run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+    - name: Install Node.js dependencies
+      run: npm ci
+
+    - name: Run ESLint
+      run: npm run lint
+
+    - name: Run Prettier check
+      run: npm run format:check
+
+    - name: Run PHPStan (Static Analysis)
+      run: ./vendor/bin/phpstan analyse --error-format=github
+
+    - name: Run PHPCS (Code Style)
+      run: ./vendor/bin/phpcs --standard=phpcs.xml --report=github
+
+    - name: Run Security Audit
+      run: |
+        npm audit --audit-level moderate
+        composer audit
+
+  # Testing Job
+  testing:
+    name: Testing Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: quality-assurance
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: tpt_erp_test
+          MYSQL_USER: tpt_user
+          MYSQL_PASSWORD: tpt_pass
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ env.PHP_VERSION }}
+        extensions: pdo, pdo_mysql, mbstring, xml, curl
+        coverage: pcov
+
+    - name: Cache Composer dependencies
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install PHP dependencies
+      run: composer install --no-progress --prefer-dist --optimize-autoloader
+
+    - name: Install Node.js dependencies
+      run: npm ci
+
+    - name: Copy environment file
+      run: cp .env.example .env
+
+    - name: Setup database
+      run: |
+        php phinx migrate -e testing
+        php phinx seed:run -e testing
+
+    - name: Run PHP Unit Tests
+      run: ./vendor/bin/phpunit --coverage-clover=coverage.xml --log-junit=test-results.xml
+
+    - name: Run JavaScript Unit Tests
+      run: npm run test:unit
+
+    - name: Run Integration Tests
+      run: npm run test:integration
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: php
+        name: PHP Coverage
+        fail_ci_if_error: false
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results
+        path: test-results.xml
+      if: always()
+
+  # Build Job
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: testing
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ env.PHP_VERSION }}
+        extensions: pdo, pdo_mysql, mbstring, xml, curl
+
+    - name: Cache Composer dependencies
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install PHP dependencies
+      run: composer install --no-progress --prefer-dist --optimize-autoloader --no-dev
+
+    - name: Install Node.js dependencies
+      run: npm ci
+
+    - name: Build assets
+      run: npm run build
+
+    - name: Optimize Composer autoloader
+      run: composer dump-autoload --optimize
+
+    - name: Create build artifact
+      run: |
+        mkdir -p build
+        cp -r . build/
+        rm -rf build/.git
+        rm -rf build/node_modules
+        rm -rf build/tests
+        rm -rf build/.github
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: application-build
+        path: build/
+        retention-days: 7
+
+  # Security Scan
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ env.PHP_VERSION }}
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    - name: Run Snyk to check for vulnerabilities
+      uses: snyk/actions/php@master
+      continue-on-error: true
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --file=composer.json
+
+  # Performance Test
+  performance-test:
+    name: Performance Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run Lighthouse CI
+      run: |
+        npm install -g lighthouse
+        lighthouse http://localhost:8000 --output=json --output-path=./lighthouse-results.json --chrome-flags="--headless --disable-gpu --no-sandbox"
+      continue-on-error: true
+
+    - name: Upload Lighthouse results
+      uses: actions/upload-artifact@v3
+      with:
+        name: lighthouse-results
+        path: lighthouse-results.json
+      if: always()
+
+  # Deploy to Staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [build, security-scan, performance-test]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+
+    steps:
+    - name: Download build artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: application-build
+        path: build/
+
+    - name: Deploy to staging server
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.STAGING_HOST }}
+        username: ${{ secrets.STAGING_USER }}
+        key: ${{ secrets.STAGING_SSH_KEY }}
+        source: "build/*"
+        target: "/var/www/staging.tpt-erp.com"
+        strip_components: 1
+
+    - name: Run database migrations on staging
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.STAGING_HOST }}
+        username: ${{ secrets.STAGING_USER }}
+        key: ${{ secrets.STAGING_SSH_KEY }}
+        script: |
+          cd /var/www/staging.tpt-erp.com
+          php phinx migrate -e staging
+
+    - name: Health check
+      run: |
+        curl -f https://staging.tpt-erp.com/health || exit 1
+
+  # Deploy to Production
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+
+    steps:
+    - name: Download build artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: application-build
+        path: build/
+
+    - name: Deploy to production server
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.PRODUCTION_HOST }}
+        username: ${{ secrets.PRODUCTION_USER }}
+        key: ${{ secrets.PRODUCTION_SSH_KEY }}
+        source: "build/*"
+        target: "/var/www/tpt-erp.com"
+        strip_components: 1
+
+    - name: Run database migrations on production
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.PRODUCTION_HOST }}
+        username: ${{ secrets.PRODUCTION_USER }}
+        key: ${{ secrets.PRODUCTION_SSH_KEY }}
+        script: |
+          cd /var/www/tpt-erp.com
+          php phinx migrate -e production
+
+    - name: Clear application cache
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.PRODUCTION_HOST }}
+        username: ${{ secrets.PRODUCTION_USER }}
+        key: ${{ secrets.PRODUCTION_SSH_KEY }}
+        script: |
+          cd /var/www/tpt-erp.com
+          php artisan cache:clear
+          php artisan config:clear
+          php artisan view:clear
+
+    - name: Health check
+      run: |
+        curl -f https://tpt-erp.com/health || exit 1
+
+    - name: Notify deployment success
+      uses: 8398a7/action-slack@v3
+      with:
+        status: success
+        text: "Successfully deployed TPT Free ERP to production"
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      if: success()
+
+    - name: Notify deployment failure
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        text: "Failed to deploy TPT Free ERP to production"
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      if: failure()
+
+  # Rollback Job (Manual trigger)
+  rollback:
+    name: Rollback Production
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Rollback to previous version
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.PRODUCTION_HOST }}
+        username: ${{ secrets.PRODUCTION_USER }}
+        key: ${{ secrets.PRODUCTION_SSH_KEY }}
+        script: |
+          cd /var/www/tpt-erp.com
+          # Rollback database migrations
+          php phinx rollback -e production -t 1
+          # Restore previous deployment
+          ln -sfn /var/www/backups/$(date -d 'yesterday' '+%Y%m%d') current
+
+    - name: Notify rollback
+      uses: 8398a7/action-slack@v3
+      with:
+        status: warning
+        text: "Production deployment rolled back"
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # Documentation Deployment
+  docs-deploy:
+    name: Deploy Documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Generate documentation
+      run: npm run docs:generate
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs/api
+        cname: docs.tpt-erp.com

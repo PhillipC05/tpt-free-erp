@@ -1,87 +1,159 @@
 /**
- * TPT Free ERP - Asset Management Component
+ * TPT Free ERP - Asset Management Component (Refactored)
  * Complete asset tracking, maintenance, depreciation, and lifecycle management interface
+ * Uses shared utilities for reduced complexity and improved maintainability
  */
 
-class AssetManagement extends Component {
+class AssetManagement extends BaseComponent {
     constructor(props = {}) {
         super(props);
-        this.props = {
-            title: 'Asset Management',
-            currentView: 'dashboard',
-            ...props
-        };
 
-        this.state = {
-            loading: false,
-            currentView: this.props.currentView,
-            overview: {},
-            assets: [],
-            assetCategories: [],
-            assetLocations: [],
-            assetDepartments: [],
-            maintenanceSchedule: [],
-            maintenanceHistory: [],
-            depreciationSchedule: [],
-            lifecycleStages: [],
-            complianceRequirements: [],
-            insurancePolicies: [],
-            assetAnalytics: {},
-            filters: {
-                status: '',
-                category: '',
-                location: '',
-                department: '',
-                date_from: '',
-                date_to: '',
-                search: '',
-                page: 1,
-                limit: 50
-            },
-            selectedAssets: [],
-            selectedWorkOrders: [],
-            showAssetModal: false,
-            showWorkOrderModal: false,
-            showDepreciationModal: false,
-            showDisposalModal: false,
-            showComplianceModal: false,
-            editingAsset: null,
-            editingWorkOrder: null,
-            pagination: {
-                page: 1,
-                limit: 50,
-                total: 0,
-                pages: 0
-            }
-        };
+        // Initialize table renderers for different data types
+        this.assetsTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
 
-        // Bind methods
-        this.loadOverview = this.loadOverview.bind(this);
-        this.loadAssets = this.loadAssets.bind(this);
-        this.loadAssetCategories = this.loadAssetCategories.bind(this);
-        this.loadAssetLocations = this.loadAssetLocations.bind(this);
-        this.loadAssetDepartments = this.loadAssetDepartments.bind(this);
-        this.loadMaintenanceSchedule = this.loadMaintenanceSchedule.bind(this);
-        this.loadMaintenanceHistory = this.loadMaintenanceHistory.bind(this);
-        this.loadDepreciationSchedule = this.loadDepreciationSchedule.bind(this);
-        this.loadComplianceRequirements = this.loadComplianceRequirements.bind(this);
-        this.loadInsurancePolicies = this.loadInsurancePolicies.bind(this);
-        this.loadAssetAnalytics = this.loadAssetAnalytics.bind(this);
-        this.handleViewChange = this.handleViewChange.bind(this);
-        this.handleFilterChange = this.handleFilterChange.bind(this);
-        this.handleAssetSelect = this.handleAssetSelect.bind(this);
-        this.handleWorkOrderSelect = this.handleWorkOrderSelect.bind(this);
-        this.handleBulkAction = this.handleBulkAction.bind(this);
-        this.showAssetModal = this.showAssetModal.bind(this);
-        this.hideAssetModal = this.hideAssetModal.bind(this);
-        this.saveAsset = this.saveAsset.bind(this);
-        this.showWorkOrderModal = this.showWorkOrderModal.bind(this);
-        this.hideWorkOrderModal = this.hideWorkOrderModal.bind(this);
-        this.saveWorkOrder = this.saveWorkOrder.bind(this);
-        this.calculateDepreciation = this.calculateDepreciation.bind(this);
-        this.createAssetDisposal = this.createAssetDisposal.bind(this);
-        this.createComplianceAudit = this.createComplianceAudit.bind(this);
-        this.exportAssets = this.exportAssets.bind(this);
+        this.maintenanceScheduleTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.maintenanceHistoryTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.depreciationScheduleTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.complianceRequirementsTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.insurancePoliciesTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        // Setup table callbacks
+        this.assetsTableRenderer.setDataCallback(() => this.state.assets || []);
+        this.assetsTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedAssets: selectedIds });
+        });
+        this.assetsTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.assetsTableRenderer.setDataChangeCallback(() => {
+            this.loadAssets();
+        });
+
+        this.maintenanceScheduleTableRenderer.setDataCallback(() => this.state.maintenanceSchedule || []);
+        this.maintenanceScheduleTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedWorkOrders: selectedIds });
+        });
+        this.maintenanceScheduleTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.maintenanceScheduleTableRenderer.setDataChangeCallback(() => {
+            this.loadMaintenanceSchedule();
+        });
+
+        this.maintenanceHistoryTableRenderer.setDataCallback(() => this.state.maintenanceHistory || []);
+        this.maintenanceHistoryTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedWorkOrders: selectedIds });
+        });
+        this.maintenanceHistoryTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.maintenanceHistoryTableRenderer.setDataChangeCallback(() => {
+            this.loadMaintenanceHistory();
+        });
+
+        this.depreciationScheduleTableRenderer.setDataCallback(() => this.state.depreciationSchedule || []);
+        this.depreciationScheduleTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedAssets: selectedIds });
+        });
+        this.depreciationScheduleTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.depreciationScheduleTableRenderer.setDataChangeCallback(() => {
+            this.loadDepreciationSchedule();
+        });
+
+        this.complianceRequirementsTableRenderer.setDataCallback(() => this.state.complianceRequirements || []);
+        this.complianceRequirementsTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedAssets: selectedIds });
+        });
+        this.complianceRequirementsTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.complianceRequirementsTableRenderer.setDataChangeCallback(() => {
+            this.loadComplianceRequirements();
+        });
+
+        this.insurancePoliciesTableRenderer.setDataCallback(() => this.state.insurancePolicies || []);
+        this.insurancePoliciesTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedAssets: selectedIds });
+        });
+        this.insurancePoliciesTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.insurancePoliciesTableRenderer.setDataChangeCallback(() => {
+            this.loadInsurancePolicies();
+        });
+    }
+
+    get bindMethods() {
+        return [
+            'loadOverview',
+            'loadAssets',
+            'loadAssetCategories',
+            'loadAssetLocations',
+            'loadAssetDepartments',
+            'loadMaintenanceSchedule',
+            'loadMaintenanceHistory',
+            'loadDepreciationSchedule',
+            'loadComplianceRequirements',
+            'loadInsurancePolicies',
+            'loadAssetAnalytics',
+            'handleViewChange',
+            'handleFilterChange',
+            'handleAssetSelect',
+            'handleWorkOrderSelect',
+            'handleBulkAction',
+            'showAssetModal',
+            'hideAssetModal',
+            'saveAsset',
+            'showWorkOrderModal',
+            'hideWorkOrderModal',
+            'saveWorkOrder',
+            'calculateDepreciation',
+            'createAssetDisposal',
+            'createComplianceAudit',
+            'exportAssets'
+        ];
     }
 
     async componentDidMount() {
@@ -102,11 +174,7 @@ class AssetManagement extends Component {
                 this.loadAssetDepartments()
             ]);
         } catch (error) {
-            console.error('Error loading asset management data:', error);
-            App.showNotification({
-                type: 'error',
-                message: 'Failed to load asset management data'
-            });
+            this.showNotification('Failed to load asset management data', 'error');
         } finally {
             this.setState({ loading: false });
         }
@@ -146,10 +214,10 @@ class AssetManagement extends Component {
 
     async loadOverview() {
         try {
-            const response = await API.get('/asset-management/overview');
+            const response = await this.apiRequest('/asset-management/overview');
             this.setState({ overview: response });
         } catch (error) {
-            console.error('Error loading asset overview:', error);
+            this.showNotification('Failed to load asset overview', 'error');
         }
     }
 
@@ -161,103 +229,103 @@ class AssetManagement extends Component {
                 limit: this.state.pagination.limit
             });
 
-            const response = await API.get(`/asset-management/assets?${params}`);
+            const response = await this.apiRequest(`/asset-management/assets?${params}`);
             this.setState({
                 assets: response.assets,
                 pagination: response.pagination
             });
         } catch (error) {
-            console.error('Error loading assets:', error);
+            this.showNotification('Failed to load assets', 'error');
         }
     }
 
     async loadAssetCategories() {
         try {
-            const response = await API.get('/asset-management/asset-categories');
+            const response = await this.apiRequest('/asset-management/asset-categories');
             this.setState({ assetCategories: response });
         } catch (error) {
-            console.error('Error loading asset categories:', error);
+            this.showNotification('Failed to load asset categories', 'error');
         }
     }
 
     async loadAssetLocations() {
         try {
-            const response = await API.get('/asset-management/asset-locations');
+            const response = await this.apiRequest('/asset-management/asset-locations');
             this.setState({ assetLocations: response });
         } catch (error) {
-            console.error('Error loading asset locations:', error);
+            this.showNotification('Failed to load asset locations', 'error');
         }
     }
 
     async loadAssetDepartments() {
         try {
-            const response = await API.get('/asset-management/asset-departments');
+            const response = await this.apiRequest('/asset-management/asset-departments');
             this.setState({ assetDepartments: response });
         } catch (error) {
-            console.error('Error loading asset departments:', error);
+            this.showNotification('Failed to load asset departments', 'error');
         }
     }
 
     async loadMaintenanceSchedule() {
         try {
-            const response = await API.get('/asset-management/maintenance-schedule');
+            const response = await this.apiRequest('/asset-management/maintenance-schedule');
             this.setState({ maintenanceSchedule: response });
         } catch (error) {
-            console.error('Error loading maintenance schedule:', error);
+            this.showNotification('Failed to load maintenance schedule', 'error');
         }
     }
 
     async loadMaintenanceHistory() {
         try {
-            const response = await API.get('/asset-management/maintenance-history');
+            const response = await this.apiRequest('/asset-management/maintenance-history');
             this.setState({ maintenanceHistory: response });
         } catch (error) {
-            console.error('Error loading maintenance history:', error);
+            this.showNotification('Failed to load maintenance history', 'error');
         }
     }
 
     async loadDepreciationSchedule() {
         try {
-            const response = await API.get('/asset-management/depreciation-schedule');
+            const response = await this.apiRequest('/asset-management/depreciation-schedule');
             this.setState({ depreciationSchedule: response });
         } catch (error) {
-            console.error('Error loading depreciation schedule:', error);
+            this.showNotification('Failed to load depreciation schedule', 'error');
         }
     }
 
     async loadLifecycleStages() {
         try {
-            const response = await API.get('/asset-management/lifecycle-stages');
+            const response = await this.apiRequest('/asset-management/lifecycle-stages');
             this.setState({ lifecycleStages: response });
         } catch (error) {
-            console.error('Error loading lifecycle stages:', error);
+            this.showNotification('Failed to load lifecycle stages', 'error');
         }
     }
 
     async loadComplianceRequirements() {
         try {
-            const response = await API.get('/asset-management/compliance-requirements');
+            const response = await this.apiRequest('/asset-management/compliance-requirements');
             this.setState({ complianceRequirements: response });
         } catch (error) {
-            console.error('Error loading compliance requirements:', error);
+            this.showNotification('Failed to load compliance requirements', 'error');
         }
     }
 
     async loadInsurancePolicies() {
         try {
-            const response = await API.get('/asset-management/insurance-policies');
+            const response = await this.apiRequest('/asset-management/insurance-policies');
             this.setState({ insurancePolicies: response });
         } catch (error) {
-            console.error('Error loading insurance policies:', error);
+            this.showNotification('Failed to load insurance policies', 'error');
         }
     }
 
     async loadAssetAnalytics() {
         try {
-            const response = await API.get('/asset-management/analytics');
+            const response = await this.apiRequest('/asset-management/analytics');
             this.setState({ assetAnalytics: response });
         } catch (error) {
-            console.error('Error loading asset analytics:', error);
+            this.showNotification('Failed to load asset analytics', 'error');
         }
     }
 
@@ -295,12 +363,9 @@ class AssetManagement extends Component {
         this.setState({ selectedWorkOrders });
     }
 
-    async handleBulkAction(action) {
-        if (this.state.selectedAssets.length === 0 && this.state.selectedWorkOrders.length === 0) {
-            App.showNotification({
-                type: 'warning',
-                message: 'Please select items first'
-            });
+    async handleBulkAction(action, selectedIds) {
+        if (!selectedIds || selectedIds.length === 0) {
+            this.showNotification('Please select items first', 'warning');
             return;
         }
 
@@ -320,25 +385,18 @@ class AssetManagement extends Component {
                     break;
             }
         } catch (error) {
-            console.error('Bulk action failed:', error);
-            App.showNotification({
-                type: 'error',
-                message: 'Bulk action failed'
-            });
+            this.showNotification('Bulk action failed', 'error');
         }
     }
 
     async showBulkUpdateModal() {
         // Implementation for bulk update modal
-        App.showNotification({
-            type: 'info',
-            message: 'Bulk update modal coming soon'
-        });
+        this.showNotification('Bulk update modal coming soon', 'info');
     }
 
     async exportAssets() {
         try {
-            const response = await API.get('/asset-management/export-assets', null, 'blob');
+            const response = await this.apiRequest('/asset-management/export-assets', null, 'blob');
             const url = window.URL.createObjectURL(new Blob([response]));
             const link = document.createElement('a');
             link.href = url;
@@ -348,33 +406,20 @@ class AssetManagement extends Component {
             link.remove();
             window.URL.revokeObjectURL(url);
 
-            App.showNotification({
-                type: 'success',
-                message: 'Assets exported successfully'
-            });
+            this.showNotification('Assets exported successfully', 'success');
         } catch (error) {
-            console.error('Export failed:', error);
-            App.showNotification({
-                type: 'error',
-                message: 'Export failed'
-            });
+            this.showNotification('Export failed', 'error');
         }
     }
 
     async showBulkMaintenanceModal() {
         // Implementation for bulk maintenance modal
-        App.showNotification({
-            type: 'info',
-            message: 'Bulk maintenance modal coming soon'
-        });
+        this.showNotification('Bulk maintenance modal coming soon', 'info');
     }
 
     async showBulkDepreciationModal() {
         // Implementation for bulk depreciation modal
-        App.showNotification({
-            type: 'info',
-            message: 'Bulk depreciation modal coming soon'
-        });
+        this.showNotification('Bulk depreciation modal coming soon', 'info');
     }
 
     showAssetModal(asset = null) {
@@ -398,21 +443,14 @@ class AssetManagement extends Component {
                 ? `/asset-management/assets/${this.state.editingAsset.id}`
                 : '/asset-management/assets';
 
-            await API.request(url, method, assetData);
+            await this.apiRequest(url, method, assetData);
 
-            App.showNotification({
-                type: 'success',
-                message: `Asset ${this.state.editingAsset ? 'updated' : 'created'} successfully`
-            });
+            this.showNotification(`Asset ${this.state.editingAsset ? 'updated' : 'created'} successfully`, 'success');
 
             this.hideAssetModal();
             await this.loadAssets();
         } catch (error) {
-            console.error('Error saving asset:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save asset'
-            });
+            this.showNotification(error.message || 'Failed to save asset', 'error');
         }
     }
 
@@ -437,78 +475,50 @@ class AssetManagement extends Component {
                 ? `/asset-management/maintenance-work-orders/${this.state.editingWorkOrder.id}`
                 : '/asset-management/maintenance-work-orders';
 
-            await API.request(url, method, workOrderData);
+            await this.apiRequest(url, method, workOrderData);
 
-            App.showNotification({
-                type: 'success',
-                message: `Work order ${this.state.editingWorkOrder ? 'updated' : 'created'} successfully`
-            });
+            this.showNotification(`Work order ${this.state.editingWorkOrder ? 'updated' : 'created'} successfully`, 'success');
 
             this.hideWorkOrderModal();
             await this.loadMaintenanceSchedule();
         } catch (error) {
-            console.error('Error saving work order:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save work order'
-            });
+            this.showNotification(error.message || 'Failed to save work order', 'error');
         }
     }
 
     async calculateDepreciation(assetId) {
         try {
-            await API.post(`/asset-management/depreciation/${assetId}/calculate`);
+            await this.apiRequest(`/asset-management/depreciation/${assetId}/calculate`, 'POST');
 
-            App.showNotification({
-                type: 'success',
-                message: 'Depreciation calculated successfully'
-            });
+            this.showNotification('Depreciation calculated successfully', 'success');
 
             await this.loadDepreciationSchedule();
         } catch (error) {
-            console.error('Error calculating depreciation:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to calculate depreciation'
-            });
+            this.showNotification(error.message || 'Failed to calculate depreciation', 'error');
         }
     }
 
     async createAssetDisposal(disposalData) {
         try {
-            await API.post('/asset-management/asset-disposal', disposalData);
+            await this.apiRequest('/asset-management/asset-disposal', 'POST', disposalData);
 
-            App.showNotification({
-                type: 'success',
-                message: 'Asset disposal recorded successfully'
-            });
+            this.showNotification('Asset disposal recorded successfully', 'success');
 
             await this.loadAssets();
         } catch (error) {
-            console.error('Error creating asset disposal:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to record asset disposal'
-            });
+            this.showNotification(error.message || 'Failed to record asset disposal', 'error');
         }
     }
 
     async createComplianceAudit(auditData) {
         try {
-            await API.post('/asset-management/compliance-audits', auditData);
+            await this.apiRequest('/asset-management/compliance-audits', 'POST', auditData);
 
-            App.showNotification({
-                type: 'success',
-                message: 'Compliance audit created successfully'
-            });
+            this.showNotification('Compliance audit created successfully', 'success');
 
             await this.loadComplianceRequirements();
         } catch (error) {
-            console.error('Error creating compliance audit:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to create compliance audit'
-            });
+            this.showNotification(error.message || 'Failed to create compliance audit', 'error');
         }
     }
 
@@ -1461,10 +1471,7 @@ class AssetManagement extends Component {
 
     viewAsset(asset) {
         // Implementation for viewing asset details
-        App.showNotification({
-            type: 'info',
-            message: 'Asset details view coming soon'
-        });
+        this.showNotification('Asset details view coming soon', 'info');
     }
 }
 

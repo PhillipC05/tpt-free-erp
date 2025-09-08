@@ -1,91 +1,107 @@
 /**
- * TPT Free ERP - Procurement Component
+ * TPT Free ERP - Procurement Component (Refactored)
  * Complete vendor management, purchase orders, and supplier evaluation interface
+ * Uses shared utilities for reduced complexity and improved maintainability
  */
 
-class Procurement extends Component {
+class Procurement extends BaseComponent {
     constructor(props = {}) {
         super(props);
-        this.props = {
-            title: 'Procurement Management',
-            currentView: 'dashboard',
-            ...props
-        };
 
-        this.state = {
-            loading: false,
-            currentView: this.props.currentView,
-            overview: {},
-            vendors: [],
-            purchaseOrders: [],
-            requisitions: [],
-            contracts: [],
-            spendAnalysis: {},
-            supplierEvaluations: [],
-            filters: {
-                status: '',
-                category: '',
-                vendor: '',
-                date_from: '',
-                date_to: '',
-                amount_min: '',
-                amount_max: '',
-                search: '',
-                page: 1,
-                limit: 50
-            },
-            selectedVendors: [],
-            selectedOrders: [],
-            selectedRequisitions: [],
-            showVendorModal: false,
-            showOrderModal: false,
-            showRequisitionModal: false,
-            showContractModal: false,
-            showEvaluationModal: false,
-            editingVendor: null,
-            editingOrder: null,
-            editingRequisition: null,
-            editingContract: null,
-            pagination: {
-                page: 1,
-                limit: 50,
-                total: 0,
-                pages: 0
-            }
-        };
+        // Initialize table renderers for different data types
+        this.vendorsTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
 
-        // Bind methods
-        this.loadOverview = this.loadOverview.bind(this);
-        this.loadVendors = this.loadVendors.bind(this);
-        this.loadPurchaseOrders = this.loadPurchaseOrders.bind(this);
-        this.loadRequisitions = this.loadRequisitions.bind(this);
-        this.loadContracts = this.loadContracts.bind(this);
-        this.loadSpendAnalysis = this.loadSpendAnalysis.bind(this);
-        this.loadSupplierEvaluations = this.loadSupplierEvaluations.bind(this);
-        this.handleViewChange = this.handleViewChange.bind(this);
-        this.handleFilterChange = this.handleFilterChange.bind(this);
-        this.handleVendorSelect = this.handleVendorSelect.bind(this);
-        this.handleOrderSelect = this.handleOrderSelect.bind(this);
-        this.handleRequisitionSelect = this.handleRequisitionSelect.bind(this);
-        this.handleBulkAction = this.handleBulkAction.bind(this);
-        this.showVendorModal = this.showVendorModal.bind(this);
-        this.hideVendorModal = this.hideVendorModal.bind(this);
-        this.saveVendor = this.saveVendor.bind(this);
-        this.deleteVendor = this.deleteVendor.bind(this);
-        this.showOrderModal = this.showOrderModal.bind(this);
-        this.hideOrderModal = this.hideOrderModal.bind(this);
-        this.savePurchaseOrder = this.savePurchaseOrder.bind(this);
-        this.updateOrderStatus = this.updateOrderStatus.bind(this);
-        this.showRequisitionModal = this.showRequisitionModal.bind(this);
-        this.hideRequisitionModal = this.hideRequisitionModal.bind(this);
-        this.saveRequisition = this.saveRequisition.bind(this);
-        this.approveRequisition = this.approveRequisition.bind(this);
-        this.showContractModal = this.showContractModal.bind(this);
-        this.hideContractModal = this.hideContractModal.bind(this);
-        this.saveContract = this.saveContract.bind(this);
-        this.showEvaluationModal = this.showEvaluationModal.bind(this);
-        this.hideEvaluationModal = this.hideEvaluationModal.bind(this);
-        this.saveSupplierEvaluation = this.saveSupplierEvaluation.bind(this);
+        this.purchaseOrdersTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.requisitionsTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        // Setup table callbacks
+        this.vendorsTableRenderer.setDataCallback(() => this.state.vendors || []);
+        this.vendorsTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedVendors: selectedIds });
+        });
+        this.vendorsTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.vendorsTableRenderer.setDataChangeCallback(() => {
+            this.loadVendors();
+        });
+
+        this.purchaseOrdersTableRenderer.setDataCallback(() => this.state.purchaseOrders || []);
+        this.purchaseOrdersTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedOrders: selectedIds });
+        });
+        this.purchaseOrdersTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.purchaseOrdersTableRenderer.setDataChangeCallback(() => {
+            this.loadPurchaseOrders();
+        });
+
+        this.requisitionsTableRenderer.setDataCallback(() => this.state.requisitions || []);
+        this.requisitionsTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedRequisitions: selectedIds });
+        });
+        this.requisitionsTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.requisitionsTableRenderer.setDataChangeCallback(() => {
+            this.loadRequisitions();
+        });
+    }
+
+    get bindMethods() {
+        return [
+            'loadOverview',
+            'loadVendors',
+            'loadPurchaseOrders',
+            'loadRequisitions',
+            'loadContracts',
+            'loadSpendAnalysis',
+            'loadSupplierEvaluations',
+            'handleViewChange',
+            'handleFilterChange',
+            'handleVendorSelect',
+            'handleOrderSelect',
+            'handleRequisitionSelect',
+            'handleBulkAction',
+            'showVendorModal',
+            'hideVendorModal',
+            'saveVendor',
+            'deleteVendor',
+            'showOrderModal',
+            'hideOrderModal',
+            'savePurchaseOrder',
+            'updateOrderStatus',
+            'showRequisitionModal',
+            'hideRequisitionModal',
+            'saveRequisition',
+            'approveRequisition',
+            'showContractModal',
+            'hideContractModal',
+            'saveContract',
+            'showEvaluationModal',
+            'hideEvaluationModal',
+            'saveSupplierEvaluation'
+        ];
     }
 
     async componentDidMount() {
@@ -142,10 +158,11 @@ class Procurement extends Component {
 
     async loadOverview() {
         try {
-            const response = await API.get('/procurement/overview');
+            const response = await this.apiRequest('/procurement/overview');
             this.setState({ overview: response });
         } catch (error) {
             console.error('Error loading procurement overview:', error);
+            this.showNotification('Failed to load procurement overview', 'error');
         }
     }
 
@@ -157,13 +174,14 @@ class Procurement extends Component {
                 limit: this.state.pagination.limit
             });
 
-            const response = await API.get(`/procurement/vendors?${params}`);
+            const response = await this.apiRequest(`/procurement/vendors?${params}`);
             this.setState({
                 vendors: response.vendors,
                 pagination: response.pagination
             });
         } catch (error) {
             console.error('Error loading vendors:', error);
+            this.showNotification('Failed to load vendors', 'error');
         }
     }
 
@@ -175,49 +193,54 @@ class Procurement extends Component {
                 limit: this.state.pagination.limit
             });
 
-            const response = await API.get(`/procurement/purchase-orders?${params}`);
+            const response = await this.apiRequest(`/procurement/purchase-orders?${params}`);
             this.setState({
                 purchaseOrders: response.purchase_orders,
                 pagination: response.pagination
             });
         } catch (error) {
             console.error('Error loading purchase orders:', error);
+            this.showNotification('Failed to load purchase orders', 'error');
         }
     }
 
     async loadRequisitions() {
         try {
-            const response = await API.get('/procurement/requisitions');
+            const response = await this.apiRequest('/procurement/requisitions');
             this.setState({ requisitions: response.requisitions });
         } catch (error) {
             console.error('Error loading requisitions:', error);
+            this.showNotification('Failed to load requisitions', 'error');
         }
     }
 
     async loadContracts() {
         try {
-            const response = await API.get('/procurement/contracts');
+            const response = await this.apiRequest('/procurement/contracts');
             this.setState({ contracts: response.contracts });
         } catch (error) {
             console.error('Error loading contracts:', error);
+            this.showNotification('Failed to load contracts', 'error');
         }
     }
 
     async loadSpendAnalysis() {
         try {
-            const response = await API.get('/procurement/spend-analysis');
+            const response = await this.apiRequest('/procurement/spend-analysis');
             this.setState({ spendAnalysis: response });
         } catch (error) {
             console.error('Error loading spend analysis:', error);
+            this.showNotification('Failed to load spend analysis', 'error');
         }
     }
 
     async loadSupplierEvaluations() {
         try {
-            const response = await API.get('/procurement/supplier-evaluations');
+            const response = await this.apiRequest('/procurement/supplier-evaluations');
             this.setState({ supplierEvaluations: response.evaluations });
         } catch (error) {
             console.error('Error loading supplier evaluations:', error);
+            this.showNotification('Failed to load supplier evaluations', 'error');
         }
     }
 
@@ -367,27 +390,18 @@ class Procurement extends Component {
     async saveVendor(vendorData) {
         try {
             if (this.state.editingVendor) {
-                await API.put(`/procurement/vendors/${this.state.editingVendor.id}`, vendorData);
-                App.showNotification({
-                    type: 'success',
-                    message: 'Vendor updated successfully'
-                });
+                await this.apiRequest(`/procurement/vendors/${this.state.editingVendor.id}`, 'PUT', vendorData);
+                this.showNotification('Vendor updated successfully', 'success');
             } else {
-                await API.post('/procurement/vendors', vendorData);
-                App.showNotification({
-                    type: 'success',
-                    message: 'Vendor created successfully'
-                });
+                await this.apiRequest('/procurement/vendors', 'POST', vendorData);
+                this.showNotification('Vendor created successfully', 'success');
             }
 
             this.hideVendorModal();
             await this.loadVendors();
         } catch (error) {
             console.error('Error saving vendor:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save vendor'
-            });
+            this.showNotification(error.message || 'Failed to save vendor', 'error');
         }
     }
 
@@ -397,18 +411,12 @@ class Procurement extends Component {
         }
 
         try {
-            await API.delete(`/procurement/vendors/${vendorId}`);
-            App.showNotification({
-                type: 'success',
-                message: 'Vendor deactivated successfully'
-            });
+            await this.apiRequest(`/procurement/vendors/${vendorId}`, 'DELETE');
+            this.showNotification('Vendor deactivated successfully', 'success');
             await this.loadVendors();
         } catch (error) {
             console.error('Error deactivating vendor:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to deactivate vendor'
-            });
+            this.showNotification(error.message || 'Failed to deactivate vendor', 'error');
         }
     }
 
@@ -428,36 +436,24 @@ class Procurement extends Component {
 
     async savePurchaseOrder(orderData) {
         try {
-            await API.post('/procurement/purchase-orders', orderData);
-            App.showNotification({
-                type: 'success',
-                message: 'Purchase order created successfully'
-            });
+            await this.apiRequest('/procurement/purchase-orders', 'POST', orderData);
+            this.showNotification('Purchase order created successfully', 'success');
             this.hideOrderModal();
             await this.loadPurchaseOrders();
         } catch (error) {
             console.error('Error saving purchase order:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save purchase order'
-            });
+            this.showNotification(error.message || 'Failed to save purchase order', 'error');
         }
     }
 
     async updateOrderStatus(orderId, status) {
         try {
-            await API.put(`/procurement/purchase-orders/${orderId}/status`, { status });
-            App.showNotification({
-                type: 'success',
-                message: 'Purchase order status updated successfully'
-            });
+            await this.apiRequest(`/procurement/purchase-orders/${orderId}/status`, 'PUT', { status });
+            this.showNotification('Purchase order status updated successfully', 'success');
             await this.loadPurchaseOrders();
         } catch (error) {
             console.error('Error updating order status:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to update order status'
-            });
+            this.showNotification(error.message || 'Failed to update order status', 'error');
         }
     }
 
@@ -1262,3 +1258,526 @@ class Procurement extends Component {
 
         return contractsView;
     }
+
+    renderContractsTable() {
+        const table = DOM.create('div', { className: 'data-table-container' });
+        const tableElement = DOM.create('table', { className: 'data-table' });
+
+        // Table header
+        const thead = DOM.create('thead', {});
+        const headerRow = DOM.create('tr', {});
+
+        const headers = [
+            { key: 'contract_number', label: 'Contract Number' },
+            { key: 'vendor_name', label: 'Vendor' },
+            { key: 'contract_type', label: 'Type' },
+            { key: 'start_date', label: 'Start Date' },
+            { key: 'end_date', label: 'End Date' },
+            { key: 'total_value', label: 'Total Value' },
+            { key: 'status', label: 'Status' },
+            { key: 'actions', label: 'Actions', width: '120px' }
+        ];
+
+        headers.forEach(header => {
+            const th = DOM.create('th', {
+                style: header.width ? `width: ${header.width};` : ''
+            }, header.label);
+            headerRow.appendChild(th);
+        });
+
+        thead.appendChild(headerRow);
+        tableElement.appendChild(thead);
+
+        // Table body
+        const tbody = DOM.create('tbody', {});
+
+        this.state.contracts.forEach(contract => {
+            const row = DOM.create('tr', {});
+
+            // Contract Number
+            row.appendChild(DOM.create('td', {}, contract.contract_number));
+
+            // Vendor
+            row.appendChild(DOM.create('td', {}, contract.vendor_name));
+
+            // Type
+            row.appendChild(DOM.create('td', {}, contract.contract_type));
+
+            // Start Date
+            row.appendChild(DOM.create('td', {}, this.formatDate(contract.start_date)));
+
+            // End Date
+            row.appendChild(DOM.create('td', {}, this.formatDate(contract.end_date)));
+
+            // Total Value
+            row.appendChild(DOM.create('td', {}, '$' + (contract.total_value || 0).toLocaleString()));
+
+            // Status
+            const statusCell = DOM.create('td', {});
+            const statusBadge = DOM.create('span', {
+                className: `status-badge ${contract.status}`
+            }, contract.status);
+            statusCell.appendChild(statusBadge);
+            row.appendChild(statusCell);
+
+            // Actions
+            const actionsCell = DOM.create('td', {});
+            const actions = DOM.create('div', { className: 'table-actions' });
+
+            const viewButton = DOM.create('button', {
+                className: 'btn btn-sm btn-outline-info',
+                onclick: () => this.viewContractDetails(contract)
+            });
+            viewButton.innerHTML = '<i class="fas fa-eye"></i>';
+            actions.appendChild(viewButton);
+
+            const editButton = DOM.create('button', {
+                className: 'btn btn-sm btn-outline-primary',
+                onclick: () => this.showContractModal(contract)
+            });
+            editButton.innerHTML = '<i class="fas fa-edit"></i>';
+            actions.appendChild(editButton);
+
+            actionsCell.appendChild(actions);
+            row.appendChild(actionsCell);
+
+            tbody.appendChild(row);
+        });
+
+        tableElement.appendChild(tbody);
+        table.appendChild(tableElement);
+
+        return table;
+    }
+
+    renderSpendAnalysis() {
+        const spendView = DOM.create('div', { className: 'spend-analysis-view' });
+
+        // Spend overview
+        const overviewSection = DOM.create('div', { className: 'spend-section' });
+        overviewSection.appendChild(DOM.create('h3', {}, 'Spend Analysis Overview'));
+
+        const spendData = this.state.spendAnalysis.spend_by_category || [];
+        const spendChart = DOM.create('div', { className: 'spend-chart' });
+        spendChart.appendChild(DOM.create('p', {}, 'Spend by Category Chart will be rendered here'));
+        overviewSection.appendChild(spendChart);
+
+        spendView.appendChild(overviewSection);
+
+        // Top vendors
+        const vendorsSection = DOM.create('div', { className: 'spend-section' });
+        vendorsSection.appendChild(DOM.create('h3', {}, 'Top Vendors by Spend'));
+
+        const topVendors = this.state.spendAnalysis.top_vendors || [];
+        if (topVendors.length > 0) {
+            const vendorsList = DOM.create('ul', { className: 'vendors-list' });
+            topVendors.slice(0, 5).forEach(vendor => {
+                const vendorItem = DOM.create('li', { className: 'vendor-item' });
+                vendorItem.appendChild(DOM.create('span', { className: 'vendor-name' }, vendor.vendor_name));
+                vendorItem.appendChild(DOM.create('span', { className: 'vendor-spend' }, '$' + vendor.total_spend.toLocaleString()));
+                vendorsList.appendChild(vendorItem);
+            });
+            vendorsSection.appendChild(vendorsList);
+        }
+
+        spendView.appendChild(vendorsSection);
+
+        return spendView;
+    }
+
+    renderSupplierEvaluations() {
+        const evaluationsView = DOM.create('div', { className: 'supplier-evaluations-view' });
+
+        // Toolbar
+        const toolbar = DOM.create('div', { className: 'toolbar' });
+        const addButton = DOM.create('button', {
+            className: 'btn btn-primary',
+            onclick: () => this.showEvaluationModal()
+        });
+        addButton.innerHTML = '<i class="fas fa-plus"></i> New Evaluation';
+        toolbar.appendChild(addButton);
+        evaluationsView.appendChild(toolbar);
+
+        // Evaluations table
+        const table = this.renderEvaluationsTable();
+        evaluationsView.appendChild(table);
+
+        return evaluationsView;
+    }
+
+    renderEvaluationsTable() {
+        const table = DOM.create('div', { className: 'data-table-container' });
+        const tableElement = DOM.create('table', { className: 'data-table' });
+
+        // Table header
+        const thead = DOM.create('thead', {});
+        const headerRow = DOM.create('tr', {});
+
+        const headers = [
+            { key: 'vendor_name', label: 'Vendor' },
+            { key: 'evaluation_date', label: 'Evaluation Date' },
+            { key: 'overall_rating', label: 'Overall Rating' },
+            { key: 'quality_rating', label: 'Quality' },
+            { key: 'delivery_rating', label: 'Delivery' },
+            { key: 'service_rating', label: 'Service' },
+            { key: 'evaluator_name', label: 'Evaluator' },
+            { key: 'actions', label: 'Actions', width: '120px' }
+        ];
+
+        headers.forEach(header => {
+            const th = DOM.create('th', {
+                style: header.width ? `width: ${header.width};` : ''
+            }, header.label);
+            headerRow.appendChild(th);
+        });
+
+        thead.appendChild(headerRow);
+        tableElement.appendChild(thead);
+
+        // Table body
+        const tbody = DOM.create('tbody', {});
+
+        this.state.supplierEvaluations.forEach(evaluation => {
+            const row = DOM.create('tr', {});
+
+            // Vendor
+            row.appendChild(DOM.create('td', {}, evaluation.vendor_name));
+
+            // Evaluation Date
+            row.appendChild(DOM.create('td', {}, this.formatDate(evaluation.evaluation_date)));
+
+            // Overall Rating
+            const overallCell = DOM.create('td', {});
+            const overallBadge = DOM.create('span', {
+                className: `rating-badge rating-${Math.floor(evaluation.overall_rating || 0)}`
+            }, `${evaluation.overall_rating || 0}/5`);
+            overallCell.appendChild(overallBadge);
+            row.appendChild(overallCell);
+
+            // Quality Rating
+            row.appendChild(DOM.create('td', {}, `${evaluation.quality_rating || 0}/5`));
+
+            // Delivery Rating
+            row.appendChild(DOM.create('td', {}, `${evaluation.delivery_rating || 0}/5`));
+
+            // Service Rating
+            row.appendChild(DOM.create('td', {}, `${evaluation.service_rating || 0}/5`));
+
+            // Evaluator
+            row.appendChild(DOM.create('td', {}, evaluation.evaluator_name || 'N/A'));
+
+            // Actions
+            const actionsCell = DOM.create('td', {});
+            const actions = DOM.create('div', { className: 'table-actions' });
+
+            const viewButton = DOM.create('button', {
+                className: 'btn btn-sm btn-outline-info',
+                onclick: () => this.viewEvaluationDetails(evaluation)
+            });
+            viewButton.innerHTML = '<i class="fas fa-eye"></i>';
+            actions.appendChild(viewButton);
+
+            const editButton = DOM.create('button', {
+                className: 'btn btn-sm btn-outline-primary',
+                onclick: () => this.showEvaluationModal(evaluation)
+            });
+            editButton.innerHTML = '<i class="fas fa-edit"></i>';
+            actions.appendChild(editButton);
+
+            actionsCell.appendChild(actions);
+            row.appendChild(actionsCell);
+
+            tbody.appendChild(row);
+        });
+
+        tableElement.appendChild(tbody);
+        table.appendChild(tableElement);
+
+        return table;
+    }
+
+    renderAnalytics() {
+        const analyticsView = DOM.create('div', { className: 'analytics-view' });
+
+        // Analytics overview
+        const overviewSection = DOM.create('div', { className: 'analytics-section' });
+        overviewSection.appendChild(DOM.create('h3', {}, 'Procurement Analytics Overview'));
+
+        const charts = DOM.create('div', { className: 'analytics-charts' });
+
+        // Procurement trends chart placeholder
+        const trendsChart = DOM.create('div', { className: 'chart-placeholder' });
+        trendsChart.appendChild(DOM.create('h4', {}, 'Procurement Trends'));
+        trendsChart.appendChild(DOM.create('div', { className: 'chart-canvas' }, 'Chart will be rendered here'));
+        charts.appendChild(trendsChart);
+
+        // Vendor performance chart placeholder
+        const performanceChart = DOM.create('div', { className: 'chart-placeholder' });
+        performanceChart.appendChild(DOM.create('h4', {}, 'Vendor Performance'));
+        performanceChart.appendChild(DOM.create('div', { className: 'chart-canvas' }, 'Chart will be rendered here'));
+        charts.appendChild(performanceChart);
+
+        overviewSection.appendChild(charts);
+        analyticsView.appendChild(overviewSection);
+
+        return analyticsView;
+    }
+
+    renderPagination() {
+        if (this.state.pagination.pages <= 1) {
+            return DOM.create('div', {});
+        }
+
+        const pagination = DOM.create('div', { className: 'pagination' });
+
+        const prevButton = DOM.create('button', {
+            className: 'btn btn-outline-secondary',
+            disabled: this.state.pagination.page <= 1,
+            onclick: () => this.handlePageChange(this.state.pagination.page - 1)
+        }, 'Previous');
+        pagination.appendChild(prevButton);
+
+        const pageInfo = DOM.create('span', { className: 'page-info' },
+            `Page ${this.state.pagination.page} of ${this.state.pagination.pages}`
+        );
+        pagination.appendChild(pageInfo);
+
+        const nextButton = DOM.create('button', {
+            className: 'btn btn-outline-secondary',
+            disabled: this.state.pagination.page >= this.state.pagination.pages,
+            onclick: () => this.handlePageChange(this.state.pagination.page + 1)
+        }, 'Next');
+        pagination.appendChild(nextButton);
+
+        return pagination;
+    }
+
+    // Modal rendering methods
+    renderVendorModal() {
+        const modal = DOM.create('div', { className: 'modal-overlay' });
+        const modalContent = DOM.create('div', { className: 'modal-content' });
+
+        modalContent.appendChild(DOM.create('div', { className: 'modal-header' },
+            DOM.create('h4', {}, this.state.editingVendor ? 'Edit Vendor' : 'Add Vendor'),
+            DOM.create('button', {
+                className: 'modal-close',
+                onclick: () => this.hideVendorModal()
+            }, '×')
+        ));
+
+        const form = DOM.create('div', { className: 'modal-body' });
+        form.appendChild(DOM.create('p', {}, 'Vendor form will be implemented here'));
+        modalContent.appendChild(form);
+
+        const footer = DOM.create('div', { className: 'modal-footer' });
+        footer.appendChild(DOM.create('button', {
+            className: 'btn btn-secondary',
+            onclick: () => this.hideVendorModal()
+        }, 'Cancel'));
+        footer.appendChild(DOM.create('button', {
+            className: 'btn btn-primary',
+            onclick: () => this.saveVendor({})
+        }, 'Save'));
+        modalContent.appendChild(footer);
+
+        modal.appendChild(modalContent);
+        return modal;
+    }
+
+    renderOrderModal() {
+        const modal = DOM.create('div', { className: 'modal-overlay' });
+        const modalContent = DOM.create('div', { className: 'modal-content' });
+
+        modalContent.appendChild(DOM.create('div', { className: 'modal-header' },
+            DOM.create('h4', {}, this.state.editingOrder ? 'Edit Purchase Order' : 'Create Purchase Order'),
+            DOM.create('button', {
+                className: 'modal-close',
+                onclick: () => this.hideOrderModal()
+            }, '×')
+        ));
+
+        const form = DOM.create('div', { className: 'modal-body' });
+        form.appendChild(DOM.create('p', {}, 'Purchase order form will be implemented here'));
+        modalContent.appendChild(form);
+
+        const footer = DOM.create('div', { className: 'modal-footer' });
+        footer.appendChild(DOM.create('button', {
+            className: 'btn btn-secondary',
+            onclick: () => this.hideOrderModal()
+        }, 'Cancel'));
+        footer.appendChild(DOM.create('button', {
+            className: 'btn btn-primary',
+            onclick: () => this.savePurchaseOrder({})
+        }, 'Save'));
+        modalContent.appendChild(footer);
+
+        modal.appendChild(modalContent);
+        return modal;
+    }
+
+    renderRequisitionModal() {
+        const modal = DOM.create('div', { className: 'modal-overlay' });
+        const modalContent = DOM.create('div', { className: 'modal-content' });
+
+        modalContent.appendChild(DOM.create('div', { className: 'modal-header' },
+            DOM.create('h4', {}, this.state.editingRequisition ? 'Edit Requisition' : 'Create Requisition'),
+            DOM.create('button', {
+                className: 'modal-close',
+                onclick: () => this.hideRequisitionModal()
+            }, '×')
+        ));
+
+        const form = DOM.create('div', { className: 'modal-body' });
+        form.appendChild(DOM.create('p', {}, 'Requisition form will be implemented here'));
+        modalContent.appendChild(form);
+
+        const footer = DOM.create('div', { className: 'modal-footer' });
+        footer.appendChild(DOM.create('button', {
+            className: 'btn btn-secondary',
+            onclick: () => this.hideRequisitionModal()
+        }, 'Cancel'));
+        footer.appendChild(DOM.create('button', {
+            className: 'btn btn-primary',
+            onclick: () => this.saveRequisition({})
+        }, 'Save'));
+        modalContent.appendChild(footer);
+
+        modal.appendChild(modalContent);
+        return modal;
+    }
+
+    renderContractModal() {
+        const modal = DOM.create('div', { className: 'modal-overlay' });
+        const modalContent = DOM.create('div', { className: 'modal-content' });
+
+        modalContent.appendChild(DOM.create('div', { className: 'modal-header' },
+            DOM.create('h4', {}, this.state.editingContract ? 'Edit Contract' : 'Create Contract'),
+            DOM.create('button', {
+                className: 'modal-close',
+                onclick: () => this.hideContractModal()
+            }, '×')
+        ));
+
+        const form = DOM.create('div', { className: 'modal-body' });
+        form.appendChild(DOM.create('p', {}, 'Contract form will be implemented here'));
+        modalContent.appendChild(form);
+
+        const footer = DOM.create('div', { className: 'modal-footer' });
+        footer.appendChild(DOM.create('button', {
+            className: 'btn btn-secondary',
+            onclick: () => this.hideContractModal()
+        }, 'Cancel'));
+        footer.appendChild(DOM.create('button', {
+            className: 'btn btn-primary',
+            onclick: () => this.saveContract({})
+        }, 'Save'));
+        modalContent.appendChild(footer);
+
+        modal.appendChild(modalContent);
+        return modal;
+    }
+
+    renderEvaluationModal() {
+        const modal = DOM.create('div', { className: 'modal-overlay' });
+        const modalContent = DOM.create('div', { className: 'modal-content' });
+
+        modalContent.appendChild(DOM.create('div', { className: 'modal-header' },
+            DOM.create('h4', {}, 'Supplier Evaluation'),
+            DOM.create('button', {
+                className: 'modal-close',
+                onclick: () => this.hideEvaluationModal()
+            }, '×')
+        ));
+
+        const form = DOM.create('div', { className: 'modal-body' });
+        form.appendChild(DOM.create('p', {}, 'Supplier evaluation form will be implemented here'));
+        modalContent.appendChild(form);
+
+        const footer = DOM.create('div', { className: 'modal-footer' });
+        footer.appendChild(DOM.create('button', {
+            className: 'btn btn-secondary',
+            onclick: () => this.hideEvaluationModal()
+        }, 'Cancel'));
+        footer.appendChild(DOM.create('button', {
+            className: 'btn btn-primary',
+            onclick: () => this.saveSupplierEvaluation({})
+        }, 'Save Evaluation'));
+        modalContent.appendChild(footer);
+
+        modal.appendChild(modalContent);
+        return modal;
+    }
+
+    // Utility methods
+    formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString();
+    }
+
+    formatTimeAgo(dateString) {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffTime = Math.abs(now - date);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) return '1 day ago';
+        if (diffDays < 7) return `${diffDays} days ago`;
+        if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
+        return `${Math.ceil(diffDays / 30)} months ago`;
+    }
+
+    handlePageChange(page) {
+        this.setState({
+            pagination: { ...this.state.pagination, page }
+        }, () => {
+            if (this.state.currentView === 'vendors') {
+                this.loadVendors();
+            } else if (this.state.currentView === 'purchase-orders') {
+                this.loadPurchaseOrders();
+            }
+        });
+    }
+
+    // Placeholder methods for actions
+    viewVendorDetails(vendor) {
+        App.showNotification({
+            type: 'info',
+            message: 'View vendor details not yet implemented'
+        });
+    }
+
+    viewOrderDetails(order) {
+        App.showNotification({
+            type: 'info',
+            message: 'View order details not yet implemented'
+        });
+    }
+
+    viewRequisitionDetails(requisition) {
+        App.showNotification({
+            type: 'info',
+            message: 'View requisition details not yet implemented'
+        });
+    }
+
+    viewContractDetails(contract) {
+        App.showNotification({
+            type: 'info',
+            message: 'View contract details not yet implemented'
+        });
+    }
+
+    viewEvaluationDetails(evaluation) {
+        App.showNotification({
+            type: 'info',
+            message: 'View evaluation details not yet implemented'
+        });
+    }
+}
+
+// Export the component
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Procurement;
+}

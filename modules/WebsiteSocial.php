@@ -1278,4 +1278,506 @@ class WebsiteSocial extends BaseController {
                 ca.shared_keywords,
                 ca.backlink_overlap,
                 ca.content_overlap,
-                ca.traffic_estimate
+                ca.traffic_estimate,
+                ca.last_updated,
+                TIMESTAMPDIFF(DAY, ca.last_updated, NOW()) as days_since_update
+            FROM competitor_analysis ca
+            WHERE ca.company_id = ?
+            ORDER BY ca.competitor_ranking ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getSEORecommendations() {
+        return $this->db->query("
+            SELECT
+                sr.*,
+                sr.recommendation_type,
+                sr.priority,
+                sr.description,
+                sr.implementation_status,
+                sr.estimated_impact,
+                sr.implementation_cost,
+                sr.created_at,
+                TIMESTAMPDIFF(DAY, sr.created_at, NOW()) as days_old
+            FROM seo_recommendations sr
+            WHERE sr.company_id = ?
+            ORDER BY sr.priority DESC, sr.estimated_impact DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getSEOReports() {
+        return $this->db->query("
+            SELECT
+                sr.*,
+                sr.report_type,
+                sr.report_period,
+                sr.generated_date,
+                sr.keyword_rankings,
+                sr.backlink_count,
+                sr.traffic_metrics,
+                sr.recommendations_count
+            FROM seo_reports sr
+            WHERE sr.company_id = ?
+            ORDER BY sr.generated_date DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getSEOSettings() {
+        return $this->db->querySingle("
+            SELECT * FROM seo_settings
+            WHERE company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getTrafficAnalytics() {
+        return $this->db->query("
+            SELECT
+                ta.*,
+                ta.page_url,
+                ta.page_views,
+                ta.unique_visitors,
+                ta.avg_session_duration,
+                ta.bounce_rate,
+                ta.traffic_source,
+                ta.device_type,
+                ta.geographic_location,
+                ta.date_recorded
+            FROM traffic_analytics ta
+            WHERE ta.company_id = ?
+            ORDER BY ta.date_recorded DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getUserBehavior() {
+        return $this->db->query("
+            SELECT
+                ub.*,
+                ub.user_id,
+                ub.page_sequence,
+                ub.time_spent,
+                ub.actions_taken,
+                ub.conversion_events,
+                ub.session_start,
+                ub.session_end,
+                TIMESTAMPDIFF(MINUTE, ub.session_start, ub.session_end) as session_duration_minutes
+            FROM user_behavior ub
+            WHERE ub.company_id = ?
+            ORDER BY ub.session_start DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getConversionTracking() {
+        return $this->db->query("
+            SELECT
+                ct.*,
+                ct.conversion_type,
+                ct.conversion_value,
+                ct.source_url,
+                ct.conversion_date,
+                ct.attribution_model,
+                ct.customer_journey,
+                ct.conversion_funnel
+            FROM conversion_tracking ct
+            WHERE ct.company_id = ?
+            ORDER BY ct.conversion_date DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getPerformanceMetrics() {
+        return $this->db->querySingle("
+            SELECT
+                AVG(page_load_time) as avg_page_load_time,
+                AVG(time_to_first_byte) as avg_time_to_first_byte,
+                COUNT(CASE WHEN page_load_time > 3000 THEN 1 END) as slow_pages,
+                COUNT(CASE WHEN mobile_friendly = false THEN 1 END) as non_mobile_friendly,
+                AVG(seo_score) as avg_seo_score,
+                COUNT(CASE WHEN https_enabled = true THEN 1 END) as https_pages,
+                MAX(last_crawl_date) as last_crawl_date,
+                COUNT(CASE WHEN crawl_errors > 0 THEN 1 END) as pages_with_errors
+            FROM performance_metrics
+            WHERE company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getCustomReports() {
+        return $this->db->query("
+            SELECT
+                cr.*,
+                cr.report_name,
+                cr.report_type,
+                cr.date_range,
+                cr.filters_applied,
+                cr.generated_date,
+                cr.generated_by,
+                cr.download_count
+            FROM custom_reports cr
+            WHERE cr.company_id = ?
+            ORDER BY cr.generated_date DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getAnalyticsDashboards() {
+        return $this->db->query("
+            SELECT
+                ad.*,
+                ad.dashboard_name,
+                ad.dashboard_type,
+                ad.widgets_config,
+                ad.refresh_interval,
+                ad.last_updated,
+                ad.created_by,
+                COUNT(adw.widget_id) as widget_count
+            FROM analytics_dashboards ad
+            LEFT JOIN analytics_dashboard_widgets adw ON ad.id = adw.dashboard_id
+            WHERE ad.company_id = ?
+            GROUP BY ad.id
+            ORDER BY ad.last_updated DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getAnalyticsGoals() {
+        return $this->db->query("
+            SELECT
+                ag.*,
+                ag.goal_name,
+                ag.goal_type,
+                ag.target_value,
+                ag.current_value,
+                ag.completion_percentage,
+                ag.start_date,
+                ag.end_date,
+                ag.status,
+                TIMESTAMPDIFF(DAY, NOW(), ag.end_date) as days_remaining
+            FROM analytics_goals ag
+            WHERE ag.company_id = ?
+            ORDER BY ag.completion_percentage DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getAnalyticsSettings() {
+        return $this->db->querySingle("
+            SELECT * FROM analytics_settings
+            WHERE company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    // ============================================================================
+    // API ENDPOINTS
+    // ============================================================================
+
+    public function createPage() {
+        $this->requirePermission('website.cms.create');
+
+        $data = $this->validateRequest([
+            'page_title' => 'required|string',
+            'page_content' => 'required|string',
+            'page_url' => 'required|string',
+            'category_id' => 'integer',
+            'status' => 'required|in:draft,published',
+            'seo_title' => 'string',
+            'seo_description' => 'string',
+            'publish_date' => 'string'
+        ]);
+
+        try {
+            $pageId = $this->db->insert('pages', [
+                'company_id' => $this->user['company_id'],
+                'author_id' => $this->user['id'],
+                'page_title' => $data['page_title'],
+                'page_content' => $data['page_content'],
+                'page_url' => $data['page_url'],
+                'category_id' => $data['category_id'] ?? null,
+                'status' => $data['status'],
+                'seo_title' => $data['seo_title'] ?? null,
+                'seo_description' => $data['seo_description'] ?? null,
+                'publish_date' => $data['publish_date'] ?? date('Y-m-d H:i:s'),
+                'last_modified' => date('Y-m-d H:i:s')
+            ]);
+
+            $this->jsonResponse([
+                'success' => true,
+                'page_id' => $pageId,
+                'message' => 'Page created successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updatePage() {
+        $this->requirePermission('website.cms.edit');
+
+        $data = $this->validateRequest([
+            'page_id' => 'required|integer',
+            'page_title' => 'string',
+            'page_content' => 'string',
+            'page_url' => 'string',
+            'category_id' => 'integer',
+            'status' => 'in:draft,published',
+            'seo_title' => 'string',
+            'seo_description' => 'string'
+        ]);
+
+        try {
+            $this->db->update('pages', [
+                'page_title' => $data['page_title'] ?? null,
+                'page_content' => $data['page_content'] ?? null,
+                'page_url' => $data['page_url'] ?? null,
+                'category_id' => $data['category_id'] ?? null,
+                'status' => $data['status'] ?? null,
+                'seo_title' => $data['seo_title'] ?? null,
+                'seo_description' => $data['seo_description'] ?? null,
+                'last_modified' => date('Y-m-d H:i:s')
+            ], 'id = ? AND company_id = ?', [
+                $data['page_id'],
+                $this->user['company_id']
+            ]);
+
+            $this->jsonResponse([
+                'success' => true,
+                'message' => 'Page updated successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function createBlogPost() {
+        $this->requirePermission('website.blog.create');
+
+        $data = $this->validateRequest([
+            'post_title' => 'required|string',
+            'post_content' => 'required|string',
+            'category_id' => 'required|integer',
+            'excerpt' => 'string',
+            'featured_image' => 'string',
+            'tags' => 'array',
+            'status' => 'required|in:draft,published',
+            'publish_date' => 'string',
+            'seo_title' => 'string',
+            'seo_description' => 'string'
+        ]);
+
+        try {
+            $postId = $this->db->insert('blog_posts', [
+                'company_id' => $this->user['company_id'],
+                'author_id' => $this->user['id'],
+                'post_title' => $data['post_title'],
+                'post_content' => $data['post_content'],
+                'category_id' => $data['category_id'],
+                'excerpt' => $data['excerpt'] ?? null,
+                'featured_image' => $data['featured_image'] ?? null,
+                'status' => $data['status'],
+                'publish_date' => $data['publish_date'] ?? date('Y-m-d H:i:s'),
+                'seo_title' => $data['seo_title'] ?? null,
+                'seo_description' => $data['seo_description'] ?? null,
+                'last_updated' => date('Y-m-d H:i:s')
+            ]);
+
+            // Add tags
+            if (!empty($data['tags'])) {
+                foreach ($data['tags'] as $tagName) {
+                    $tagId = $this->db->querySingle("
+                        SELECT id FROM tags
+                        WHERE tag_name = ? AND company_id = ?
+                    ", [$tagName, $this->user['company_id']]);
+
+                    if (!$tagId) {
+                        $tagId = $this->db->insert('tags', [
+                            'company_id' => $this->user['company_id'],
+                            'tag_name' => $tagName
+                        ]);
+                    }
+
+                    $this->db->insert('blog_post_tags', [
+                        'post_id' => $postId,
+                        'tag_id' => $tagId
+                    ]);
+                }
+            }
+
+            $this->jsonResponse([
+                'success' => true,
+                'post_id' => $postId,
+                'message' => 'Blog post created successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function scheduleSocialPost() {
+        $this->requirePermission('website.social.schedule');
+
+        $data = $this->validateRequest([
+            'account_id' => 'required|integer',
+            'post_content' => 'required|string',
+            'scheduled_date' => 'required|string',
+            'media_attachments' => 'array',
+            'post_type' => 'string'
+        ]);
+
+        try {
+            $postId = $this->db->insert('social_posts', [
+                'company_id' => $this->user['company_id'],
+                'account_id' => $data['account_id'],
+                'post_content' => $data['post_content'],
+                'post_type' => $data['post_type'] ?? 'text',
+                'media_attachments' => json_encode($data['media_attachments'] ?? []),
+                'scheduled_date' => $data['scheduled_date'],
+                'post_status' => 'scheduled',
+                'created_by' => $this->user['id']
+            ]);
+
+            $this->jsonResponse([
+                'success' => true,
+                'post_id' => $postId,
+                'message' => 'Social post scheduled successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function createProduct() {
+        $this->requirePermission('website.ecommerce.create');
+
+        $data = $this->validateRequest([
+            'product_name' => 'required|string',
+            'sku' => 'required|string',
+            'price' => 'required|numeric',
+            'description' => 'string',
+            'category_id' => 'integer',
+            'stock_quantity' => 'integer',
+            'status' => 'required|in:active,inactive',
+            'featured' => 'boolean'
+        ]);
+
+        try {
+            $productId = $this->db->insert('products', [
+                'company_id' => $this->user['company_id'],
+                'product_name' => $data['product_name'],
+                'sku' => $data['sku'],
+                'price' => $data['price'],
+                'description' => $data['description'] ?? null,
+                'category_id' => $data['category_id'] ?? null,
+                'stock_quantity' => $data['stock_quantity'] ?? 0,
+                'status' => $data['status'],
+                'featured' => $data['featured'] ?? false,
+                'last_updated' => date('Y-m-d H:i:s')
+            ]);
+
+            $this->jsonResponse([
+                'success' => true,
+                'product_id' => $productId,
+                'message' => 'Product created successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function sendEmailCampaign() {
+        $this->requirePermission('website.marketing.send');
+
+        $data = $this->validateRequest([
+            'campaign_name' => 'required|string',
+            'subject' => 'required|string',
+            'content' => 'required|string',
+            'recipient_list' => 'required|array',
+            'template_id' => 'integer',
+            'send_date' => 'string'
+        ]);
+
+        try {
+            $campaignId = $this->db->insert('email_campaigns', [
+                'company_id' => $this->user['company_id'],
+                'campaign_name' => $data['campaign_name'],
+                'subject' => $data['subject'],
+                'content' => $data['content'],
+                'recipient_count' => count($data['recipient_list']),
+                'template_id' => $data['template_id'] ?? null,
+                'status' => 'scheduled',
+                'send_date' => $data['send_date'] ?? date('Y-m-d H:i:s'),
+                'created_by' => $this->user['id']
+            ]);
+
+            // Queue recipients
+            foreach ($data['recipient_list'] as $email) {
+                $this->db->insert('campaign_recipients', [
+                    'campaign_id' => $campaignId,
+                    'email' => $email,
+                    'status' => 'pending'
+                ]);
+            }
+
+            $this->jsonResponse([
+                'success' => true,
+                'campaign_id' => $campaignId,
+                'message' => 'Email campaign scheduled successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function trackSEOKeyword() {
+        $this->requirePermission('website.seo.track');
+
+        $data = $this->validateRequest([
+            'keyword' => 'required|string',
+            'search_volume' => 'integer',
+            'competition_level' => 'numeric',
+            'cpc' => 'numeric',
+            'target_url' => 'string'
+        ]);
+
+        try {
+            $keywordId = $this->db->insert('seo_keywords', [
+                'company_id' => $this->user['company_id'],
+                'keyword' => $data['keyword'],
+                'search_volume' => $data['search_volume'] ?? 0,
+                'competition_level' => $data['competition_level'] ?? 0,
+                'cpc' => $data['cpc'] ?? 0,
+                'target_url' => $data['target_url'] ?? null,
+                'last_updated' => date('Y-m-d H:i:s')
+            ]);
+
+            $this->jsonResponse([
+                'success' => true,
+                'keyword_id' => $keywordId,
+                'message' => 'SEO keyword tracking started'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+}

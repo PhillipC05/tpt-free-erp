@@ -1120,7 +1120,7 @@ class QualityManagement extends BaseController {
 
             // Create non-conformance if defects found
             if ($totalDefects > 0) {
-                $this->createNonConformance($checkId, $data, $totalDefects);
+                $this->createNonConformanceRecord($checkId, $data, $totalDefects);
             }
 
             $this->db->commit();
@@ -1141,7 +1141,7 @@ class QualityManagement extends BaseController {
         }
     }
 
-    private function createNonConformance($checkId, $data, $totalDefects) {
+    private function createNonConformanceRecord($checkId, $data, $totalDefects) {
         $severity = 'minor';
         if (($data['critical_defects'] ?? 0) > 0) {
             $severity = 'critical';

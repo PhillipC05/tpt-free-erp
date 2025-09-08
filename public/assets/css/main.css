@@ -4,6 +4,9 @@
 /* Import Virtual Keyboard Styles */
 @import url('virtual-keyboard.css');
 
+/* Import Form Builder Styles */
+@import url('form-builder.css');
+
 * {
     margin: 0;
     padding: 0;

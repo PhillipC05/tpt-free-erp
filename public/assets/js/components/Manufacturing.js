@@ -1,90 +1,88 @@
 /**
- * TPT Free ERP - Manufacturing Component
+ * TPT Free ERP - Manufacturing Component (Refactored)
  * Complete production planning, work order management, and quality control interface
+ * Uses shared utilities for reduced complexity and improved maintainability
  */
 
-class Manufacturing extends Component {
+class Manufacturing extends BaseComponent {
     constructor(props = {}) {
         super(props);
-        this.props = {
-            title: 'Manufacturing Management',
-            currentView: 'dashboard',
-            ...props
-        };
 
-        this.state = {
-            loading: false,
-            currentView: this.props.currentView,
-            overview: {},
-            productionPlans: [],
-            boms: [],
-            workOrders: [],
-            qualityInspections: [],
-            productionLines: [],
-            shopFloorData: {},
-            analytics: {},
-            filters: {
-                status: '',
-                production_line: '',
-                priority: '',
-                date_from: '',
-                date_to: '',
-                search: '',
-                page: 1,
-                limit: 50
-            },
-            selectedWorkOrders: [],
-            selectedBOMs: [],
-            showPlanModal: false,
-            showBOMModal: false,
-            showWorkOrderModal: false,
-            showInspectionModal: false,
-            showProductionLineModal: false,
-            editingPlan: null,
-            editingBOM: null,
-            editingWorkOrder: null,
-            editingInspection: null,
-            editingProductionLine: null,
-            pagination: {
-                page: 1,
-                limit: 50,
-                total: 0,
-                pages: 0
-            }
-        };
+        // Initialize table renderers for different data types
+        this.workOrdersTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
 
-        // Bind methods
-        this.loadOverview = this.loadOverview.bind(this);
-        this.loadProductionPlans = this.loadProductionPlans.bind(this);
-        this.loadBillsOfMaterials = this.loadBillsOfMaterials.bind(this);
-        this.loadWorkOrders = this.loadWorkOrders.bind(this);
-        this.loadQualityInspections = this.loadQualityInspections.bind(this);
-        this.loadProductionLines = this.loadProductionLines.bind(this);
-        this.loadShopFloorData = this.loadShopFloorData.bind(this);
-        this.loadAnalytics = this.loadAnalytics.bind(this);
-        this.handleViewChange = this.handleViewChange.bind(this);
-        this.handleFilterChange = this.handleFilterChange.bind(this);
-        this.handleWorkOrderSelect = this.handleWorkOrderSelect.bind(this);
-        this.handleBOMSelect = this.handleBOMSelect.bind(this);
-        this.handleBulkAction = this.handleBulkAction.bind(this);
-        this.showPlanModal = this.showPlanModal.bind(this);
-        this.hidePlanModal = this.hidePlanModal.bind(this);
-        this.saveProductionPlan = this.saveProductionPlan.bind(this);
-        this.showBOMModal = this.showBOMModal.bind(this);
-        this.hideBOMModal = this.hideBOMModal.bind(this);
-        this.saveBOM = this.saveBOM.bind(this);
-        this.showWorkOrderModal = this.showWorkOrderModal.bind(this);
-        this.hideWorkOrderModal = this.hideWorkOrderModal.bind(this);
-        this.saveWorkOrder = this.saveWorkOrder.bind(this);
-        this.updateWorkOrderStatus = this.updateWorkOrderStatus.bind(this);
-        this.recordProductionData = this.recordProductionData.bind(this);
-        this.showInspectionModal = this.showInspectionModal.bind(this);
-        this.hideInspectionModal = this.hideInspectionModal.bind(this);
-        this.saveQualityInspection = this.saveQualityInspection.bind(this);
-        this.showProductionLineModal = this.showProductionLineModal.bind(this);
-        this.hideProductionLineModal = this.hideProductionLineModal.bind(this);
-        this.saveProductionLine = this.saveProductionLine.bind(this);
-        this.recordDowntime = this.recordDowntime.bind(this);
+        this.bomsTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        // Setup table callbacks
+        this.workOrdersTableRenderer.setDataCallback(() => this.state.workOrders || []);
+        this.workOrdersTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedWorkOrders: selectedIds });
+        });
+        this.workOrdersTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.workOrdersTableRenderer.setDataChangeCallback(() => {
+            this.loadWorkOrders();
+        });
+
+        this.bomsTableRenderer.setDataCallback(() => this.state.boms || []);
+        this.bomsTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedBOMs: selectedIds });
+        });
+        this.bomsTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.bomsTableRenderer.setDataChangeCallback(() => {
+            this.loadBillsOfMaterials();
+        });
+    }
+
+    get bindMethods() {
+        return [
+            'loadOverview',
+            'loadProductionPlans',
+            'loadBillsOfMaterials',
+            'loadWorkOrders',
+            'loadQualityInspections',
+            'loadProductionLines',
+            'loadShopFloorData',
+            'loadAnalytics',
+            'handleViewChange',
+            'handleFilterChange',
+            'handleWorkOrderSelect',
+            'handleBOMSelect',
+            'handleBulkAction',
+            'showPlanModal',
+            'hidePlanModal',
+            'saveProductionPlan',
+            'showBOMModal',
+            'hideBOMModal',
+            'saveBOM',
+            'showWorkOrderModal',
+            'hideWorkOrderModal',
+            'saveWorkOrder',
+            'updateWorkOrderStatus',
+            'recordProductionData',
+            'showInspectionModal',
+            'hideInspectionModal',
+            'saveQualityInspection',
+            'showProductionLineModal',
+            'hideProductionLineModal',
+            'saveProductionLine',
+            'recordDowntime'
+        ];
     }
 
     async componentDidMount() {
@@ -104,10 +102,7 @@ class Manufacturing extends Component {
             await this.loadCurrentViewData();
         } catch (error) {
             console.error('Error loading manufacturing data:', error);
-            App.showNotification({
-                type: 'error',
-                message: 'Failed to load manufacturing data'
-            });
+            this.showErrorNotification('Failed to load manufacturing data');
         } finally {
             this.setState({ loading: false });
         }
@@ -268,12 +263,12 @@ class Manufacturing extends Component {
         this.setState({ selectedBOMs });
     }
 
-    async handleBulkAction(action) {
-        if (this.state.selectedWorkOrders.length === 0 && this.state.selectedBOMs.length === 0) {
-            App.showNotification({
-                type: 'warning',
-                message: 'Please select items first'
-            });
+    async handleBulkAction(action, selectedIds = null) {
+        const workOrdersToUse = selectedIds || this.state.selectedWorkOrders;
+        const bomsToUse = selectedIds || this.state.selectedBOMs;
+
+        if (workOrdersToUse.length === 0 && bomsToUse.length === 0) {
+            this.showWarningNotification('Please select items first');
             return;
         }
 
@@ -297,43 +292,28 @@ class Manufacturing extends Component {
             }
         } catch (error) {
             console.error('Bulk action failed:', error);
-            App.showNotification({
-                type: 'error',
-                message: 'Bulk action failed'
-            });
+            this.showErrorNotification('Bulk action failed');
         }
     }
 
     async showBulkUpdateModal(field) {
         // Implementation for bulk update modal
-        App.showNotification({
-            type: 'info',
-            message: 'Bulk update not yet implemented'
-        });
+        this.showInfoNotification('Bulk update not yet implemented');
     }
 
     async exportWorkOrders() {
         // Implementation for export
-        App.showNotification({
-            type: 'info',
-            message: 'Export not yet implemented'
-        });
+        this.showInfoNotification('Export not yet implemented');
     }
 
     async exportBOMs() {
         // Implementation for export
-        App.showNotification({
-            type: 'info',
-            message: 'Export not yet implemented'
-        });
+        this.showInfoNotification('Export not yet implemented');
     }
 
     async bulkInspection() {
         // Implementation for bulk inspection
-        App.showNotification({
-            type: 'info',
-            message: 'Bulk inspection not yet implemented'
-        });
+        this.showInfoNotification('Bulk inspection not yet implemented');
     }
 
     showPlanModal(plan = null) {
@@ -352,19 +332,13 @@ class Manufacturing extends Component {
 
     async saveProductionPlan(planData) {
         try {
-            await API.post('/manufacturing/production-plans', planData);
-            App.showNotification({
-                type: 'success',
-                message: 'Production plan created successfully'
-            });
+            await this.apiRequest('POST', '/manufacturing/production-plans', planData);
+            this.showSuccessNotification('Production plan created successfully');
             this.hidePlanModal();
             await this.loadProductionPlans();
         } catch (error) {
             console.error('Error saving production plan:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save production plan'
-            });
+            this.showErrorNotification(error.message || 'Failed to save production plan');
         }
     }
 
@@ -384,19 +358,13 @@ class Manufacturing extends Component {
 
     async saveBOM(bomData) {
         try {
-            await API.post('/manufacturing/boms', bomData);
-            App.showNotification({
-                type: 'success',
-                message: 'Bill of materials created successfully'
-            });
+            await this.apiRequest('POST', '/manufacturing/boms', bomData);
+            this.showSuccessNotification('Bill of materials created successfully');
             this.hideBOMModal();
             await this.loadBillsOfMaterials();
         } catch (error) {
             console.error('Error saving BOM:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save bill of materials'
-            });
+            this.showErrorNotification(error.message || 'Failed to save bill of materials');
         }
     }
 
@@ -416,53 +384,35 @@ class Manufacturing extends Component {
 
     async saveWorkOrder(workOrderData) {
         try {
-            await API.post('/manufacturing/work-orders', workOrderData);
-            App.showNotification({
-                type: 'success',
-                message: 'Work order created successfully'
-            });
+            await this.apiRequest('POST', '/manufacturing/work-orders', workOrderData);
+            this.showSuccessNotification('Work order created successfully');
             this.hideWorkOrderModal();
             await this.loadWorkOrders();
         } catch (error) {
             console.error('Error saving work order:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save work order'
-            });
+            this.showErrorNotification(error.message || 'Failed to save work order');
         }
     }
 
     async updateWorkOrderStatus(workOrderId, status) {
         try {
-            await API.put(`/manufacturing/work-orders/${workOrderId}/status`, { status });
-            App.showNotification({
-                type: 'success',
-                message: 'Work order status updated successfully'
-            });
+            await this.apiRequest('PUT', `/manufacturing/work-orders/${workOrderId}/status`, { status });
+            this.showSuccessNotification('Work order status updated successfully');
             await this.loadWorkOrders();
         } catch (error) {
             console.error('Error updating work order status:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to update work order status'
-            });
+            this.showErrorNotification(error.message || 'Failed to update work order status');
         }
     }
 
     async recordProductionData(workOrderId, data) {
         try {
-            await API.post(`/manufacturing/work-orders/${workOrderId}/production-data`, data);
-            App.showNotification({
-                type: 'success',
-                message: 'Production data recorded successfully'
-            });
+            await this.apiRequest('POST', `/manufacturing/work-orders/${workOrderId}/production-data`, data);
+            this.showSuccessNotification('Production data recorded successfully');
             await this.loadWorkOrders();
         } catch (error) {
             console.error('Error recording production data:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to record production data'
-            });
+            this.showErrorNotification(error.message || 'Failed to record production data');
         }
     }
 
@@ -482,19 +432,13 @@ class Manufacturing extends Component {
 
     async saveQualityInspection(inspectionData) {
         try {
-            await API.post('/manufacturing/quality-inspections', inspectionData);
-            App.showNotification({
-                type: 'success',
-                message: 'Quality inspection created successfully'
-            });
+            await this.apiRequest('POST', '/manufacturing/quality-inspections', inspectionData);
+            this.showSuccessNotification('Quality inspection created successfully');
             this.hideInspectionModal();
             await this.loadQualityInspections();
         } catch (error) {
             console.error('Error saving quality inspection:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save quality inspection'
-            });
+            this.showErrorNotification(error.message || 'Failed to save quality inspection');
         }
     }
 
@@ -514,36 +458,24 @@ class Manufacturing extends Component {
 
     async saveProductionLine(productionLineData) {
         try {
-            await API.post('/manufacturing/production-lines', productionLineData);
-            App.showNotification({
-                type: 'success',
-                message: 'Production line created successfully'
-            });
+            await this.apiRequest('POST', '/manufacturing/production-lines', productionLineData);
+            this.showSuccessNotification('Production line created successfully');
             this.hideProductionLineModal();
             await this.loadProductionLines();
         } catch (error) {
             console.error('Error saving production line:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save production line'
-            });
+            this.showErrorNotification(error.message || 'Failed to save production line');
         }
     }
 
     async recordDowntime(downtimeData) {
         try {
-            await API.post('/manufacturing/downtime', downtimeData);
-            App.showNotification({
-                type: 'success',
-                message: 'Downtime recorded successfully'
-            });
+            await this.apiRequest('POST', '/manufacturing/downtime', downtimeData);
+            this.showSuccessNotification('Downtime recorded successfully');
             await this.loadShopFloorData();
         } catch (error) {
             console.error('Error recording downtime:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to record downtime'
-            });
+            this.showErrorNotification(error.message || 'Failed to record downtime');
         }
     }
 
@@ -1377,4 +1309,491 @@ class Manufacturing extends Component {
 
             // Result
             const resultCell = DOM.create('td', {});
-            const resultBadge = DOM.create
+            const resultBadge = DOM.create('span', {
+                className: `result-badge ${inspection.result === 'pass' ? 'pass' : 'fail'}`
+            }, inspection.result || 'N/A');
+            resultCell.appendChild(resultBadge);
+            row.appendChild(resultCell);
+
+            // Defect Rate
+            row.appendChild(DOM.create('td', {}, (inspection.defect_rate || 0) + '%'));
+
+            // Date
+            row.appendChild(DOM.create('td', {}, this.formatDate(inspection.inspection_date)));
+
+            // Actions
+            const actionsCell = DOM.create('td', {});
+            const actions = DOM.create('div', { className: 'table-actions' });
+
+            const viewButton = DOM.create('button', {
+                className: 'btn btn-sm btn-outline-info',
+                onclick: () => this.viewInspectionDetails(inspection)
+            });
+            viewButton.innerHTML = '<i class="fas fa-eye"></i>';
+            actions.appendChild(viewButton);
+
+            const editButton = DOM.create('button', {
+                className: 'btn btn-sm btn-outline-primary',
+                onclick: () => this.showInspectionModal(inspection)
+            });
+            editButton.innerHTML = '<i class="fas fa-edit"></i>';
+            actions.appendChild(editButton);
+
+            actionsCell.appendChild(actions);
+            row.appendChild(actionsCell);
+
+            tbody.appendChild(row);
+        });
+
+        tableElement.appendChild(tbody);
+        table.appendChild(tableElement);
+
+        return table;
+    }
+
+    renderResourcePlanning() {
+        const resourceView = DOM.create('div', { className: 'resource-planning-view' });
+
+        // Toolbar
+        const toolbar = DOM.create('div', { className: 'toolbar' });
+        const addButton = DOM.create('button', {
+            className: 'btn btn-primary',
+            onclick: () => this.showProductionLineModal()
+        });
+        addButton.innerHTML = '<i class="fas fa-plus"></i> Add Production Line';
+        toolbar.appendChild(addButton);
+        resourceView.appendChild(toolbar);
+
+        // Production lines table
+        const table = this.renderProductionLinesTable();
+        resourceView.appendChild(table);
+
+        return resourceView;
+    }
+
+    renderProductionLinesTable() {
+        const table = DOM.create('div', { className: 'data-table-container' });
+        const tableElement = DOM.create('table', { className: 'data-table' });
+
+        // Table header
+        const thead = DOM.create('thead', {});
+        const headerRow = DOM.create('tr', {});
+
+        const headers = [
+            { key: 'line_name', label: 'Production Line' },
+            { key: 'capacity', label: 'Capacity' },
+            { key: 'efficiency', label: 'Efficiency' },
+            { key: 'status', label: 'Status' },
+            { key: 'current_work_order', label: 'Current Work Order' },
+            { key: 'last_maintenance', label: 'Last Maintenance' },
+            { key: 'actions', label: 'Actions', width: '150px' }
+        ];
+
+        headers.forEach(header => {
+            const th = DOM.create('th', {
+                style: header.width ? `width: ${header.width};` : ''
+            }, header.label);
+            headerRow.appendChild(th);
+        });
+
+        thead.appendChild(headerRow);
+        tableElement.appendChild(thead);
+
+        // Table body
+        const tbody = DOM.create('tbody', {});
+
+        this.state.productionLines.forEach(line => {
+            const row = DOM.create('tr', {});
+
+            // Line Name
+            row.appendChild(DOM.create('td', {}, line.line_name));
+
+            // Capacity
+            row.appendChild(DOM.create('td', {}, (line.capacity || 0).toLocaleString() + ' units/day'));
+
+            // Efficiency
+            row.appendChild(DOM.create('td', {}, (line.efficiency || 0) + '%'));
+
+            // Status
+            const statusCell = DOM.create('td', {});
+            const statusBadge = DOM.create('span', {
+                className: `status-badge ${line.status}`
+            }, line.status);
+            statusCell.appendChild(statusBadge);
+            row.appendChild(statusCell);
+
+            // Current Work Order
+            row.appendChild(DOM.create('td', {}, line.current_work_order || 'None'));
+
+            // Last Maintenance
+            row.appendChild(DOM.create('td', {}, this.formatDate(line.last_maintenance)));
+
+            // Actions
+            const actionsCell = DOM.create('td', {});
+            const actions = DOM.create('div', { className: 'table-actions' });
+
+            const viewButton = DOM.create('button', {
+                className: 'btn btn-sm btn-outline-info',
+                onclick: () => this.viewProductionLineDetails(line)
+            });
+            viewButton.innerHTML = '<i class="fas fa-eye"></i>';
+            actions.appendChild(viewButton);
+
+            const editButton = DOM.create('button', {
+                className: 'btn btn-sm btn-outline-primary',
+                onclick: () => this.showProductionLineModal(line)
+            });
+            editButton.innerHTML = '<i class="fas fa-edit"></i>';
+            actions.appendChild(editButton);
+
+            const maintenanceButton = DOM.create('button', {
+                className: 'btn btn-sm btn-outline-warning',
+                onclick: () => this.scheduleMaintenance(line)
+            });
+            maintenanceButton.innerHTML = '<i class="fas fa-wrench"></i>';
+            actions.appendChild(maintenanceButton);
+
+            actionsCell.appendChild(actions);
+            row.appendChild(actionsCell);
+
+            tbody.appendChild(row);
+        });
+
+        tableElement.appendChild(tbody);
+        table.appendChild(tableElement);
+
+        return table;
+    }
+
+    renderShopFloor() {
+        const shopFloorView = DOM.create('div', { className: 'shop-floor-view' });
+
+        // Real-time monitoring
+        const monitoringSection = DOM.create('div', { className: 'monitoring-section' });
+        monitoringSection.appendChild(DOM.create('h3', {}, 'Real-time Production Monitoring'));
+
+        const monitoringGrid = DOM.create('div', { className: 'monitoring-grid' });
+
+        this.state.productionLines.forEach(line => {
+            const lineCard = DOM.create('div', { className: 'line-card' });
+            lineCard.appendChild(DOM.create('h4', {}, line.line_name));
+
+            const metrics = [
+                { label: 'Current Output', value: line.current_output || 0 },
+                { label: 'Efficiency', value: (line.efficiency || 0) + '%' },
+                { label: 'Downtime', value: (line.downtime || 0) + ' min' },
+                { label: 'Quality Rate', value: (line.quality_rate || 0) + '%' }
+            ];
+
+            metrics.forEach(metric => {
+                const metricDiv = DOM.create('div', { className: 'metric' });
+                metricDiv.appendChild(DOM.create('span', { className: 'metric-label' }, metric.label));
+                metricDiv.appendChild(DOM.create('span', { className: 'metric-value' }, metric.value));
+                lineCard.appendChild(metricDiv);
+            });
+
+            monitoringGrid.appendChild(lineCard);
+        });
+
+        monitoringSection.appendChild(monitoringGrid);
+        shopFloorView.appendChild(monitoringSection);
+
+        // Downtime tracking
+        const downtimeSection = DOM.create('div', { className: 'downtime-section' });
+        downtimeSection.appendChild(DOM.create('h3', {}, 'Downtime Tracking'));
+
+        const downtimeButton = DOM.create('button', {
+            className: 'btn btn-warning',
+            onclick: () => this.showDowntimeModal()
+        });
+        downtimeButton.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Record Downtime';
+        downtimeSection.appendChild(downtimeButton);
+
+        shopFloorView.appendChild(downtimeSection);
+
+        return shopFloorView;
+    }
+
+    renderAnalytics() {
+        const analyticsView = DOM.create('div', { className: 'analytics-view' });
+
+        // Analytics overview
+        const overviewSection = DOM.create('div', { className: 'analytics-section' });
+        overviewSection.appendChild(DOM.create('h3', {}, 'Production Analytics Overview'));
+
+        const charts = DOM.create('div', { className: 'analytics-charts' });
+
+        // Production trends chart placeholder
+        const trendsChart = DOM.create('div', { className: 'chart-placeholder' });
+        trendsChart.appendChild(DOM.create('h4', {}, 'Production Trends'));
+        trendsChart.appendChild(DOM.create('div', { className: 'chart-canvas' }, 'Chart will be rendered here'));
+        charts.appendChild(trendsChart);
+
+        // Efficiency chart placeholder
+        const efficiencyChart = DOM.create('div', { className: 'chart-placeholder' });
+        efficiencyChart.appendChild(DOM.create('h4', {}, 'Efficiency Metrics'));
+        efficiencyChart.appendChild(DOM.create('div', { className: 'chart-canvas' }, 'Chart will be rendered here'));
+        charts.appendChild(efficiencyChart);
+
+        overviewSection.appendChild(charts);
+        analyticsView.appendChild(overviewSection);
+
+        return analyticsView;
+    }
+
+    renderPagination() {
+        if (this.state.pagination.pages <= 1) {
+            return DOM.create('div', {});
+        }
+
+        const pagination = DOM.create('div', { className: 'pagination' });
+
+        const prevButton = DOM.create('button', {
+            className: 'btn btn-outline-secondary',
+            disabled: this.state.pagination.page <= 1,
+            onclick: () => this.handlePageChange(this.state.pagination.page - 1)
+        }, 'Previous');
+        pagination.appendChild(prevButton);
+
+        const pageInfo = DOM.create('span', { className: 'page-info' },
+            `Page ${this.state.pagination.page} of ${this.state.pagination.pages}`
+        );
+        pagination.appendChild(pageInfo);
+
+        const nextButton = DOM.create('button', {
+            className: 'btn btn-outline-secondary',
+            disabled: this.state.pagination.page >= this.state.pagination.pages,
+            onclick: () => this.handlePageChange(this.state.pagination.page + 1)
+        }, 'Next');
+        pagination.appendChild(nextButton);
+
+        return pagination;
+    }
+
+    // Modal rendering methods
+    renderPlanModal() {
+        const modal = DOM.create('div', { className: 'modal-overlay' });
+        const modalContent = DOM.create('div', { className: 'modal-content' });
+
+        modalContent.appendChild(DOM.create('div', { className: 'modal-header' },
+            DOM.create('h4', {}, this.state.editingPlan ? 'Edit Production Plan' : 'Create Production Plan'),
+            DOM.create('button', {
+                className: 'modal-close',
+                onclick: () => this.hidePlanModal()
+            }, '×')
+        ));
+
+        const form = DOM.create('div', { className: 'modal-body' });
+        // Form fields would be implemented here
+        form.appendChild(DOM.create('p', {}, 'Production plan form will be implemented here'));
+        modalContent.appendChild(form);
+
+        const footer = DOM.create('div', { className: 'modal-footer' });
+        footer.appendChild(DOM.create('button', {
+            className: 'btn btn-secondary',
+            onclick: () => this.hidePlanModal()
+        }, 'Cancel'));
+        footer.appendChild(DOM.create('button', {
+            className: 'btn btn-primary',
+            onclick: () => this.saveProductionPlan({})
+        }, 'Save'));
+        modalContent.appendChild(footer);
+
+        modal.appendChild(modalContent);
+        return modal;
+    }
+
+    renderBOMModal() {
+        const modal = DOM.create('div', { className: 'modal-overlay' });
+        const modalContent = DOM.create('div', { className: 'modal-content' });
+
+        modalContent.appendChild(DOM.create('div', { className: 'modal-header' },
+            DOM.create('h4', {}, this.state.editingBOM ? 'Edit Bill of Materials' : 'Create Bill of Materials'),
+            DOM.create('button', {
+                className: 'modal-close',
+                onclick: () => this.hideBOMModal()
+            }, '×')
+        ));
+
+        const form = DOM.create('div', { className: 'modal-body' });
+        form.appendChild(DOM.create('p', {}, 'BOM form will be implemented here'));
+        modalContent.appendChild(form);
+
+        const footer = DOM.create('div', { className: 'modal-footer' });
+        footer.appendChild(DOM.create('button', {
+            className: 'btn btn-secondary',
+            onclick: () => this.hideBOMModal()
+        }, 'Cancel'));
+        footer.appendChild(DOM.create('button', {
+            className: 'btn btn-primary',
+            onclick: () => this.saveBOM({})
+        }, 'Save'));
+        modalContent.appendChild(footer);
+
+        modal.appendChild(modalContent);
+        return modal;
+    }
+
+    renderWorkOrderModal() {
+        const modal = DOM.create('div', { className: 'modal-overlay' });
+        const modalContent = DOM.create('div', { className: 'modal-content' });
+
+        modalContent.appendChild(DOM.create('div', { className: 'modal-header' },
+            DOM.create('h4', {}, this.state.editingWorkOrder ? 'Edit Work Order' : 'Create Work Order'),
+            DOM.create('button', {
+                className: 'modal-close',
+                onclick: () => this.hideWorkOrderModal()
+            }, '×')
+        ));
+
+        const form = DOM.create('div', { className: 'modal-body' });
+        form.appendChild(DOM.create('p', {}, 'Work order form will be implemented here'));
+        modalContent.appendChild(form);
+
+        const footer = DOM.create('div', { className: 'modal-footer' });
+        footer.appendChild(DOM.create('button', {
+            className: 'btn btn-secondary',
+            onclick: () => this.hideWorkOrderModal()
+        }, 'Cancel'));
+        footer.appendChild(DOM.create('button', {
+            className: 'btn btn-primary',
+            onclick: () => this.saveWorkOrder({})
+        }, 'Save'));
+        modalContent.appendChild(footer);
+
+        modal.appendChild(modalContent);
+        return modal;
+    }
+
+    renderInspectionModal() {
+        const modal = DOM.create('div', { className: 'modal-overlay' });
+        const modalContent = DOM.create('div', { className: 'modal-content' });
+
+        modalContent.appendChild(DOM.create('div', { className: 'modal-header' },
+            DOM.create('h4', {}, this.state.editingInspection ? 'Edit Quality Inspection' : 'Create Quality Inspection'),
+            DOM.create('button', {
+                className: 'modal-close',
+                onclick: () => this.hideInspectionModal()
+            }, '×')
+        ));
+
+        const form = DOM.create('div', { className: 'modal-body' });
+        form.appendChild(DOM.create('p', {}, 'Quality inspection form will be implemented here'));
+        modalContent.appendChild(form);
+
+        const footer = DOM.create('div', { className: 'modal-footer' });
+        footer.appendChild(DOM.create('button', {
+            className: 'btn btn-secondary',
+            onclick: () => this.hideInspectionModal()
+        }, 'Cancel'));
+        footer.appendChild(DOM.create('button', {
+            className: 'btn btn-primary',
+            onclick: () => this.saveQualityInspection({})
+        }, 'Save'));
+        modalContent.appendChild(footer);
+
+        modal.appendChild(modalContent);
+        return modal;
+    }
+
+    renderProductionLineModal() {
+        const modal = DOM.create('div', { className: 'modal-overlay' });
+        const modalContent = DOM.create('div', { className: 'modal-content' });
+
+        modalContent.appendChild(DOM.create('div', { className: 'modal-header' },
+            DOM.create('h4', {}, this.state.editingProductionLine ? 'Edit Production Line' : 'Create Production Line'),
+            DOM.create('button', {
+                className: 'modal-close',
+                onclick: () => this.hideProductionLineModal()
+            }, '×')
+        ));
+
+        const form = DOM.create('div', { className: 'modal-body' });
+        form.appendChild(DOM.create('p', {}, 'Production line form will be implemented here'));
+        modalContent.appendChild(form);
+
+        const footer = DOM.create('div', { className: 'modal-footer' });
+        footer.appendChild(DOM.create('button', {
+            className: 'btn btn-secondary',
+            onclick: () => this.hideProductionLineModal()
+        }, 'Cancel'));
+        footer.appendChild(DOM.create('button', {
+            className: 'btn btn-primary',
+            onclick: () => this.saveProductionLine({})
+        }, 'Save'));
+        modalContent.appendChild(footer);
+
+        modal.appendChild(modalContent);
+        return modal;
+    }
+
+    // Utility methods
+    formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString();
+    }
+
+    formatTimeAgo(dateString) {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffTime = Math.abs(now - date);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) return '1 day ago';
+        if (diffDays < 7) return `${diffDays} days ago`;
+        if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
+        return `${Math.ceil(diffDays / 30)} months ago`;
+    }
+
+    handlePageChange(page) {
+        this.setState({
+            pagination: { ...this.state.pagination, page }
+        }, () => {
+            if (this.state.currentView === 'boms') {
+                this.loadBillsOfMaterials();
+            } else if (this.state.currentView === 'work-orders') {
+                this.loadWorkOrders();
+            }
+        });
+    }
+
+    // Placeholder methods for actions
+    viewPlanDetails(plan) {
+        this.showInfoNotification('View plan details not yet implemented');
+    }
+
+    viewBOMDetails(bom) {
+        this.showInfoNotification('View BOM details not yet implemented');
+    }
+
+    copyBOM(bom) {
+        this.showInfoNotification('Copy BOM not yet implemented');
+    }
+
+    viewWorkOrderDetails(workOrder) {
+        this.showInfoNotification('View work order details not yet implemented');
+    }
+
+    viewInspectionDetails(inspection) {
+        this.showInfoNotification('View inspection details not yet implemented');
+    }
+
+    viewProductionLineDetails(line) {
+        this.showInfoNotification('View production line details not yet implemented');
+    }
+
+    scheduleMaintenance(line) {
+        this.showInfoNotification('Schedule maintenance not yet implemented');
+    }
+
+    showDowntimeModal() {
+        this.showInfoNotification('Downtime modal not yet implemented');
+    }
+}
+
+// Export the component
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Manufacturing;
+}

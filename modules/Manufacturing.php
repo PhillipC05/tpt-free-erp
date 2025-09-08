@@ -1226,4 +1226,44 @@ class Manufacturing extends BaseController {
                 pa.prediction_type,
                 pa.prediction_model,
                 pa.accuracy_percentage,
-                pa.confidence_level
+                pa.confidence_level,
+                pa.last_updated
+            FROM predictive_analytics pa
+            WHERE pa.company_id = ?
+            ORDER BY pa.last_updated DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getBenchmarkingAnalytics() {
+        return $this->db->query("
+            SELECT
+                ba.*,
+                ba.metric_name,
+                ba.company_performance,
+                ba.industry_average,
+                ba.top_performer,
+                ba.performance_gap,
+                ba.benchmark_date
+            FROM benchmarking_analytics ba
+            WHERE ba.company_id = ?
+            ORDER BY ba.performance_gap DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getManufacturingDashboards() {
+        return $this->db->query("
+            SELECT
+                md.*,
+                md.dashboard_name,
+                md.update_frequency,
+                md.last_updated,
+                COUNT(mdm.id) as metric_count,
+                md.is_active
+            FROM manufacturing_dashboards md
+            LEFT JOIN manufacturing_dashboard_metrics mdm ON md.id = mdm.dashboard_id
+            WHERE md.company_id = ?
+            GROUP BY md.id
+            ORDER BY md.last_updated DESC
+        ", [$this->user['company_id']]);
+    }
+}

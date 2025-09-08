@@ -1,96 +1,57 @@
 /**
- * TPT Free ERP - Human Resources Component
+ * TPT Free ERP - Human Resources Component (Refactored)
  * Main HR dashboard and employee management interface
+ * Uses shared utilities for reduced complexity and improved maintainability
  */
 
-class HR extends Component {
+class HR extends BaseComponent {
     constructor(props = {}) {
         super(props);
-        this.props = {
-            title: 'Human Resources',
-            currentView: 'dashboard',
-            ...props
-        };
 
-        this.state = {
-            loading: false,
-            currentView: this.props.currentView,
-            overview: {},
-            employees: [],
-            departments: [],
-            attendance: [],
-            payroll: [],
-            performance: [],
-            leave: [],
-            recruitment: [],
-            training: [],
-            filters: {
-                department: '',
-                status: '',
-                manager: '',
-                search: '',
-                page: 1,
-                limit: 50
-            },
-            selectedEmployees: [],
-            showEmployeeModal: false,
-            showDepartmentModal: false,
-            showAttendanceModal: false,
-            showPayrollModal: false,
-            showPerformanceModal: false,
-            showLeaveModal: false,
-            showRecruitmentModal: false,
-            showTrainingModal: false,
-            editingEmployee: null,
-            editingDepartment: null,
-            pagination: {
-                page: 1,
-                limit: 50,
-                total: 0,
-                pages: 0
-            }
-        };
+        // Initialize table renderer for employees
+        this.tableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
 
-        // Bind methods
-        this.loadOverview = this.loadOverview.bind(this);
-        this.loadEmployees = this.loadEmployees.bind(this);
-        this.loadDepartments = this.loadDepartments.bind(this);
-        this.loadAttendance = this.loadAttendance.bind(this);
-        this.loadPayroll = this.loadPayroll.bind(this);
-        this.loadPerformance = this.loadPerformance.bind(this);
-        this.loadLeave = this.loadLeave.bind(this);
-        this.loadRecruitment = this.loadRecruitment.bind(this);
-        this.loadTraining = this.loadTraining.bind(this);
-        this.handleViewChange = this.handleViewChange.bind(this);
-        this.handleFilterChange = this.handleFilterChange.bind(this);
-        this.handleEmployeeSelect = this.handleEmployeeSelect.bind(this);
-        this.handleBulkAction = this.handleBulkAction.bind(this);
-        this.showEmployeeModal = this.showEmployeeModal.bind(this);
-        this.hideEmployeeModal = this.hideEmployeeModal.bind(this);
-        this.saveEmployee = this.saveEmployee.bind(this);
-        this.deleteEmployee = this.deleteEmployee.bind(this);
-        this.showDepartmentModal = this.showDepartmentModal.bind(this);
-        this.hideDepartmentModal = this.hideDepartmentModal.bind(this);
-        this.saveDepartment = this.saveDepartment.bind(this);
-        this.showAttendanceModal = this.showAttendanceModal.bind(this);
-        this.hideAttendanceModal = this.hideAttendanceModal.bind(this);
-        this.saveAttendance = this.saveAttendance.bind(this);
-        this.showPayrollModal = this.showPayrollModal.bind(this);
-        this.hidePayrollModal = this.hidePayrollModal.bind(this);
-        this.processPayroll = this.processPayroll.bind(this);
-        this.showPerformanceModal = this.showPerformanceModal.bind(this);
-        this.hidePerformanceModal = this.hidePerformanceModal.bind(this);
-        this.savePerformanceReview = this.savePerformanceReview.bind(this);
-        this.showLeaveModal = this.showLeaveModal.bind(this);
-        this.hideLeaveModal = this.hideLeaveModal.bind(this);
-        this.saveLeaveRequest = this.saveLeaveRequest.bind(this);
-        this.approveLeaveRequest = this.approveLeaveRequest.bind(this);
-        this.showRecruitmentModal = this.showRecruitmentModal.bind(this);
-        this.hideRecruitmentModal = this.hideRecruitmentModal.bind(this);
-        this.saveJobPosting = this.saveJobPosting.bind(this);
-        this.showTrainingModal = this.showTrainingModal.bind(this);
-        this.hideTrainingModal = this.hideTrainingModal.bind(this);
-        this.saveTrainingProgram = this.saveTrainingProgram.bind(this);
+        // Setup table callbacks
+        this.tableRenderer.setDataCallback(() => this.state.employees || []);
+        this.tableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedEmployees: selectedIds });
+        });
+        this.tableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.tableRenderer.setDataChangeCallback(() => {
+            this.loadEmployees();
+        });
+    }
+
+    get bindMethods() {
+        return [
+            'loadOverview',
+            'loadEmployees',
+            'loadDepartments',
+            'loadAttendance',
+            'loadPayroll',
+            'loadPerformance',
+            'loadLeave',
+            'loadRecruitment',
+            'loadTraining',
+            'handleViewChange',
+            'handleFilterChange',
+            'handleBulkAction',
+            'showEmployeeModal',
+            'hideEmployeeModal',
+            'saveEmployee',
+            'deleteEmployee',
+            'showDepartmentModal',
+            'hideDepartmentModal',
+            'saveDepartment'
+        ];
     }
 
     async componentDidMount() {
@@ -110,10 +71,7 @@ class HR extends Component {
             await this.loadCurrentViewData();
         } catch (error) {
             console.error('Error loading HR data:', error);
-            App.showNotification({
-                type: 'error',
-                message: 'Failed to load HR data'
-            });
+            this.showErrorNotification('Failed to load HR data');
         } finally {
             this.setState({ loading: false });
         }
@@ -153,7 +111,7 @@ class HR extends Component {
 
     async loadOverview() {
         try {
-            const response = await API.get('/hr/overview');
+            const response = await this.apiRequest('GET', '/hr/overview');
             this.setState({ overview: response });
         } catch (error) {
             console.error('Error loading HR overview:', error);
@@ -162,16 +120,16 @@ class HR extends Component {
 
     async loadEmployees() {
         try {
-            const params = new URLSearchParams({
+            const params = {
                 ...this.state.filters,
                 page: this.state.pagination.page,
                 limit: this.state.pagination.limit
-            });
+            };
 
-            const response = await API.get(`/hr/employees?${params}`);
+            const response = await this.apiRequest('GET', '/hr/employees', params);
             this.setState({
-                employees: response.employees,
-                pagination: response.pagination
+                employees: response.employees || [],
+                pagination: response.pagination || this.state.pagination
             });
         } catch (error) {
             console.error('Error loading employees:', error);
@@ -180,8 +138,8 @@ class HR extends Component {
 
     async loadDepartments() {
         try {
-            const response = await API.get('/hr/departments');
-            this.setState({ departments: response.departments });
+            const response = await this.apiRequest('GET', '/hr/departments');
+            this.setState({ departments: response.departments || [] });
         } catch (error) {
             console.error('Error loading departments:', error);
         }
@@ -189,9 +147,9 @@ class HR extends Component {
 
     async loadAttendance() {
         try {
-            const response = await API.get('/hr/attendance');
+            const response = await this.apiRequest('GET', '/hr/attendance');
             this.setState({
-                attendance: response.attendance,
+                attendance: response.attendance || [],
                 attendanceAnalytics: response.analytics
             });
         } catch (error) {
@@ -201,9 +159,9 @@ class HR extends Component {
 
     async loadPayroll() {
         try {
-            const response = await API.get('/hr/payroll');
+            const response = await this.apiRequest('GET', '/hr/payroll');
             this.setState({
-                payroll: response.payroll_runs,
+                payroll: response.payroll_runs || [],
                 salaryStructures: response.salary_structures,
                 payrollAnalytics: response.analytics
             });
@@ -214,9 +172,9 @@ class HR extends Component {
 
     async loadPerformance() {
         try {
-            const response = await API.get('/hr/performance');
+            const response = await this.apiRequest('GET', '/hr/performance');
             this.setState({
-                performance: response.performance_reviews,
+                performance: response.performance_reviews || [],
                 goalSetting: response.goal_setting,
                 performanceAnalytics: response.analytics
             });
@@ -227,8 +185,8 @@ class HR extends Component {
 
     async loadLeave() {
         try {
-            const response = await API.get('/hr/leave');
-            this.setState({ leave: response.leave });
+            const response = await this.apiRequest('GET', '/hr/leave');
+            this.setState({ leave: response.leave || [] });
         } catch (error) {
             console.error('Error loading leave:', error);
         }
@@ -236,9 +194,9 @@ class HR extends Component {
 
     async loadRecruitment() {
         try {
-            const response = await API.get('/hr/recruitment');
+            const response = await this.apiRequest('GET', '/hr/recruitment');
             this.setState({
-                recruitment: response.job_postings,
+                recruitment: response.job_postings || [],
                 applicants: response.applicant_tracking,
                 recruitmentAnalytics: response.analytics
             });
@@ -249,9 +207,9 @@ class HR extends Component {
 
     async loadTraining() {
         try {
-            const response = await API.get('/hr/training');
+            const response = await this.apiRequest('GET', '/hr/training');
             this.setState({
-                training: response.training_programs,
+                training: response.training_programs || [],
                 courseCatalog: response.course_catalog,
                 trainingAnalytics: response.analytics
             });
@@ -286,77 +244,63 @@ class HR extends Component {
         this.setState({ selectedEmployees });
     }
 
-    async handleBulkAction(action) {
-        if (this.state.selectedEmployees.length === 0) {
-            App.showNotification({
-                type: 'warning',
-                message: 'Please select employees first'
-            });
+    async handleBulkAction(action, selectedIds) {
+        if (!selectedIds || selectedIds.length === 0) {
+            this.showWarning('Please select employees first');
             return;
         }
 
         try {
             switch (action) {
                 case 'delete':
-                    if (confirm(`Terminate ${this.state.selectedEmployees.length} employees?`)) {
-                        await this.bulkTerminateEmployees();
+                    if (await this.confirm({
+                        title: 'Confirm Bulk Termination',
+                        message: `Are you sure you want to terminate ${selectedIds.length} employees?`,
+                        type: 'danger'
+                    })) {
+                        await this.bulkTerminateEmployees(selectedIds);
                     }
                     break;
                 case 'update_department':
-                    await this.showBulkUpdateModal('department');
+                    await this.showBulkUpdateModal('department', selectedIds);
                     break;
                 case 'update_salary':
-                    await this.showBulkUpdateModal('salary');
+                    await this.showBulkUpdateModal('salary', selectedIds);
                     break;
                 case 'update_status':
-                    await this.showBulkUpdateModal('status');
+                    await this.showBulkUpdateModal('status', selectedIds);
                     break;
                 case 'send_notification':
-                    await this.sendBulkNotification();
+                    await this.sendBulkNotification(selectedIds);
                     break;
                 case 'export':
-                    await this.exportEmployees();
+                    await this.exportEmployees(selectedIds);
                     break;
             }
         } catch (error) {
             console.error('Bulk action failed:', error);
-            App.showNotification({
-                type: 'error',
-                message: 'Bulk action failed'
-            });
+            this.showErrorNotification('Bulk action failed');
         }
     }
 
-    async bulkTerminateEmployees() {
+    async bulkTerminateEmployees(selectedIds) {
         // Implementation for bulk termination
-        App.showNotification({
-            type: 'info',
-            message: 'Bulk termination not yet implemented'
-        });
+        this.showInfo('Bulk termination not yet implemented');
     }
 
-    async showBulkUpdateModal(field) {
+    async showBulkUpdateModal(field, selectedIds) {
         // Implementation for bulk update modal
-        App.showNotification({
-            type: 'info',
-            message: 'Bulk update not yet implemented'
-        });
+        this.showInfo('Bulk update not yet implemented');
     }
 
-    async sendBulkNotification() {
+    async sendBulkNotification(selectedIds) {
         // Implementation for bulk notification
-        App.showNotification({
-            type: 'info',
-            message: 'Bulk notification not yet implemented'
-        });
+        this.showInfo('Bulk notification not yet implemented');
     }
 
-    async exportEmployees() {
+    async exportEmployees(selectedIds) {
         // Implementation for export
-        App.showNotification({
-            type: 'info',
-            message: 'Export not yet implemented'
-        });
+        this.showInfo('Export not yet implemented');
     }
 
     showEmployeeModal(employee = null) {
@@ -376,48 +320,37 @@ class HR extends Component {
     async saveEmployee(employeeData) {
         try {
             if (this.state.editingEmployee) {
-                await API.put(`/hr/employees/${this.state.editingEmployee.id}`, employeeData);
-                App.showNotification({
-                    type: 'success',
-                    message: 'Employee updated successfully'
-                });
+                await this.apiRequest('PUT', `/hr/employees/${this.state.editingEmployee.id}`, employeeData);
+                this.showSuccess('Employee updated successfully');
             } else {
-                await API.post('/hr/employees', employeeData);
-                App.showNotification({
-                    type: 'success',
-                    message: 'Employee created successfully'
-                });
+                await this.apiRequest('POST', '/hr/employees', employeeData);
+                this.showSuccess('Employee created successfully');
             }
 
             this.hideEmployeeModal();
             await this.loadEmployees();
         } catch (error) {
             console.error('Error saving employee:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save employee'
-            });
+            this.showErrorNotification(error.message || 'Failed to save employee');
         }
     }
 
     async deleteEmployee(employeeId) {
-        if (!confirm('Are you sure you want to terminate this employee?')) {
+        if (!await this.confirm({
+            title: 'Confirm Termination',
+            message: 'Are you sure you want to terminate this employee?',
+            type: 'danger'
+        })) {
             return;
         }
 
         try {
-            await API.delete(`/hr/employees/${employeeId}`);
-            App.showNotification({
-                type: 'success',
-                message: 'Employee terminated successfully'
-            });
+            await this.apiRequest('DELETE', `/hr/employees/${employeeId}`);
+            this.showSuccess('Employee terminated successfully');
             await this.loadEmployees();
         } catch (error) {
             console.error('Error terminating employee:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to terminate employee'
-            });
+            this.showErrorNotification(error.message || 'Failed to terminate employee');
         }
     }
 
@@ -437,19 +370,13 @@ class HR extends Component {
 
     async saveDepartment(departmentData) {
         try {
-            await API.post('/hr/departments', departmentData);
-            App.showNotification({
-                type: 'success',
-                message: 'Department created successfully'
-            });
+            await this.apiRequest('POST', '/hr/departments', departmentData);
+            this.showSuccess('Department created successfully');
             this.hideDepartmentModal();
             await this.loadDepartments();
         } catch (error) {
             console.error('Error saving department:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save department'
-            });
+            this.showErrorNotification(error.message || 'Failed to save department');
         }
     }
 
@@ -469,19 +396,13 @@ class HR extends Component {
 
     async saveAttendance(attendanceData) {
         try {
-            await API.post('/hr/attendance', attendanceData);
-            App.showNotification({
-                type: 'success',
-                message: 'Attendance recorded successfully'
-            });
+            await this.apiRequest('POST', '/hr/attendance', attendanceData);
+            this.showSuccess('Attendance recorded successfully');
             this.hideAttendanceModal();
             await this.loadAttendance();
         } catch (error) {
             console.error('Error saving attendance:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save attendance'
-            });
+            this.showErrorNotification(error.message || 'Failed to save attendance');
         }
     }
 
@@ -499,19 +420,13 @@ class HR extends Component {
 
     async processPayroll(payrollData) {
         try {
-            await API.post('/hr/payroll/process', payrollData);
-            App.showNotification({
-                type: 'success',
-                message: 'Payroll processed successfully'
-            });
+            await this.apiRequest('POST', '/hr/payroll/process', payrollData);
+            this.showSuccess('Payroll processed successfully');
             this.hidePayrollModal();
             await this.loadPayroll();
         } catch (error) {
             console.error('Error processing payroll:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to process payroll'
-            });
+            this.showErrorNotification(error.message || 'Failed to process payroll');
         }
     }
 
@@ -531,19 +446,13 @@ class HR extends Component {
 
     async savePerformanceReview(reviewData) {
         try {
-            await API.post('/hr/performance/reviews', reviewData);
-            App.showNotification({
-                type: 'success',
-                message: 'Performance review created successfully'
-            });
+            await this.apiRequest('POST', '/hr/performance/reviews', reviewData);
+            this.showSuccess('Performance review created successfully');
             this.hidePerformanceModal();
             await this.loadPerformance();
         } catch (error) {
             console.error('Error saving performance review:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save performance review'
-            });
+            this.showErrorNotification(error.message || 'Failed to save performance review');
         }
     }
 
@@ -563,36 +472,24 @@ class HR extends Component {
 
     async saveLeaveRequest(leaveData) {
         try {
-            await API.post('/hr/leave', leaveData);
-            App.showNotification({
-                type: 'success',
-                message: 'Leave request submitted successfully'
-            });
+            await this.apiRequest('POST', '/hr/leave', leaveData);
+            this.showSuccess('Leave request submitted successfully');
             this.hideLeaveModal();
             await this.loadLeave();
         } catch (error) {
             console.error('Error saving leave request:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save leave request'
-            });
+            this.showErrorNotification(error.message || 'Failed to save leave request');
         }
     }
 
     async approveLeaveRequest(leaveId) {
         try {
-            await API.put(`/hr/leave/${leaveId}/approve`);
-            App.showNotification({
-                type: 'success',
-                message: 'Leave request approved successfully'
-            });
+            await this.apiRequest('PUT', `/hr/leave/${leaveId}/approve`);
+            this.showSuccess('Leave request approved successfully');
             await this.loadLeave();
         } catch (error) {
             console.error('Error approving leave request:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to approve leave request'
-            });
+            this.showErrorNotification(error.message || 'Failed to approve leave request');
         }
     }
 
@@ -610,19 +507,13 @@ class HR extends Component {
 
     async saveJobPosting(jobData) {
         try {
-            await API.post('/hr/recruitment/jobs', jobData);
-            App.showNotification({
-                type: 'success',
-                message: 'Job posting created successfully'
-            });
+            await this.apiRequest('POST', '/hr/recruitment/jobs', jobData);
+            this.showSuccess('Job posting created successfully');
             this.hideRecruitmentModal();
             await this.loadRecruitment();
         } catch (error) {
             console.error('Error saving job posting:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save job posting'
-            });
+            this.showErrorNotification(error.message || 'Failed to save job posting');
         }
     }
 
@@ -640,19 +531,13 @@ class HR extends Component {
 
     async saveTrainingProgram(trainingData) {
         try {
-            await API.post('/hr/training/programs', trainingData);
-            App.showNotification({
-                type: 'success',
-                message: 'Training program created successfully'
-            });
+            await this.apiRequest('POST', '/hr/training/programs', trainingData);
+            this.showSuccess('Training program created successfully');
             this.hideTrainingModal();
             await this.loadTraining();
         } catch (error) {
             console.error('Error saving training program:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save training program'
-            });
+            this.showErrorNotification(error.message || 'Failed to save training program');
         }
     }
 
@@ -945,7 +830,7 @@ class HR extends Component {
             actions.forEach(action => {
                 const button = DOM.create('button', {
                     className: 'btn btn-sm btn-outline-secondary',
-                    onclick: () => this.handleBulkAction(action)
+                    onclick: () => this.handleBulkAction(action, this.state.selectedEmployees)
                 }, action.replace('_', ' '));
                 bulkActions.appendChild(button);
             });

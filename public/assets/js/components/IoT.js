@@ -1,91 +1,173 @@
 /**
- * TPT Free ERP - IoT & Device Integration Component
+ * TPT Free ERP - IoT & Device Integration Component (Refactored)
  * Complete device management, sensor data collection, real-time monitoring, and predictive maintenance interface
+ * Uses shared utilities for reduced complexity and improved maintainability
  */
 
-class IoT extends Component {
+class IoT extends BaseComponent {
     constructor(props = {}) {
         super(props);
-        this.props = {
-            title: 'IoT & Device Integration',
-            currentView: 'dashboard',
-            ...props
-        };
 
-        this.state = {
-            loading: false,
-            currentView: this.props.currentView,
-            overview: {},
-            devices: [],
-            sensors: [],
-            monitoring: {},
-            predictive: {},
-            alerts: [],
-            analytics: {},
-            filters: {
-                status: '',
-                type: '',
-                location: '',
-                category: '',
-                date_from: '',
-                date_to: '',
-                search: '',
-                page: 1,
-                limit: 50
-            },
-            selectedDevices: [],
-            selectedAlerts: [],
-            showDeviceModal: false,
-            showSensorModal: false,
-            showAlertModal: false,
-            showFirmwareModal: false,
-            editingDevice: null,
-            editingSensor: null,
-            editingAlert: null,
-            pagination: {
-                page: 1,
-                limit: 50,
-                total: 0,
-                pages: 0
-            },
-            liveDataInterval: null,
-            alertPollingInterval: null
-        };
+        // Initialize table renderers for different data types
+        this.devicesTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
 
-        // Bind methods
-        this.loadOverview = this.loadOverview.bind(this);
-        this.loadDevices = this.loadDevices.bind(this);
-        this.loadSensors = this.loadSensors.bind(this);
-        this.loadMonitoring = this.loadMonitoring.bind(this);
-        this.loadPredictive = this.loadPredictive.bind(this);
-        this.loadAlerts = this.loadAlerts.bind(this);
-        this.loadAnalytics = this.loadAnalytics.bind(this);
-        this.handleViewChange = this.handleViewChange.bind(this);
-        this.handleFilterChange = this.handleFilterChange.bind(this);
-        this.handleDeviceSelect = this.handleDeviceSelect.bind(this);
-        this.handleAlertSelect = this.handleAlertSelect.bind(this);
-        this.handleBulkAction = this.handleBulkAction.bind(this);
-        this.showDeviceModal = this.showDeviceModal.bind(this);
-        this.hideDeviceModal = this.hideDeviceModal.bind(this);
-        this.saveDevice = this.saveDevice.bind(this);
-        this.showSensorModal = this.showSensorModal.bind(this);
-        this.hideSensorModal = this.hideSensorModal.bind(this);
-        this.saveSensor = this.saveSensor.bind(this);
-        this.showAlertModal = this.showAlertModal.bind(this);
-        this.hideAlertModal = this.hideAlertModal.bind(this);
-        this.saveAlert = this.saveAlert.bind(this);
-        this.updateDeviceStatus = this.updateDeviceStatus.bind(this);
-        this.submitSensorReading = this.submitSensorReading.bind(this);
-        this.acknowledgeAlert = this.acknowledgeAlert.bind(this);
-        this.resolveAlert = this.resolveAlert.bind(this);
-        this.scheduleFirmwareUpdate = this.scheduleFirmwareUpdate.bind(this);
-        this.bulkUpdateDevices = this.bulkUpdateDevices.bind(this);
-        this.bulkRebootDevices = this.bulkRebootDevices.bind(this);
-        this.exportDevices = this.exportDevices.bind(this);
-        this.startLiveDataUpdates = this.startLiveDataUpdates.bind(this);
-        this.stopLiveDataUpdates = this.stopLiveDataUpdates.bind(this);
-        this.startAlertPolling = this.startAlertPolling.bind(this);
-        this.stopAlertPolling = this.stopAlertPolling.bind(this);
+        this.sensorsTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.alertsTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.liveDataTableRenderer = this.createTableRenderer({
+            selectable: false,
+            sortable: true,
+            search: false,
+            exportable: false,
+            pagination: false
+        });
+
+        this.predictionsTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.failureAnalysisTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.alertHistoryTableRenderer = this.createTableRenderer({
+            selectable: false,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        // Setup table callbacks
+        this.devicesTableRenderer.setDataCallback(() => this.state.devices || []);
+        this.devicesTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedDevices: selectedIds });
+        });
+        this.devicesTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.devicesTableRenderer.setDataChangeCallback(() => {
+            this.loadDevices();
+        });
+
+        this.sensorsTableRenderer.setDataCallback(() => this.state.sensors || []);
+        this.sensorsTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedSensors: selectedIds });
+        });
+        this.sensorsTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.sensorsTableRenderer.setDataChangeCallback(() => {
+            this.loadSensors();
+        });
+
+        this.alertsTableRenderer.setDataCallback(() => this.state.alerts.active || []);
+        this.alertsTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedAlerts: selectedIds });
+        });
+        this.alertsTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.alertsTableRenderer.setDataChangeCallback(() => {
+            this.loadAlerts();
+        });
+
+        this.liveDataTableRenderer.setDataCallback(() => this.state.monitoring.liveData || []);
+        this.liveDataTableRenderer.setDataChangeCallback(() => {
+            this.loadMonitoring();
+        });
+
+        this.predictionsTableRenderer.setDataCallback(() => this.state.predictive.predictions || []);
+        this.predictionsTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedPredictions: selectedIds });
+        });
+        this.predictionsTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.predictionsTableRenderer.setDataChangeCallback(() => {
+            this.loadPredictive();
+        });
+
+        this.failureAnalysisTableRenderer.setDataCallback(() => this.state.predictive.failureAnalysis || []);
+        this.failureAnalysisTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedFailureAnalysis: selectedIds });
+        });
+        this.failureAnalysisTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.failureAnalysisTableRenderer.setDataChangeCallback(() => {
+            this.loadPredictive();
+        });
+
+        this.alertHistoryTableRenderer.setDataCallback(() => this.state.alerts.history || []);
+        this.alertHistoryTableRenderer.setDataChangeCallback(() => {
+            this.loadAlerts();
+        });
+    }
+
+    get bindMethods() {
+        return [
+            'loadOverview',
+            'loadDevices',
+            'loadSensors',
+            'loadMonitoring',
+            'loadPredictive',
+            'loadAlerts',
+            'loadAnalytics',
+            'handleViewChange',
+            'handleFilterChange',
+            'handleDeviceSelect',
+            'handleAlertSelect',
+            'handleBulkAction',
+            'showDeviceModal',
+            'hideDeviceModal',
+            'saveDevice',
+            'showSensorModal',
+            'hideSensorModal',
+            'saveSensor',
+            'showAlertModal',
+            'hideAlertModal',
+            'saveAlert',
+            'updateDeviceStatus',
+            'submitSensorReading',
+            'acknowledgeAlert',
+            'resolveAlert',
+            'scheduleFirmwareUpdate',
+            'bulkUpdateDevices',
+            'bulkRebootDevices',
+            'exportDevices',
+            'startLiveDataUpdates',
+            'stopLiveDataUpdates',
+            'startAlertPolling',
+            'stopAlertPolling'
+        ];
     }
 
     async componentDidMount() {

@@ -1,0 +1,54 @@
+{
+  "source": {
+    "include": [
+      "public/assets/js/utils/",
+      "public/assets/js/components/",
+      "core/",
+      "api/controllers/"
+    ],
+    "includePattern": "\\.(js|php)$",
+    "exclude": [
+      "node_modules/",
+      "tests/",
+      "coverage/",
+      "docs/"
+    ]
+  },
+  "opts": {
+    "destination": "docs/api/",
+    "recurse": true,
+    "readme": "README.md",
+    "template": "node_modules/docdash"
+  },
+  "plugins": [
+    "plugins/markdown",
+    "plugins/summarize"
+  ],
+  "templates": {
+    "cleverLinks": true,
+    "monospaceLinks": true,
+    "default": {
+      "outputSourceFiles": true
+    },
+    "applicationName": "TPT Free ERP",
+    "disqus": "",
+    "googleAnalytics": "",
+    "openGraph": {
+      "title": "TPT Free ERP API Documentation",
+      "type": "website",
+      "image": "",
+      "site_name": "TPT Free ERP",
+      "url": ""
+    },
+    "meta": {
+      "title": "TPT Free ERP API Documentation",
+      "description": "Comprehensive API documentation for TPT Free ERP utilities and components",
+      "keyword": "TPT, ERP, API, documentation, JavaScript, PHP"
+    },
+    "linenums": true
+  },
+  "markdown": {
+    "hardwrap": false,
+    "idInHeadings": true
+  }
+}

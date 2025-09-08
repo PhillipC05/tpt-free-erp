@@ -1244,3 +1244,330 @@ class HR extends BaseController {
             LEFT JOIN training_enrollments te ON lp.id = te.learning_path_id
             WHERE lp.company_id = ?
             GROUP BY lp.id
+            ORDER BY lp.path_name ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getCertificationTracking() {
+        return $this->db->query("
+            SELECT
+                ct.*,
+                e.first_name,
+                e.last_name,
+                c.certification_name,
+                ct.issue_date,
+                ct.expiry_date,
+                ct.status,
+                TIMESTAMPDIFF(DAY, CURDATE(), ct.expiry_date) as days_until_expiry
+            FROM certification_tracking ct
+            JOIN employees e ON ct.employee_id = e.id
+            JOIN certifications c ON ct.certification_id = c.id
+            WHERE ct.company_id = ?
+            ORDER BY ct.expiry_date ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getTrainingAnalytics() {
+        return $this->db->querySingle("
+            SELECT
+                COUNT(tp.id) as total_programs,
+                COUNT(te.id) as total_enrollments,
+                COUNT(CASE WHEN te.completion_status = 'completed' THEN 1 END) as completed_trainings,
+                ROUND((COUNT(CASE WHEN te.completion_status = 'completed' THEN 1 END) / NULLIF(COUNT(te.id), 0)) * 100, 2) as completion_rate,
+                AVG(te.progress_percentage) as avg_progress,
+                COUNT(DISTINCT te.employee_id) as trained_employees,
+                AVG(tp.duration_hours) as avg_program_duration
+            FROM training_programs tp
+            LEFT JOIN training_enrollments te ON tp.id = te.program_id
+            WHERE tp.company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getTrainingCompliance() {
+        return $this->db->query("
+            SELECT
+                tc.*,
+                e.first_name,
+                e.last_name,
+                tc.compliance_type,
+                tc.due_date,
+                tc.status,
+                tc.last_completed_date,
+                TIMESTAMPDIFF(DAY, CURDATE(), tc.due_date) as days_until_due
+            FROM training_compliance tc
+            JOIN employees e ON tc.employee_id = e.id
+            WHERE tc.company_id = ?
+            ORDER BY tc.due_date ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getTrainingTemplates() {
+        return $this->db->query("
+            SELECT * FROM training_templates
+            WHERE company_id = ? AND is_active = true
+            ORDER BY template_name ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getTrainingSettings() {
+        return $this->db->querySingle("
+            SELECT * FROM training_settings
+            WHERE company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getWorkforceAnalytics() {
+        return $this->db->querySingle("
+            SELECT
+                COUNT(e.id) as total_employees,
+                COUNT(CASE WHEN e.employment_status = 'active' THEN 1 END) as active_employees,
+                ROUND(AVG(DATEDIFF(CURDATE(), e.hire_date) / 365.25), 1) as avg_tenure,
+                COUNT(CASE WHEN e.termination_date IS NOT NULL THEN 1 END) as total_turnovers,
+                ROUND((COUNT(CASE WHEN e.termination_date IS NOT NULL THEN 1 END) / NULLIF(COUNT(e.id), 0)) * 100, 2) as turnover_rate,
+                AVG(e.salary) as avg_salary,
+                COUNT(DISTINCT e.department) as departments,
+                COUNT(CASE WHEN e.performance_rating >= 4 THEN 1 END) as high_performers,
+                ROUND(AVG(e.engagement_score), 2) as avg_engagement
+            FROM employees e
+            WHERE e.company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getTurnoverAnalysis() {
+        return $this->db->query("
+            SELECT
+                YEAR(termination_date) as year,
+                MONTH(termination_date) as month,
+                COUNT(*) as terminations,
+                AVG(DATEDIFF(termination_date, hire_date) / 365.25) as avg_tenure_at_termination,
+                d.department_name
+            FROM employees e
+            LEFT JOIN departments d ON e.department_id = d.id
+            WHERE e.company_id = ? AND e.termination_date IS NOT NULL
+            GROUP BY YEAR(termination_date), MONTH(termination_date), d.department_name
+            ORDER BY year DESC, month DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getEngagementSurveys() {
+        return $this->db->query("
+            SELECT
+                es.*,
+                COUNT(esr.id) as responses_count,
+                AVG(esr.overall_satisfaction) as avg_satisfaction,
+                es.survey_title,
+                es.created_date,
+                es.status
+            FROM engagement_surveys es
+            LEFT JOIN engagement_survey_responses esr ON es.id = esr.survey_id
+            WHERE es.company_id = ?
+            GROUP BY es.id
+            ORDER BY es.created_date DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getDiversityReporting() {
+        return $this->db->querySingle("
+            SELECT
+                COUNT(CASE WHEN gender = 'male' THEN 1 END) as male_count,
+                COUNT(CASE WHEN gender = 'female' THEN 1 END) as female_count,
+                COUNT(CASE WHEN gender = 'other' THEN 1 END) as other_gender_count,
+                ROUND((COUNT(CASE WHEN gender = 'female' THEN 1 END) / NULLIF(COUNT(*), 0)) * 100, 2) as female_percentage,
+                COUNT(DISTINCT ethnicity) as ethnicities_count,
+                AVG(age) as avg_age,
+                COUNT(CASE WHEN age < 30 THEN 1 END) as under_30,
+                COUNT(CASE WHEN age BETWEEN 30 AND 50 THEN 1 END) as age_30_50,
+                COUNT(CASE WHEN age > 50 THEN 1 END) as over_50
+            FROM employees
+            WHERE company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getCompensationAnalytics() {
+        return $this->db->query("
+            SELECT
+                d.department_name,
+                COUNT(e.id) as employee_count,
+                AVG(e.salary) as avg_salary,
+                MIN(e.salary) as min_salary,
+                MAX(e.salary) as max_salary,
+                ROUND(STDDEV(e.salary), 2) as salary_std_dev
+            FROM employees e
+            LEFT JOIN departments d ON e.department_id = d.id
+            WHERE e.company_id = ?
+            GROUP BY d.id, d.department_name
+            ORDER BY avg_salary DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getProductivityMetrics() {
+        return $this->db->querySingle("
+            SELECT
+                COUNT(ar.id) as total_attendance_records,
+                ROUND(AVG(ar.hours_worked), 2) as avg_hours_worked,
+                ROUND((COUNT(CASE WHEN ar.status = 'present' THEN 1 END) / NULLIF(COUNT(ar.id), 0)) * 100, 2) as attendance_rate,
+                COUNT(CASE WHEN ar.is_late = true THEN 1 END) as late_instances,
+                COUNT(tt.id) as total_time_entries,
+                ROUND(AVG(TIMESTAMPDIFF(MINUTE, tt.start_time, tt.end_time) / 60), 2) as avg_hours_logged,
+                COUNT(CASE WHEN pr.overall_rating >= 4 THEN 1 END) as high_performance_reviews
+            FROM attendance_records ar
+            LEFT JOIN time_tracking tt ON ar.employee_id = tt.employee_id
+            LEFT JOIN performance_reviews pr ON ar.employee_id = pr.employee_id
+            WHERE ar.company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getHRDashboards() {
+        return $this->db->query("
+            SELECT * FROM hr_dashboards
+            WHERE company_id = ? AND is_active = true
+            ORDER BY dashboard_name ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getPredictiveHRAnalytics() {
+        return $this->db->querySingle("
+            SELECT
+                COUNT(CASE WHEN e.engagement_score < 3 THEN 1 END) as low_engagement_count,
+                COUNT(CASE WHEN e.performance_rating < 3 THEN 1 END) as low_performance_count,
+                COUNT(CASE WHEN e.termination_date IS NOT NULL THEN 1 END) as turnover_count,
+                ROUND(AVG(e.engagement_score), 2) as avg_engagement,
+                ROUND(AVG(e.performance_rating), 2) as avg_performance,
+                COUNT(CASE WHEN e.hire_date >= DATE_SUB(CURDATE(), INTERVAL 90 DAY) THEN 1 END) as new_hires_90_days
+            FROM employees e
+            WHERE e.company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getPersonalInfo() {
+        return $this->db->querySingle("
+            SELECT
+                e.first_name,
+                e.last_name,
+                e.email,
+                e.phone,
+                e.address,
+                e.date_of_birth,
+                e.hire_date,
+                e.position_title,
+                e.department,
+                e.salary,
+                e.employee_id
+            FROM employees e
+            WHERE e.id = ? AND e.company_id = ?
+        ", [$this->user['id'], $this->user['company_id']]);
+    }
+
+    private function getPayrollInfo() {
+        return $this->db->query("
+            SELECT
+                pr.payroll_date,
+                pr.gross_pay,
+                pr.total_deductions,
+                pr.net_pay,
+                pr.payroll_period
+            FROM payroll_entries pr
+            WHERE pr.employee_id = ? AND pr.company_id = ?
+            ORDER BY pr.payroll_date DESC
+            LIMIT 12
+        ", [$this->user['id'], $this->user['company_id']]);
+    }
+
+    private function getBenefitsInfo() {
+        return $this->db->query("
+            SELECT
+                be.*,
+                bp.plan_name,
+                bp.coverage_type,
+                bp.monthly_premium,
+                be.employee_contribution,
+                be.employer_contribution
+            FROM benefit_enrollments be
+            JOIN benefit_plans bp ON be.plan_id = bp.id
+            WHERE be.employee_id = ? AND be.company_id = ?
+            ORDER BY bp.plan_name ASC
+        ", [$this->user['id'], $this->user['company_id']]);
+    }
+
+    private function getTimeOffRequests() {
+        return $this->db->query("
+            SELECT
+                lm.*,
+                lt.leave_type,
+                lm.start_date,
+                lm.end_date,
+                lm.days_requested,
+                lm.status,
+                lm.approved_by
+            FROM leave_management lm
+            JOIN leave_types lt ON lm.leave_type_id = lt.id
+            WHERE lm.employee_id = ? AND lm.company_id = ?
+            ORDER BY lm.start_date DESC
+        ", [$this->user['id'], $this->user['company_id']]);
+    }
+
+    private function getEmployeePerformanceReviews() {
+        return $this->db->query("
+            SELECT
+                pr.*,
+                r.first_name as reviewer_first,
+                r.last_name as reviewer_last,
+                pr.review_period,
+                pr.overall_rating,
+                pr.goals_achieved_percentage,
+                pr.review_date
+            FROM performance_reviews pr
+            LEFT JOIN employees r ON pr.reviewer_id = r.id
+            WHERE pr.employee_id = ? AND pr.company_id = ?
+            ORDER BY pr.review_date DESC
+        ", [$this->user['id'], $this->user['company_id']]);
+    }
+
+    private function getTrainingEnrollment() {
+        return $this->db->query("
+            SELECT
+                te.*,
+                tp.program_name,
+                tp.duration_hours,
+                te.enrollment_date,
+                te.completion_status,
+                te.progress_percentage,
+                te.completion_date
+            FROM training_enrollments te
+            JOIN training_programs tp ON te.program_id = tp.id
+            WHERE te.employee_id = ? AND te.company_id = ?
+            ORDER BY te.enrollment_date DESC
+        ", [$this->user['id'], $this->user['company_id']]);
+    }
+
+    private function getDocumentCenter() {
+        return $this->db->query("
+            SELECT
+                ed.*,
+                ed.document_name,
+                ed.document_type,
+                ed.upload_date,
+                ed.file_size,
+                ed.is_confidential
+            FROM employee_documents ed
+            WHERE ed.employee_id = ? AND ed.company_id = ?
+            ORDER BY ed.upload_date DESC
+        ", [$this->user['id'], $this->user['company_id']]);
+    }
+
+    private function getHelpDesk() {
+        return $this->db->query("
+            SELECT
+                hd.*,
+                hd.ticket_subject,
+                hd.ticket_description,
+                hd.status,
+                hd.priority,
+                hd.created_date,
+                hd.last_updated
+            FROM help_desk_tickets hd
+            WHERE hd.employee_id = ? AND hd.company_id = ?
+            ORDER BY hd.created_date DESC
+        ", [$this->user['id'], $this->user['company_id']]);
+    }
+}

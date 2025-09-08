@@ -1,85 +1,142 @@
 /**
- * TPT Free ERP - Learning Management System Component
+ * TPT Free ERP - Learning Management System Component (Refactored)
  * Complete course management, student enrollment, certification, and compliance training interface
+ * Uses shared utilities for reduced complexity and improved maintainability
  */
 
-class LMS extends Component {
+class LMS extends BaseComponent {
     constructor(props = {}) {
         super(props);
-        this.props = {
-            title: 'Learning Management System',
-            currentView: 'dashboard',
-            ...props
-        };
 
-        this.state = {
-            loading: false,
-            currentView: this.props.currentView,
-            overview: {},
-            courses: [],
-            enrollments: [],
-            certifications: [],
-            assessments: [],
-            compliance: [],
-            analytics: {},
-            filters: {
-                status: '',
-                category: '',
-                instructor: '',
-                date_from: '',
-                date_to: '',
-                search: '',
-                page: 1,
-                limit: 50
-            },
-            selectedCourses: [],
-            selectedEnrollments: [],
-            selectedCertifications: [],
-            showCourseModal: false,
-            showEnrollmentModal: false,
-            showCertificationModal: false,
-            showAssessmentModal: false,
-            showComplianceModal: false,
-            editingCourse: null,
-            editingEnrollment: null,
-            editingCertification: null,
-            pagination: {
-                page: 1,
-                limit: 50,
-                total: 0,
-                pages: 0
-            }
-        };
+        // Initialize table renderers for different data types
+        this.coursesTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
 
-        // Bind methods
-        this.loadOverview = this.loadOverview.bind(this);
-        this.loadCourses = this.loadCourses.bind(this);
-        this.loadEnrollments = this.loadEnrollments.bind(this);
-        this.loadCertifications = this.loadCertifications.bind(this);
-        this.loadAssessments = this.loadAssessments.bind(this);
-        this.loadCompliance = this.loadCompliance.bind(this);
-        this.loadAnalytics = this.loadAnalytics.bind(this);
-        this.handleViewChange = this.handleViewChange.bind(this);
-        this.handleFilterChange = this.handleFilterChange.bind(this);
-        this.handleCourseSelect = this.handleCourseSelect.bind(this);
-        this.handleEnrollmentSelect = this.handleEnrollmentSelect.bind(this);
-        this.handleCertificationSelect = this.handleCertificationSelect.bind(this);
-        this.handleBulkAction = this.handleBulkAction.bind(this);
-        this.showCourseModal = this.showCourseModal.bind(this);
-        this.hideCourseModal = this.hideCourseModal.bind(this);
-        this.saveCourse = this.saveCourse.bind(this);
-        this.showEnrollmentModal = this.showEnrollmentModal.bind(this);
-        this.hideEnrollmentModal = this.hideEnrollmentModal.bind(this);
-        this.saveEnrollment = this.saveEnrollment.bind(this);
-        this.showCertificationModal = this.showCertificationModal.bind(this);
-        this.hideCertificationModal = this.hideCertificationModal.bind(this);
-        this.saveCertification = this.saveCertification.bind(this);
-        this.updateProgress = this.updateProgress.bind(this);
-        this.submitAssessmentResult = this.submitAssessmentResult.bind(this);
-        this.updateComplianceStatus = this.updateComplianceStatus.bind(this);
-        this.bulkEnrollStudents = this.bulkEnrollStudents.bind(this);
-        this.bulkUpdateCourses = this.bulkUpdateCourses.bind(this);
-        this.exportCourses = this.exportCourses.bind(this);
+        this.enrollmentsTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.certificationsTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.assessmentsTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.complianceTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        // Setup table callbacks
+        this.coursesTableRenderer.setDataCallback(() => this.state.courses || []);
+        this.coursesTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedCourses: selectedIds });
+        });
+        this.coursesTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.coursesTableRenderer.setDataChangeCallback(() => {
+            this.loadCourses();
+        });
+
+        this.enrollmentsTableRenderer.setDataCallback(() => this.state.enrollments || []);
+        this.enrollmentsTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedEnrollments: selectedIds });
+        });
+        this.enrollmentsTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.enrollmentsTableRenderer.setDataChangeCallback(() => {
+            this.loadEnrollments();
+        });
+
+        this.certificationsTableRenderer.setDataCallback(() => this.state.certifications || []);
+        this.certificationsTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedCertifications: selectedIds });
+        });
+        this.certificationsTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.certificationsTableRenderer.setDataChangeCallback(() => {
+            this.loadCertifications();
+        });
+
+        this.assessmentsTableRenderer.setDataCallback(() => this.state.assessments || []);
+        this.assessmentsTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedCourses: selectedIds });
+        });
+        this.assessmentsTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.assessmentsTableRenderer.setDataChangeCallback(() => {
+            this.loadAssessments();
+        });
+
+        this.complianceTableRenderer.setDataCallback(() => this.state.compliance || []);
+        this.complianceTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedCourses: selectedIds });
+        });
+        this.complianceTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.complianceTableRenderer.setDataChangeCallback(() => {
+            this.loadCompliance();
+        });
+    }
+
+    get bindMethods() {
+        return [
+            'loadOverview',
+            'loadCourses',
+            'loadEnrollments',
+            'loadCertifications',
+            'loadAssessments',
+            'loadCompliance',
+            'loadAnalytics',
+            'handleViewChange',
+            'handleFilterChange',
+            'handleCourseSelect',
+            'handleEnrollmentSelect',
+            'handleCertificationSelect',
+            'handleBulkAction',
+            'showCourseModal',
+            'hideCourseModal',
+            'saveCourse',
+            'showEnrollmentModal',
+            'hideEnrollmentModal',
+            'saveEnrollment',
+            'showCertificationModal',
+            'hideCertificationModal',
+            'saveCertification',
+            'updateProgress',
+            'submitAssessmentResult',
+            'updateComplianceStatus',
+            'bulkEnrollStudents',
+            'bulkUpdateCourses',
+            'exportCourses'
+        ];
     }
 
     async componentDidMount() {
@@ -93,11 +150,7 @@ class LMS extends Component {
             // Load current view data
             await this.loadCurrentViewData();
         } catch (error) {
-            console.error('Error loading LMS data:', error);
-            App.showNotification({
-                type: 'error',
-                message: 'Failed to load LMS data'
-            });
+            this.showNotification('Failed to load LMS data', 'error');
         } finally {
             this.setState({ loading: false });
         }
@@ -132,14 +185,14 @@ class LMS extends Component {
     async loadOverview() {
         try {
             const [overview, enrollmentStats, certificationStatus, trainingCompliance, assessmentResults, learningAnalytics, upcomingDeadlines, trainingAlerts] = await Promise.all([
-                API.get('/lms/overview'),
-                API.get('/lms/enrollment-stats'),
-                API.get('/lms/certification-status'),
-                API.get('/lms/training-compliance'),
-                API.get('/lms/assessment-results'),
-                API.get('/lms/learning-analytics'),
-                API.get('/lms/upcoming-deadlines'),
-                API.get('/lms/training-alerts')
+                this.apiRequest('/lms/overview'),
+                this.apiRequest('/lms/enrollment-stats'),
+                this.apiRequest('/lms/certification-status'),
+                this.apiRequest('/lms/training-compliance'),
+                this.apiRequest('/lms/assessment-results'),
+                this.apiRequest('/lms/learning-analytics'),
+                this.apiRequest('/lms/upcoming-deadlines'),
+                this.apiRequest('/lms/training-alerts')
             ]);
 
             this.setState({
@@ -155,7 +208,7 @@ class LMS extends Component {
                 }
             });
         } catch (error) {
-            console.error('Error loading LMS overview:', error);
+            this.showNotification('Failed to load LMS overview', 'error');
         }
     }
 
@@ -167,58 +220,58 @@ class LMS extends Component {
                 limit: this.state.pagination.limit
             });
 
-            const response = await API.get(`/lms/courses?${params}`);
+            const response = await this.apiRequest(`/lms/courses?${params}`);
             this.setState({
                 courses: response.courses,
                 pagination: response.pagination
             });
         } catch (error) {
-            console.error('Error loading courses:', error);
+            this.showNotification('Failed to load courses', 'error');
         }
     }
 
     async loadEnrollments() {
         try {
-            const response = await API.get('/lms/enrollments');
+            const response = await this.apiRequest('/lms/enrollments');
             this.setState({ enrollments: response });
         } catch (error) {
-            console.error('Error loading enrollments:', error);
+            this.showNotification('Failed to load enrollments', 'error');
         }
     }
 
     async loadCertifications() {
         try {
-            const response = await API.get('/lms/certifications');
+            const response = await this.apiRequest('/lms/certifications');
             this.setState({ certifications: response });
         } catch (error) {
-            console.error('Error loading certifications:', error);
+            this.showNotification('Failed to load certifications', 'error');
         }
     }
 
     async loadAssessments() {
         try {
-            const response = await API.get('/lms/assessments');
+            const response = await this.apiRequest('/lms/assessments');
             this.setState({ assessments: response });
         } catch (error) {
-            console.error('Error loading assessments:', error);
+            this.showNotification('Failed to load assessments', 'error');
         }
     }
 
     async loadCompliance() {
         try {
-            const response = await API.get('/lms/compliance-requirements');
+            const response = await this.apiRequest('/lms/compliance-requirements');
             this.setState({ compliance: response });
         } catch (error) {
-            console.error('Error loading compliance:', error);
+            this.showNotification('Failed to load compliance requirements', 'error');
         }
     }
 
     async loadAnalytics() {
         try {
             const [metrics, engagement, effectiveness] = await Promise.all([
-                API.get('/lms/learning-metrics'),
-                API.get('/lms/student-engagement'),
-                API.get('/lms/course-effectiveness')
+                this.apiRequest('/lms/learning-metrics'),
+                this.apiRequest('/lms/student-engagement'),
+                this.apiRequest('/lms/course-effectiveness')
             ]);
 
             this.setState({
@@ -229,7 +282,7 @@ class LMS extends Component {
                 }
             });
         } catch (error) {
-            console.error('Error loading analytics:', error);
+            this.showNotification('Failed to load learning analytics', 'error');
         }
     }
 
@@ -275,12 +328,13 @@ class LMS extends Component {
         this.setState({ selectedCertifications });
     }
 
-    async handleBulkAction(action) {
-        if (this.state.selectedCourses.length === 0 && this.state.selectedEnrollments.length === 0 && this.state.selectedCertifications.length === 0) {
-            App.showNotification({
-                type: 'warning',
-                message: 'Please select items first'
-            });
+    async handleBulkAction(action, selectedIds = null) {
+        const selectedCourses = selectedIds || this.state.selectedCourses;
+        const selectedEnrollments = selectedIds || this.state.selectedEnrollments;
+        const selectedCertifications = selectedIds || this.state.selectedCertifications;
+
+        if (selectedCourses.length === 0 && selectedEnrollments.length === 0 && selectedCertifications.length === 0) {
+            this.showNotification('Please select items first', 'warning');
             return;
         }
 
@@ -300,33 +354,23 @@ class LMS extends Component {
                     break;
             }
         } catch (error) {
-            console.error('Bulk action failed:', error);
-            App.showNotification({
-                type: 'error',
-                message: 'Bulk action failed'
-            });
+            this.showNotification('Bulk action failed', 'error');
         }
     }
 
     async bulkEnrollStudents() {
         // Implementation for bulk enrollment modal
-        App.showNotification({
-            type: 'info',
-            message: 'Bulk enrollment modal coming soon'
-        });
+        this.showNotification('Bulk enrollment modal coming soon', 'info');
     }
 
     async bulkUpdateCourses() {
         // Implementation for bulk course update modal
-        App.showNotification({
-            type: 'info',
-            message: 'Bulk course update modal coming soon'
-        });
+        this.showNotification('Bulk course update modal coming soon', 'info');
     }
 
     async exportCourses() {
         try {
-            const response = await API.get('/lms/export-courses', null, 'blob');
+            const response = await this.apiRequest('/lms/export-courses', null, 'blob');
             const url = window.URL.createObjectURL(new Blob([response]));
             const link = document.createElement('a');
             link.href = url;
@@ -336,25 +380,15 @@ class LMS extends Component {
             link.remove();
             window.URL.revokeObjectURL(url);
 
-            App.showNotification({
-                type: 'success',
-                message: 'Courses exported successfully'
-            });
+            this.showNotification('Courses exported successfully', 'success');
         } catch (error) {
-            console.error('Export failed:', error);
-            App.showNotification({
-                type: 'error',
-                message: 'Export failed'
-            });
+            this.showNotification('Export failed', 'error');
         }
     }
 
     async bulkCertifyStudents() {
         // Implementation for bulk certification modal
-        App.showNotification({
-            type: 'info',
-            message: 'Bulk certification modal coming soon'
-        });
+        this.showNotification('Bulk certification modal coming soon', 'info');
     }
 
     showCourseModal(course = null) {
@@ -378,21 +412,17 @@ class LMS extends Component {
                 ? `/lms/courses/${this.state.editingCourse.id}`
                 : '/lms/courses';
 
-            await API.request(url, method, courseData);
+            await this.apiRequest(url, method, courseData);
 
-            App.showNotification({
-                type: 'success',
-                message: `Course ${this.state.editingCourse ? 'updated' : 'created'} successfully`
-            });
+            this.showNotification(
+                `Course ${this.state.editingCourse ? 'updated' : 'created'} successfully`,
+                'success'
+            );
 
             this.hideCourseModal();
             await this.loadCourses();
         } catch (error) {
-            console.error('Error saving course:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save course'
-            });
+            this.showNotification(error.message || 'Failed to save course', 'error');
         }
     }
 
@@ -412,21 +442,14 @@ class LMS extends Component {
 
     async saveEnrollment(enrollmentData) {
         try {
-            await API.post('/lms/enroll-student', enrollmentData);
+            await this.apiRequest('/lms/enroll-student', 'POST', enrollmentData);
 
-            App.showNotification({
-                type: 'success',
-                message: 'Student enrolled successfully'
-            });
+            this.showNotification('Student enrolled successfully', 'success');
 
             this.hideEnrollmentModal();
             await this.loadEnrollments();
         } catch (error) {
-            console.error('Error saving enrollment:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save enrollment'
-            });
+            this.showNotification(error.message || 'Failed to save enrollment', 'error');
         }
     }
 
@@ -446,78 +469,50 @@ class LMS extends Component {
 
     async saveCertification(certificationData) {
         try {
-            await API.post('/lms/award-certification', certificationData);
+            await this.apiRequest('/lms/award-certification', 'POST', certificationData);
 
-            App.showNotification({
-                type: 'success',
-                message: 'Certification awarded successfully'
-            });
+            this.showNotification('Certification awarded successfully', 'success');
 
             this.hideCertificationModal();
             await this.loadCertifications();
         } catch (error) {
-            console.error('Error saving certification:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save certification'
-            });
+            this.showNotification(error.message || 'Failed to save certification', 'error');
         }
     }
 
     async updateProgress(enrollmentId, progress) {
         try {
-            await API.post(`/lms/enrollments/${enrollmentId}/progress`, { progress_percentage: progress });
+            await this.apiRequest(`/lms/enrollments/${enrollmentId}/progress`, 'POST', { progress_percentage: progress });
 
-            App.showNotification({
-                type: 'success',
-                message: 'Progress updated successfully'
-            });
+            this.showNotification('Progress updated successfully', 'success');
 
             await this.loadEnrollments();
         } catch (error) {
-            console.error('Error updating progress:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to update progress'
-            });
+            this.showNotification(error.message || 'Failed to update progress', 'error');
         }
     }
 
     async submitAssessmentResult(assessmentData) {
         try {
-            await API.post('/lms/submit-assessment-result', assessmentData);
+            await this.apiRequest('/lms/submit-assessment-result', 'POST', assessmentData);
 
-            App.showNotification({
-                type: 'success',
-                message: 'Assessment result submitted successfully'
-            });
+            this.showNotification('Assessment result submitted successfully', 'success');
 
             await this.loadAssessments();
         } catch (error) {
-            console.error('Error submitting assessment:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to submit assessment'
-            });
+            this.showNotification(error.message || 'Failed to submit assessment', 'error');
         }
     }
 
     async updateComplianceStatus(complianceData) {
         try {
-            await API.post('/lms/update-compliance-status', complianceData);
+            await this.apiRequest('/lms/update-compliance-status', 'POST', complianceData);
 
-            App.showNotification({
-                type: 'success',
-                message: 'Compliance status updated successfully'
-            });
+            this.showNotification('Compliance status updated successfully', 'success');
 
             await this.loadCompliance();
         } catch (error) {
-            console.error('Error updating compliance:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to update compliance'
-            });
+            this.showNotification(error.message || 'Failed to update compliance', 'error');
         }
     }
 
@@ -1543,42 +1538,27 @@ class LMS extends Component {
 
     viewCourse(course) {
         // Implementation for viewing course details
-        App.showNotification({
-            type: 'info',
-            message: 'Course details view coming soon'
-        });
+        this.showNotification('Course details view coming soon', 'info');
     }
 
     viewEnrollment(enrollment) {
         // Implementation for viewing enrollment details
-        App.showNotification({
-            type: 'info',
-            message: 'Enrollment details view coming soon'
-        });
+        this.showNotification('Enrollment details view coming soon', 'info');
     }
 
     viewCertification(certification) {
         // Implementation for viewing certification details
-        App.showNotification({
-            type: 'info',
-            message: 'Certification details view coming soon'
-        });
+        this.showNotification('Certification details view coming soon', 'info');
     }
 
     showProgressModal(enrollment) {
         // Implementation for progress modal
-        App.showNotification({
-            type: 'info',
-            message: 'Progress modal coming soon'
-        });
+        this.showNotification('Progress modal coming soon', 'info');
     }
 
     downloadCertificate(certification) {
         // Implementation for downloading certificate
-        App.showNotification({
-            type: 'info',
-            message: 'Certificate download coming soon'
-        });
+        this.showNotification('Certificate download coming soon', 'info');
     }
 }
 

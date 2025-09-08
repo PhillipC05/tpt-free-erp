@@ -1224,4 +1224,142 @@ class UserExperience extends BaseController {
             $feedbackId = $this->db->insert('feedback_items', [
                 'company_id' => $this->user['company_id'],
                 'created_by' => $this->user['id'],
-                'feedback_type' => $
+                'feedback_type' => $data['feedback_type'],
+                'feedback_title' => $data['title'],
+                'feedback_description' => $data['description'],
+                'category' => $data['category'] ?? 'general',
+                'priority' => $data['priority'] ?? 'medium',
+                'status' => 'open',
+                'votes' => 0,
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+
+            $this->jsonResponse([
+                'success' => true,
+                'feedback_id' => $feedbackId,
+                'message' => 'Feedback submitted successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function voteFeedback() {
+        $data = $this->validateRequest([
+            'feedback_id' => 'required|integer',
+            'vote_type' => 'required|in:up,down'
+        ]);
+
+        try {
+            // Check if user already voted
+            $existingVote = $this->db->querySingle("
+                SELECT id FROM feedback_votes
+                WHERE feedback_id = ? AND user_id = ?
+            ", [$data['feedback_id'], $this->user['id']]);
+
+            if ($existingVote) {
+                $this->jsonResponse([
+                    'success' => false,
+                    'error' => 'You have already voted on this feedback'
+                ], 400);
+            }
+
+            // Add vote
+            $this->db->insert('feedback_votes', [
+                'feedback_id' => $data['feedback_id'],
+                'user_id' => $this->user['id'],
+                'vote_type' => $data['vote_type'],
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+
+            // Update feedback vote count
+            if ($data['vote_type'] === 'up') {
+                $this->db->query("
+                    UPDATE feedback_items
+                    SET votes = votes + 1
+                    WHERE id = ?
+                ", [$data['feedback_id']]);
+            }
+
+            $this->jsonResponse([
+                'success' => true,
+                'message' => 'Vote recorded successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updateShortcutUsage() {
+        $data = $this->validateRequest([
+            'shortcut_id' => 'required|integer'
+        ]);
+
+        try {
+            $this->db->query("
+                UPDATE user_shortcuts
+                SET usage_count = usage_count + 1, last_used = ?
+                WHERE id = ? AND user_id = ?
+            ", [
+                date('Y-m-d H:i:s'),
+                $data['shortcut_id'],
+                $this->user['id']
+            ]);
+
+            $this->jsonResponse([
+                'success' => true,
+                'message' => 'Shortcut usage updated'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function trackUserAction() {
+        $data = $this->validateRequest([
+            'action_type' => 'required|string',
+            'page_url' => 'required|string',
+            'element_id' => 'string',
+            'element_type' => 'string',
+            'metadata' => 'array'
+        ]);
+
+        try {
+            $this->db->insert('user_actions', [
+                'company_id' => $this->user['company_id'],
+                'user_id' => $this->user['id'],
+                'action_type' => $data['action_type'],
+                'page_url' => $data['page_url'],
+                'element_id' => $data['element_id'] ?? null,
+                'element_type' => $data['element_type'] ?? null,
+                'metadata' => json_encode($data['metadata'] ?? []),
+                'ip_address' => $_SERVER['REMOTE_ADDR'] ?? null,
+                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
+                'created_at' => date('Y-m-d H:i:s')
+            ]);
+
+            $this->jsonResponse([
+                'success' => true,
+                'message' => 'User action tracked'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+}

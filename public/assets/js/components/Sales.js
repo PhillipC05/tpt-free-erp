@@ -1,79 +1,63 @@
 /**
- * TPT Free ERP - Sales & CRM Component
+ * TPT Free ERP - Sales & CRM Component (Refactored)
  * Main sales dashboard and CRM management interface
+ * Uses shared utilities for reduced complexity and improved maintainability
  */
 
-class Sales extends Component {
+class Sales extends BaseComponent {
     constructor(props = {}) {
         super(props);
-        this.props = {
-            title: 'Sales & CRM',
-            currentView: 'dashboard',
-            ...props
-        };
 
-        this.state = {
-            loading: false,
-            currentView: this.props.currentView,
-            overview: {},
-            customers: [],
-            leads: [],
-            opportunities: [],
-            orders: [],
-            pipelineStages: [],
-            customerSegments: [],
-            leadSources: [],
-            filters: {
-                segment: '',
-                status: '',
-                value_tier: '',
-                search: '',
-                page: 1,
-                limit: 50
-            },
-            selectedCustomers: [],
-            showCustomerModal: false,
-            showLeadModal: false,
-            showOpportunityModal: false,
-            showOrderModal: false,
-            editingCustomer: null,
-            editingLead: null,
-            editingOpportunity: null,
-            pagination: {
-                page: 1,
-                limit: 50,
-                total: 0,
-                pages: 0
-            }
-        };
+        // Initialize table renderer for customers
+        this.customersTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
 
-        // Bind methods
-        this.loadOverview = this.loadOverview.bind(this);
-        this.loadCustomers = this.loadCustomers.bind(this);
-        this.loadLeads = this.loadLeads.bind(this);
-        this.loadOpportunities = this.loadOpportunities.bind(this);
-        this.loadOrders = this.loadOrders.bind(this);
-        this.loadPipelineStages = this.loadPipelineStages.bind(this);
-        this.loadCustomerSegments = this.loadCustomerSegments.bind(this);
-        this.loadLeadSources = this.loadLeadSources.bind(this);
-        this.handleViewChange = this.handleViewChange.bind(this);
-        this.handleFilterChange = this.handleFilterChange.bind(this);
-        this.handleCustomerSelect = this.handleCustomerSelect.bind(this);
-        this.handleBulkAction = this.handleBulkAction.bind(this);
-        this.showCustomerModal = this.showCustomerModal.bind(this);
-        this.hideCustomerModal = this.hideCustomerModal.bind(this);
-        this.saveCustomer = this.saveCustomer.bind(this);
-        this.deleteCustomer = this.deleteCustomer.bind(this);
-        this.showLeadModal = this.showLeadModal.bind(this);
-        this.hideLeadModal = this.hideLeadModal.bind(this);
-        this.saveLead = this.saveLead.bind(this);
-        this.showOpportunityModal = this.showOpportunityModal.bind(this);
-        this.hideOpportunityModal = this.hideOpportunityModal.bind(this);
-        this.saveOpportunity = this.saveOpportunity.bind(this);
-        this.updateOpportunityStage = this.updateOpportunityStage.bind(this);
-        this.showOrderModal = this.showOrderModal.bind(this);
-        this.hideOrderModal = this.hideOrderModal.bind(this);
-        this.saveOrder = this.saveOrder.bind(this);
+        // Setup table callbacks for customers
+        this.customersTableRenderer.setDataCallback(() => this.state.customers || []);
+        this.customersTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedCustomers: selectedIds });
+        });
+        this.customersTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.customersTableRenderer.setDataChangeCallback(() => {
+            this.loadCustomers();
+        });
+    }
+
+    get bindMethods() {
+        return [
+            'loadOverview',
+            'loadCustomers',
+            'loadLeads',
+            'loadOpportunities',
+            'loadOrders',
+            'loadPipelineStages',
+            'loadCustomerSegments',
+            'loadLeadSources',
+            'handleViewChange',
+            'handleFilterChange',
+            'handleBulkAction',
+            'showCustomerModal',
+            'hideCustomerModal',
+            'saveCustomer',
+            'deleteCustomer',
+            'showLeadModal',
+            'hideLeadModal',
+            'saveLead',
+            'showOpportunityModal',
+            'hideOpportunityModal',
+            'saveOpportunity',
+            'updateOpportunityStage',
+            'showOrderModal',
+            'hideOrderModal',
+            'saveOrder'
+        ];
     }
 
     async componentDidMount() {
@@ -95,10 +79,7 @@ class Sales extends Component {
             await this.loadCurrentViewData();
         } catch (error) {
             console.error('Error loading sales data:', error);
-            App.showNotification({
-                type: 'error',
-                message: 'Failed to load sales data'
-            });
+            this.showErrorNotification('Failed to load sales data');
         } finally {
             this.setState({ loading: false });
         }
@@ -231,74 +212,58 @@ class Sales extends Component {
         this.setState({ selectedCustomers });
     }
 
-    async handleBulkAction(action) {
-        if (this.state.selectedCustomers.length === 0) {
-            App.showNotification({
-                type: 'warning',
-                message: 'Please select customers first'
-            });
+    async handleBulkAction(action, selectedIds = null) {
+        const customersToUse = selectedIds || this.state.selectedCustomers;
+
+        if (customersToUse.length === 0) {
+            this.showWarningNotification('Please select customers first');
             return;
         }
 
         try {
             switch (action) {
                 case 'delete':
-                    if (confirm(`Delete ${this.state.selectedCustomers.length} customers?`)) {
-                        await this.bulkDeleteCustomers();
+                    if (await this.confirm(`Delete ${customersToUse.length} customers?`)) {
+                        await this.bulkDeleteCustomers(customersToUse);
                     }
                     break;
                 case 'update_segment':
-                    await this.showBulkUpdateModal('segment');
+                    await this.showBulkUpdateModal('segment', customersToUse);
                     break;
                 case 'update_status':
-                    await this.showBulkUpdateModal('status');
+                    await this.showBulkUpdateModal('status', customersToUse);
                     break;
                 case 'send_email':
-                    await this.sendBulkEmail();
+                    await this.sendBulkEmail(customersToUse);
                     break;
                 case 'export':
-                    await this.exportCustomers();
+                    await this.exportCustomers(customersToUse);
                     break;
             }
         } catch (error) {
             console.error('Bulk action failed:', error);
-            App.showNotification({
-                type: 'error',
-                message: 'Bulk action failed'
-            });
+            this.showErrorNotification('Bulk action failed');
         }
     }
 
-    async bulkDeleteCustomers() {
+    async bulkDeleteCustomers(customersToDelete) {
         // Implementation for bulk delete
-        App.showNotification({
-            type: 'info',
-            message: 'Bulk delete not yet implemented'
-        });
+        this.showInfoNotification('Bulk delete not yet implemented');
     }
 
-    async showBulkUpdateModal(field) {
+    async showBulkUpdateModal(field, customersToUpdate) {
         // Implementation for bulk update modal
-        App.showNotification({
-            type: 'info',
-            message: 'Bulk update not yet implemented'
-        });
+        this.showInfoNotification('Bulk update not yet implemented');
     }
 
-    async sendBulkEmail() {
+    async sendBulkEmail(customersToEmail) {
         // Implementation for bulk email
-        App.showNotification({
-            type: 'info',
-            message: 'Bulk email not yet implemented'
-        });
+        this.showInfoNotification('Bulk email not yet implemented');
     }
 
-    async exportCustomers() {
+    async exportCustomers(customersToExport) {
         // Implementation for export
-        App.showNotification({
-            type: 'info',
-            message: 'Export not yet implemented'
-        });
+        this.showInfoNotification('Export not yet implemented');
     }
 
     showCustomerModal(customer = null) {
@@ -318,48 +283,33 @@ class Sales extends Component {
     async saveCustomer(customerData) {
         try {
             if (this.state.editingCustomer) {
-                await API.put(`/sales/customers/${this.state.editingCustomer.id}`, customerData);
-                App.showNotification({
-                    type: 'success',
-                    message: 'Customer updated successfully'
-                });
+                await this.apiRequest('PUT', `/sales/customers/${this.state.editingCustomer.id}`, customerData);
+                this.showSuccessNotification('Customer updated successfully');
             } else {
-                await API.post('/sales/customers', customerData);
-                App.showNotification({
-                    type: 'success',
-                    message: 'Customer created successfully'
-                });
+                await this.apiRequest('POST', '/sales/customers', customerData);
+                this.showSuccessNotification('Customer created successfully');
             }
 
             this.hideCustomerModal();
             await this.loadCustomers();
         } catch (error) {
             console.error('Error saving customer:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save customer'
-            });
+            this.showErrorNotification(error.message || 'Failed to save customer');
         }
     }
 
     async deleteCustomer(customerId) {
-        if (!confirm('Are you sure you want to delete this customer?')) {
+        if (!(await this.confirm('Are you sure you want to delete this customer?'))) {
             return;
         }
 
         try {
-            await API.delete(`/sales/customers/${customerId}`);
-            App.showNotification({
-                type: 'success',
-                message: 'Customer deleted successfully'
-            });
+            await this.apiRequest('DELETE', `/sales/customers/${customerId}`);
+            this.showSuccessNotification('Customer deleted successfully');
             await this.loadCustomers();
         } catch (error) {
             console.error('Error deleting customer:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to delete customer'
-            });
+            this.showErrorNotification(error.message || 'Failed to delete customer');
         }
     }
 
@@ -379,19 +329,13 @@ class Sales extends Component {
 
     async saveLead(leadData) {
         try {
-            await API.post('/sales/leads', leadData);
-            App.showNotification({
-                type: 'success',
-                message: 'Lead created successfully'
-            });
+            await this.apiRequest('POST', '/sales/leads', leadData);
+            this.showSuccessNotification('Lead created successfully');
             this.hideLeadModal();
             await this.loadLeads();
         } catch (error) {
             console.error('Error saving lead:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save lead'
-            });
+            this.showErrorNotification(error.message || 'Failed to save lead');
         }
     }
 
@@ -411,36 +355,24 @@ class Sales extends Component {
 
     async saveOpportunity(opportunityData) {
         try {
-            await API.post('/sales/opportunities', opportunityData);
-            App.showNotification({
-                type: 'success',
-                message: 'Opportunity created successfully'
-            });
+            await this.apiRequest('POST', '/sales/opportunities', opportunityData);
+            this.showSuccessNotification('Opportunity created successfully');
             this.hideOpportunityModal();
             await this.loadOpportunities();
         } catch (error) {
             console.error('Error saving opportunity:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save opportunity'
-            });
+            this.showErrorNotification(error.message || 'Failed to save opportunity');
         }
     }
 
     async updateOpportunityStage(opportunityId, stageId) {
         try {
-            await API.put(`/sales/opportunities/${opportunityId}/stage`, { stage_id: stageId });
-            App.showNotification({
-                type: 'success',
-                message: 'Opportunity stage updated successfully'
-            });
+            await this.apiRequest('PUT', `/sales/opportunities/${opportunityId}/stage`, { stage_id: stageId });
+            this.showSuccessNotification('Opportunity stage updated successfully');
             await this.loadOpportunities();
         } catch (error) {
             console.error('Error updating opportunity stage:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to update opportunity stage'
-            });
+            this.showErrorNotification(error.message || 'Failed to update opportunity stage');
         }
     }
 
@@ -460,19 +392,13 @@ class Sales extends Component {
 
     async saveOrder(orderData) {
         try {
-            await API.post('/sales/orders', orderData);
-            App.showNotification({
-                type: 'success',
-                message: 'Sales order created successfully'
-            });
+            await this.apiRequest('POST', '/sales/orders', orderData);
+            this.showSuccessNotification('Sales order created successfully');
             this.hideOrderModal();
             await this.loadOrders();
         } catch (error) {
             console.error('Error saving order:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save order'
-            });
+            this.showErrorNotification(error.message || 'Failed to save order');
         }
     }
 

@@ -1272,3 +1272,64 @@ class AssetManagement extends BaseController {
                 case 'depreciation':
                     $reportData = $this->getDepreciationSummaryReport();
                     break;
+                default:
+                    throw new Exception('Invalid report type');
+            }
+
+            // Generate report in requested format
+            switch ($data['format']) {
+                case 'pdf':
+                    return $this->generatePDFReport($data['report_type'], $reportData);
+                case 'excel':
+                    return $this->generateExcelReport($data['report_type'], $reportData);
+                case 'csv':
+                    return $this->generateCSVReport($data['report_type'], $reportData);
+                default:
+                    return $reportData;
+            }
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function generatePDFReport($reportType, $data) {
+        // Implementation for PDF report generation
+        // This would use a PDF library like TCPDF or FPDF
+        return [
+            'format' => 'pdf',
+            'data' => $data,
+            'generated_at' => date('Y-m-d H:i:s')
+        ];
+    }
+
+    private function generateExcelReport($reportType, $data) {
+        // Implementation for Excel report generation
+        // This would use a library like PhpSpreadsheet
+        return [
+            'format' => 'excel',
+            'data' => $data,
+            'generated_at' => date('Y-m-d H:i:s')
+        ];
+    }
+
+    private function generateCSVReport($reportType, $data) {
+        // Implementation for CSV report generation
+        $csvContent = '';
+        if (!empty($data)) {
+            $csvContent .= implode(',', array_keys($data[0])) . "\n";
+            foreach ($data as $row) {
+                $csvContent .= implode(',', array_values($row)) . "\n";
+            }
+        }
+
+        return [
+            'format' => 'csv',
+            'content' => $csvContent,
+            'generated_at' => date('Y-m-d H:i:s')
+        ];
+    }
+}

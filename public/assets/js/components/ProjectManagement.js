@@ -1,82 +1,94 @@
 /**
- * TPT Free ERP - Project Management Component
+ * TPT Free ERP - Project Management Component (Refactored)
  * Complete project planning, task management, and resource allocation interface
+ * Uses shared utilities for reduced complexity and improved maintainability
  */
 
-class ProjectManagement extends Component {
+class ProjectManagement extends BaseComponent {
     constructor(props = {}) {
         super(props);
-        this.props = {
-            title: 'Project Management',
-            currentView: 'dashboard',
-            ...props
-        };
 
-        this.state = {
-            loading: false,
-            currentView: this.props.currentView,
-            overview: {},
-            projects: [],
-            tasks: [],
-            timeEntries: [],
-            ganttData: {},
-            resourceUtilization: {},
-            templates: {},
-            analytics: {},
-            filters: {
-                project: '',
-                status: '',
-                manager: '',
-                assignee: '',
-                priority: '',
-                date_from: '',
-                date_to: '',
-                search: '',
-                page: 1,
-                limit: 50
-            },
-            selectedProjects: [],
-            selectedTasks: [],
-            showProjectModal: false,
-            showTaskModal: false,
-            showTimeModal: false,
-            showDependencyModal: false,
-            editingProject: null,
-            editingTask: null,
-            activeTimer: null,
-            pagination: {
-                page: 1,
-                limit: 50,
-                total: 0,
-                pages: 0
-            }
-        };
+        // Initialize table renderers for different data types
+        this.projectsTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
 
-        // Bind methods
-        this.loadOverview = this.loadOverview.bind(this);
-        this.loadProjects = this.loadProjects.bind(this);
-        this.loadTasks = this.loadTasks.bind(this);
-        this.loadTimeEntries = this.loadTimeEntries.bind(this);
-        this.loadGanttData = this.loadGanttData.bind(this);
-        this.loadResourceUtilization = this.loadResourceUtilization.bind(this);
-        this.loadTemplates = this.loadTemplates.bind(this);
-        this.loadAnalytics = this.loadAnalytics.bind(this);
-        this.handleViewChange = this.handleViewChange.bind(this);
-        this.handleFilterChange = this.handleFilterChange.bind(this);
-        this.handleProjectSelect = this.handleProjectSelect.bind(this);
-        this.handleTaskSelect = this.handleTaskSelect.bind(this);
-        this.handleBulkAction = this.handleBulkAction.bind(this);
-        this.showProjectModal = this.showProjectModal.bind(this);
-        this.hideProjectModal = this.hideProjectModal.bind(this);
-        this.saveProject = this.saveProject.bind(this);
-        this.showTaskModal = this.showTaskModal.bind(this);
-        this.hideTaskModal = this.hideTaskModal.bind(this);
-        this.saveTask = this.saveTask.bind(this);
-        this.startTimeTracking = this.startTimeTracking.bind(this);
-        this.stopTimeTracking = this.stopTimeTracking.bind(this);
-        this.createTaskDependency = this.createTaskDependency.bind(this);
-        this.updateProjectProgress = this.updateProjectProgress.bind(this);
-        this.updateTaskProgress = this.updateTaskProgress.bind(this);
+        this.tasksTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.timeEntriesTableRenderer = this.createTableRenderer({
+            selectable: false,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        // Setup table callbacks
+        this.projectsTableRenderer.setDataCallback(() => this.state.projects || []);
+        this.projectsTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedProjects: selectedIds });
+        });
+        this.projectsTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.projectsTableRenderer.setDataChangeCallback(() => {
+            this.loadProjects();
+        });
+
+        this.tasksTableRenderer.setDataCallback(() => this.state.tasks || []);
+        this.tasksTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedTasks: selectedIds });
+        });
+        this.tasksTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.tasksTableRenderer.setDataChangeCallback(() => {
+            this.loadTasks();
+        });
+
+        this.timeEntriesTableRenderer.setDataCallback(() => this.state.timeEntries || []);
+        this.timeEntriesTableRenderer.setDataChangeCallback(() => {
+            this.loadTimeEntries();
+        });
+    }
+
+    get bindMethods() {
+        return [
+            'loadOverview',
+            'loadProjects',
+            'loadTasks',
+            'loadTimeEntries',
+            'loadGanttData',
+            'loadResourceUtilization',
+            'loadTemplates',
+            'loadAnalytics',
+            'handleViewChange',
+            'handleFilterChange',
+            'handleProjectSelect',
+            'handleTaskSelect',
+            'handleBulkAction',
+            'showProjectModal',
+            'hideProjectModal',
+            'saveProject',
+            'showTaskModal',
+            'hideTaskModal',
+            'saveTask',
+            'startTimeTracking',
+            'stopTimeTracking',
+            'createTaskDependency',
+            'updateProjectProgress',
+            'updateTaskProgress'
+        ];
     }
 
     async componentDidMount() {
@@ -102,11 +114,7 @@ class ProjectManagement extends Component {
             // Load current view data
             await this.loadCurrentViewData();
         } catch (error) {
-            console.error('Error loading project management data:', error);
-            App.showNotification({
-                type: 'error',
-                message: 'Failed to load project management data'
-            });
+            this.showNotification('Failed to load project management data', 'error');
         } finally {
             this.setState({ loading: false });
         }
@@ -143,10 +151,10 @@ class ProjectManagement extends Component {
 
     async loadOverview() {
         try {
-            const response = await API.get('/project-management/overview');
+            const response = await this.apiRequest('/project-management/overview');
             this.setState({ overview: response });
         } catch (error) {
-            console.error('Error loading project overview:', error);
+            this.showNotification('Failed to load project overview', 'error');
         }
     }
 
@@ -158,13 +166,13 @@ class ProjectManagement extends Component {
                 limit: this.state.pagination.limit
             });
 
-            const response = await API.get(`/project-management/projects?${params}`);
+            const response = await this.apiRequest(`/project-management/projects?${params}`);
             this.setState({
                 projects: response.projects,
                 pagination: response.pagination
             });
         } catch (error) {
-            console.error('Error loading projects:', error);
+            this.showNotification('Failed to load projects', 'error');
         }
     }
 
@@ -176,13 +184,13 @@ class ProjectManagement extends Component {
                 limit: this.state.pagination.limit
             });
 
-            const response = await API.get(`/project-management/tasks?${params}`);
+            const response = await this.apiRequest(`/project-management/tasks?${params}`);
             this.setState({
                 tasks: response.tasks,
                 pagination: response.pagination
             });
         } catch (error) {
-            console.error('Error loading tasks:', error);
+            this.showNotification('Failed to load tasks', 'error');
         }
     }
 
@@ -194,49 +202,49 @@ class ProjectManagement extends Component {
                 limit: this.state.pagination.limit
             });
 
-            const response = await API.get(`/project-management/time-entries?${params}`);
+            const response = await this.apiRequest(`/project-management/time-entries?${params}`);
             this.setState({
                 timeEntries: response.time_entries,
                 pagination: response.pagination
             });
         } catch (error) {
-            console.error('Error loading time entries:', error);
+            this.showNotification('Failed to load time entries', 'error');
         }
     }
 
     async loadGanttData() {
         try {
-            const response = await API.get('/project-management/gantt');
+            const response = await this.apiRequest('/project-management/gantt');
             this.setState({ ganttData: response });
         } catch (error) {
-            console.error('Error loading Gantt data:', error);
+            this.showNotification('Failed to load Gantt data', 'error');
         }
     }
 
     async loadResourceUtilization() {
         try {
-            const response = await API.get('/project-management/resources/utilization');
+            const response = await this.apiRequest('/project-management/resources/utilization');
             this.setState({ resourceUtilization: response });
         } catch (error) {
-            console.error('Error loading resource utilization:', error);
+            this.showNotification('Failed to load resource utilization', 'error');
         }
     }
 
     async loadTemplates() {
         try {
-            const response = await API.get('/project-management/templates');
+            const response = await this.apiRequest('/project-management/templates');
             this.setState({ templates: response });
         } catch (error) {
-            console.error('Error loading templates:', error);
+            this.showNotification('Failed to load templates', 'error');
         }
     }
 
     async loadAnalytics() {
         try {
-            const response = await API.get('/project-management/analytics');
+            const response = await this.apiRequest('/project-management/analytics');
             this.setState({ analytics: response });
         } catch (error) {
-            console.error('Error loading project analytics:', error);
+            this.showNotification('Failed to load project analytics', 'error');
         }
     }
 
@@ -294,72 +302,53 @@ class ProjectManagement extends Component {
         this.setState({ selectedTasks });
     }
 
-    async handleBulkAction(action) {
-        if (this.state.selectedProjects.length === 0 && this.state.selectedTasks.length === 0) {
-            App.showNotification({
-                type: 'warning',
-                message: 'Please select items first'
-            });
+    async handleBulkAction(action, selectedIds) {
+        if (!selectedIds || selectedIds.length === 0) {
+            this.showNotification('Please select items first', 'warning');
             return;
         }
 
         try {
             switch (action) {
                 case 'update_status':
-                    await this.showBulkUpdateModal('status');
+                    await this.showBulkUpdateModal('status', selectedIds);
                     break;
                 case 'update_priority':
-                    await this.showBulkUpdateModal('priority');
+                    await this.showBulkUpdateModal('priority', selectedIds);
                     break;
                 case 'assign_tasks':
-                    await this.showBulkAssignModal();
+                    await this.showBulkAssignModal(selectedIds);
                     break;
                 case 'export_selected':
-                    await this.exportSelected();
+                    await this.exportSelected(selectedIds);
                     break;
                 case 'delete_selected':
-                    await this.deleteSelected();
+                    await this.deleteSelected(selectedIds);
                     break;
             }
         } catch (error) {
-            console.error('Bulk action failed:', error);
-            App.showNotification({
-                type: 'error',
-                message: 'Bulk action failed'
-            });
+            this.showNotification('Bulk action failed', 'error');
         }
     }
 
-    async showBulkUpdateModal(field) {
+    async showBulkUpdateModal(field, selectedIds) {
         // Implementation for bulk update modal
-        App.showNotification({
-            type: 'info',
-            message: 'Bulk update not yet implemented'
-        });
+        this.showNotification('Bulk update not yet implemented', 'info');
     }
 
-    async showBulkAssignModal() {
+    async showBulkAssignModal(selectedIds) {
         // Implementation for bulk assign modal
-        App.showNotification({
-            type: 'info',
-            message: 'Bulk assign not yet implemented'
-        });
+        this.showNotification('Bulk assign not yet implemented', 'info');
     }
 
-    async exportSelected() {
+    async exportSelected(selectedIds) {
         // Implementation for export selected
-        App.showNotification({
-            type: 'info',
-            message: 'Export selected not yet implemented'
-        });
+        this.showNotification('Export selected not yet implemented', 'info');
     }
 
-    async deleteSelected() {
+    async deleteSelected(selectedIds) {
         // Implementation for delete selected
-        App.showNotification({
-            type: 'info',
-            message: 'Delete selected not yet implemented'
-        });
+        this.showNotification('Delete selected not yet implemented', 'info');
     }
 
     showProjectModal(project = null) {
@@ -379,26 +368,16 @@ class ProjectManagement extends Component {
     async saveProject(projectData) {
         try {
             if (this.state.editingProject) {
-                await API.put(`/project-management/projects/${this.state.editingProject.id}`, projectData);
-                App.showNotification({
-                    type: 'success',
-                    message: 'Project updated successfully'
-                });
+                await this.apiRequest(`/project-management/projects/${this.state.editingProject.id}`, 'PUT', projectData);
+                this.showNotification('Project updated successfully', 'success');
             } else {
-                await API.post('/project-management/projects', projectData);
-                App.showNotification({
-                    type: 'success',
-                    message: 'Project created successfully'
-                });
+                await this.apiRequest('/project-management/projects', 'POST', projectData);
+                this.showNotification('Project created successfully', 'success');
             }
             this.hideProjectModal();
             await this.loadProjects();
         } catch (error) {
-            console.error('Error saving project:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save project'
-            });
+            this.showNotification('Failed to save project', 'error');
         }
     }
 
@@ -419,111 +398,66 @@ class ProjectManagement extends Component {
     async saveTask(taskData) {
         try {
             if (this.state.editingTask) {
-                await API.put(`/project-management/tasks/${this.state.editingTask.id}`, taskData);
-                App.showNotification({
-                    type: 'success',
-                    message: 'Task updated successfully'
-                });
+                await this.apiRequest(`/project-management/tasks/${this.state.editingTask.id}`, 'PUT', taskData);
+                this.showNotification('Task updated successfully', 'success');
             } else {
-                await API.post('/project-management/tasks', taskData);
-                App.showNotification({
-                    type: 'success',
-                    message: 'Task created successfully'
-                });
+                await this.apiRequest('/project-management/tasks', 'POST', taskData);
+                this.showNotification('Task created successfully', 'success');
             }
             this.hideTaskModal();
             await this.loadTasks();
         } catch (error) {
-            console.error('Error saving task:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save task'
-            });
+            this.showNotification('Failed to save task', 'error');
         }
     }
 
     async startTimeTracking(taskId) {
         try {
-            const response = await API.post(`/project-management/tasks/${taskId}/start-timer`);
-            App.showNotification({
-                type: 'success',
-                message: 'Time tracking started'
-            });
+            const response = await this.apiRequest(`/project-management/tasks/${taskId}/start-timer`, 'POST');
+            this.showNotification('Time tracking started', 'success');
             await this.checkActiveTimer();
         } catch (error) {
-            console.error('Error starting time tracking:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to start time tracking'
-            });
+            this.showNotification('Failed to start time tracking', 'error');
         }
     }
 
     async stopTimeTracking(taskId) {
         try {
-            const response = await API.post(`/project-management/tasks/${taskId}/stop-timer`);
-            App.showNotification({
-                type: 'success',
-                message: `Time tracking stopped. Logged ${response.hours_logged} hours.`
-            });
+            const response = await this.apiRequest(`/project-management/tasks/${taskId}/stop-timer`, 'POST');
+            this.showNotification(`Time tracking stopped. Logged ${response.hours_logged} hours.`, 'success');
             await this.checkActiveTimer();
             await this.loadTimeEntries();
         } catch (error) {
-            console.error('Error stopping time tracking:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to stop time tracking'
-            });
+            this.showNotification('Failed to stop time tracking', 'error');
         }
     }
 
     async createTaskDependency(taskId, dependencyData) {
         try {
-            await API.post(`/project-management/tasks/${taskId}/dependencies`, dependencyData);
-            App.showNotification({
-                type: 'success',
-                message: 'Task dependency created successfully'
-            });
+            await this.apiRequest(`/project-management/tasks/${taskId}/dependencies`, 'POST', dependencyData);
+            this.showNotification('Task dependency created successfully', 'success');
         } catch (error) {
-            console.error('Error creating task dependency:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to create task dependency'
-            });
+            this.showNotification('Failed to create task dependency', 'error');
         }
     }
 
     async updateProjectProgress(projectId, progress) {
         try {
-            await API.put(`/project-management/projects/${projectId}`, { progress_percentage: progress });
-            App.showNotification({
-                type: 'success',
-                message: 'Project progress updated'
-            });
+            await this.apiRequest(`/project-management/projects/${projectId}`, 'PUT', { progress_percentage: progress });
+            this.showNotification('Project progress updated', 'success');
             await this.loadProjects();
         } catch (error) {
-            console.error('Error updating project progress:', error);
-            App.showNotification({
-                type: 'error',
-                message: 'Failed to update project progress'
-            });
+            this.showNotification('Failed to update project progress', 'error');
         }
     }
 
     async updateTaskProgress(taskId, progress) {
         try {
-            await API.put(`/project-management/tasks/${taskId}`, { progress_percentage: progress });
-            App.showNotification({
-                type: 'success',
-                message: 'Task progress updated'
-            });
+            await this.apiRequest(`/project-management/tasks/${taskId}`, 'PUT', { progress_percentage: progress });
+            this.showNotification('Task progress updated', 'success');
             await this.loadTasks();
         } catch (error) {
-            console.error('Error updating task progress:', error);
-            App.showNotification({
-                type: 'error',
-                message: 'Failed to update task progress'
-            });
+            this.showNotification('Failed to update task progress', 'error');
         }
     }
 
@@ -1855,10 +1789,7 @@ class ProjectManagement extends Component {
 
     viewProject(project) {
         // Implementation for viewing project details
-        App.showNotification({
-            type: 'info',
-            message: 'Project details view coming soon'
-        });
+        this.showNotification('Project details view coming soon', 'info');
     }
 
     viewProjectTasks(project) {

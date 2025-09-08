@@ -1,74 +1,152 @@
 /**
- * TPT Free ERP - Advanced Analytics & Business Intelligence Component
+ * TPT Free ERP - Advanced Analytics & Business Intelligence Component (Refactored)
  * Complete data visualization, predictive modeling, and business intelligence interface
+ * Uses shared utilities for reduced complexity and improved maintainability
  */
 
-class AdvancedAnalytics extends Component {
+class AdvancedAnalytics extends BaseComponent {
     constructor(props = {}) {
         super(props);
-        this.props = {
-            title: 'Advanced Analytics & BI',
-            currentView: 'dashboard',
-            ...props
-        };
 
-        this.state = {
-            loading: false,
-            currentView: this.props.currentView,
-            dashboard: {},
-            dashboards: [],
-            visualizations: [],
-            predictiveModels: [],
-            reports: [],
-            realTimeMetrics: [],
-            alerts: [],
-            filters: {
-                category: '',
-                type: '',
-                date_from: '',
-                date_to: '',
-                search: '',
-                page: 1,
-                limit: 50
-            },
-            selectedItems: [],
-            showCreateModal: false,
-            showFilterModal: false,
-            editingItem: null,
-            modalType: '',
-            liveDataInterval: null,
-            chartInstances: new Map()
-        };
+        // Initialize table renderers for different data types
+        this.dashboardsTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
 
-        // Bind methods
-        this.loadDashboard = this.loadDashboard.bind(this);
-        this.loadDashboards = this.loadDashboards.bind(this);
-        this.loadVisualizations = this.loadVisualizations.bind(this);
-        this.loadPredictiveModels = this.loadPredictiveModels.bind(this);
-        this.loadReports = this.loadReports.bind(this);
-        this.loadRealTimeMetrics = this.loadRealTimeMetrics.bind(this);
-        this.handleViewChange = this.handleViewChange.bind(this);
-        this.handleFilterChange = this.handleFilterChange.bind(this);
-        this.handleItemSelect = this.handleItemSelect.bind(this);
-        this.handleBulkAction = this.handleBulkAction.bind(this);
-        this.showCreateModal = this.showCreateModal.bind(this);
-        this.hideCreateModal = this.hideCreateModal.bind(this);
-        this.saveItem = this.saveItem.bind(this);
-        this.showFilterModal = this.showFilterModal.bind(this);
-        this.hideFilterModal = this.hideFilterModal.bind(this);
-        this.applyFilters = this.applyFilters.bind(this);
-        this.createDashboard = this.createDashboard.bind(this);
-        this.createVisualization = this.createVisualization.bind(this);
-        this.createReport = this.createReport.bind(this);
-        this.runPredictiveModel = this.runPredictiveModel.bind(this);
-        this.executeReport = this.executeReport.bind(this);
-        this.exportData = this.exportData.bind(this);
-        this.generateInsights = this.generateInsights.bind(this);
-        this.startLiveUpdates = this.startLiveUpdates.bind(this);
-        this.stopLiveUpdates = this.stopLiveUpdates.bind(this);
-        this.renderChart = this.renderChart.bind(this);
-        this.updateChart = this.updateChart.bind(this);
-        this.destroyChart = this.destroyChart.bind(this);
+        this.visualizationsTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.reportsTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.predictiveModelsTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.modelPerformanceTableRenderer = this.createTableRenderer({
+            selectable: false,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.realTimeMetricsTableRenderer = this.createTableRenderer({
+            selectable: false,
+            sortable: true,
+            search: false,
+            exportable: false,
+            pagination: false
+        });
+
+        // Setup table callbacks
+        this.dashboardsTableRenderer.setDataCallback(() => this.state.dashboards || []);
+        this.dashboardsTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedItems: selectedIds });
+        });
+        this.dashboardsTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.dashboardsTableRenderer.setDataChangeCallback(() => {
+            this.loadDashboards();
+        });
+
+        this.visualizationsTableRenderer.setDataCallback(() => {
+            const activeType = this.state.activeVisualizationType || 'charts';
+            return this.state.visualizations[activeType] || [];
+        });
+        this.visualizationsTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedItems: selectedIds });
+        });
+        this.visualizationsTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.visualizationsTableRenderer.setDataChangeCallback(() => {
+            this.loadVisualizations();
+        });
+
+        this.reportsTableRenderer.setDataCallback(() => this.state.reports || []);
+        this.reportsTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedItems: selectedIds });
+        });
+        this.reportsTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.reportsTableRenderer.setDataChangeCallback(() => {
+            this.loadReports();
+        });
+
+        this.predictiveModelsTableRenderer.setDataCallback(() => this.state.predictiveModels.models || []);
+        this.predictiveModelsTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedItems: selectedIds });
+        });
+        this.predictiveModelsTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.predictiveModelsTableRenderer.setDataChangeCallback(() => {
+            this.loadPredictiveModels();
+        });
+
+        this.modelPerformanceTableRenderer.setDataCallback(() => this.state.predictiveModels.performance || []);
+        this.modelPerformanceTableRenderer.setDataChangeCallback(() => {
+            this.loadPredictiveModels();
+        });
+
+        this.realTimeMetricsTableRenderer.setDataCallback(() => this.state.realTimeMetrics || []);
+        this.realTimeMetricsTableRenderer.setDataChangeCallback(() => {
+            this.loadRealTimeMetrics();
+        });
+    }
+
+    get bindMethods() {
+        return [
+            'loadDashboard',
+            'loadDashboards',
+            'loadVisualizations',
+            'loadPredictiveModels',
+            'loadReports',
+            'loadRealTimeMetrics',
+            'handleViewChange',
+            'handleFilterChange',
+            'handleItemSelect',
+            'handleBulkAction',
+            'showCreateModal',
+            'hideCreateModal',
+            'saveItem',
+            'showFilterModal',
+            'hideFilterModal',
+            'applyFilters',
+            'createDashboard',
+            'createVisualization',
+            'createReport',
+            'runPredictiveModel',
+            'executeReport',
+            'exportData',
+            'generateInsights',
+            'startLiveUpdates',
+            'stopLiveUpdates',
+            'renderChart',
+            'updateChart',
+            'destroyChart'
+        ];
     }
 
     async componentDidMount() {

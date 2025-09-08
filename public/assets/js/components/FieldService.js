@@ -1,88 +1,180 @@
 /**
- * TPT Free ERP - Field Service Component
+ * TPT Free ERP - Field Service Component (Refactored)
  * Complete service call management, technician scheduling, and customer service interface
+ * Uses shared utilities for reduced complexity and improved maintainability
  */
 
-class FieldService extends Component {
+class FieldService extends BaseComponent {
     constructor(props = {}) {
         super(props);
-        this.props = {
-            title: 'Field Service',
-            currentView: 'dashboard',
-            ...props
-        };
 
-        this.state = {
-            loading: false,
-            currentView: this.props.currentView,
-            overview: {},
-            serviceCalls: [],
-            technicians: [],
-            customers: [],
-            serviceTypes: [],
-            serviceSchedule: [],
-            communicationHistory: [],
-            customerFeedback: [],
-            partsInventory: [],
-            serviceContracts: [],
-            serviceAnalytics: {},
-            filters: {
-                status: '',
-                priority: '',
-                technician: '',
-                customer: '',
-                date_from: '',
-                date_to: '',
-                search: '',
-                page: 1,
-                limit: 50
-            },
-            selectedServiceCalls: [],
-            selectedTechnicians: [],
-            showServiceCallModal: false,
-            showTechnicianModal: false,
-            showCommunicationModal: false,
-            showPartsModal: false,
-            showContractModal: false,
-            editingServiceCall: null,
-            editingTechnician: null,
-            pagination: {
-                page: 1,
-                limit: 50,
-                total: 0,
-                pages: 0
-            }
-        };
+        // Initialize table renderers for different data types
+        this.serviceCallsTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
 
-        // Bind methods
-        this.loadOverview = this.loadOverview.bind(this);
-        this.loadServiceCalls = this.loadServiceCalls.bind(this);
-        this.loadTechnicians = this.loadTechnicians.bind(this);
-        this.loadCustomers = this.loadCustomers.bind(this);
-        this.loadServiceTypes = this.loadServiceTypes.bind(this);
-        this.loadServiceSchedule = this.loadServiceSchedule.bind(this);
-        this.loadCommunicationHistory = this.loadCommunicationHistory.bind(this);
-        this.loadCustomerFeedback = this.loadCustomerFeedback.bind(this);
-        this.loadPartsInventory = this.loadPartsInventory.bind(this);
-        this.loadServiceContracts = this.loadServiceContracts.bind(this);
-        this.loadServiceAnalytics = this.loadServiceAnalytics.bind(this);
-        this.handleViewChange = this.handleViewChange.bind(this);
-        this.handleFilterChange = this.handleFilterChange.bind(this);
-        this.handleServiceCallSelect = this.handleServiceCallSelect.bind(this);
-        this.handleTechnicianSelect = this.handleTechnicianSelect.bind(this);
-        this.handleBulkAction = this.handleBulkAction.bind(this);
-        this.showServiceCallModal = this.showServiceCallModal.bind(this);
-        this.hideServiceCallModal = this.hideServiceCallModal.bind(this);
-        this.saveServiceCall = this.saveServiceCall.bind(this);
-        this.showTechnicianModal = this.showTechnicianModal.bind(this);
-        this.hideTechnicianModal = this.hideTechnicianModal.bind(this);
-        this.saveTechnician = this.saveTechnician.bind(this);
-        this.assignTechnician = this.assignTechnician.bind(this);
-        this.updateServiceStatus = this.updateServiceStatus.bind(this);
-        this.sendCommunication = this.sendCommunication.bind(this);
-        this.createPartsOrder = this.createPartsOrder.bind(this);
-        this.createServiceContract = this.createServiceContract.bind(this);
-        this.exportServiceCalls = this.exportServiceCalls.bind(this);
+        this.techniciansTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.serviceScheduleTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.communicationHistoryTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.customerFeedbackTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.partsInventoryTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.serviceContractsTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        // Setup table callbacks
+        this.serviceCallsTableRenderer.setDataCallback(() => this.state.serviceCalls || []);
+        this.serviceCallsTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedServiceCalls: selectedIds });
+        });
+        this.serviceCallsTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.serviceCallsTableRenderer.setDataChangeCallback(() => {
+            this.loadServiceCalls();
+        });
+
+        this.techniciansTableRenderer.setDataCallback(() => this.state.technicians || []);
+        this.techniciansTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedTechnicians: selectedIds });
+        });
+        this.techniciansTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.techniciansTableRenderer.setDataChangeCallback(() => {
+            this.loadTechnicians();
+        });
+
+        this.serviceScheduleTableRenderer.setDataCallback(() => this.state.serviceSchedule || []);
+        this.serviceScheduleTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedServiceCalls: selectedIds });
+        });
+        this.serviceScheduleTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.serviceScheduleTableRenderer.setDataChangeCallback(() => {
+            this.loadServiceSchedule();
+        });
+
+        this.communicationHistoryTableRenderer.setDataCallback(() => this.state.communicationHistory || []);
+        this.communicationHistoryTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedServiceCalls: selectedIds });
+        });
+        this.communicationHistoryTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.communicationHistoryTableRenderer.setDataChangeCallback(() => {
+            this.loadCommunicationHistory();
+        });
+
+        this.customerFeedbackTableRenderer.setDataCallback(() => this.state.customerFeedback || []);
+        this.customerFeedbackTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedServiceCalls: selectedIds });
+        });
+        this.customerFeedbackTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.customerFeedbackTableRenderer.setDataChangeCallback(() => {
+            this.loadCustomerFeedback();
+        });
+
+        this.partsInventoryTableRenderer.setDataCallback(() => this.state.partsInventory || []);
+        this.partsInventoryTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedServiceCalls: selectedIds });
+        });
+        this.partsInventoryTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.partsInventoryTableRenderer.setDataChangeCallback(() => {
+            this.loadPartsInventory();
+        });
+
+        this.serviceContractsTableRenderer.setDataCallback(() => this.state.serviceContracts || []);
+        this.serviceContractsTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedServiceCalls: selectedIds });
+        });
+        this.serviceContractsTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.serviceContractsTableRenderer.setDataChangeCallback(() => {
+            this.loadServiceContracts();
+        });
+    }
+
+    get bindMethods() {
+        return [
+            'loadOverview',
+            'loadServiceCalls',
+            'loadTechnicians',
+            'loadCustomers',
+            'loadServiceTypes',
+            'loadServiceSchedule',
+            'loadCommunicationHistory',
+            'loadCustomerFeedback',
+            'loadPartsInventory',
+            'loadServiceContracts',
+            'loadServiceAnalytics',
+            'handleViewChange',
+            'handleFilterChange',
+            'handleServiceCallSelect',
+            'handleTechnicianSelect',
+            'handleBulkAction',
+            'showServiceCallModal',
+            'hideServiceCallModal',
+            'saveServiceCall',
+            'showTechnicianModal',
+            'hideTechnicianModal',
+            'saveTechnician',
+            'assignTechnician',
+            'updateServiceStatus',
+            'sendCommunication',
+            'createPartsOrder',
+            'createServiceContract',
+            'exportServiceCalls'
+        ];
     }
 
     async componentDidMount() {
@@ -103,11 +195,7 @@ class FieldService extends Component {
                 this.loadServiceTypes()
             ]);
         } catch (error) {
-            console.error('Error loading field service data:', error);
-            App.showNotification({
-                type: 'error',
-                message: 'Failed to load field service data'
-            });
+            this.showNotification('Failed to load field service data', 'error');
         } finally {
             this.setState({ loading: false });
         }
@@ -147,10 +235,10 @@ class FieldService extends Component {
 
     async loadOverview() {
         try {
-            const response = await API.get('/field-service/overview');
+            const response = await this.apiRequest('/field-service/overview');
             this.setState({ overview: response });
         } catch (error) {
-            console.error('Error loading field service overview:', error);
+            this.showNotification('Failed to load field service overview', 'error');
         }
     }
 
@@ -162,94 +250,94 @@ class FieldService extends Component {
                 limit: this.state.pagination.limit
             });
 
-            const response = await API.get(`/field-service/service-calls?${params}`);
+            const response = await this.apiRequest(`/field-service/service-calls?${params}`);
             this.setState({
                 serviceCalls: response.service_calls,
                 pagination: response.pagination
             });
         } catch (error) {
-            console.error('Error loading service calls:', error);
+            this.showNotification('Failed to load service calls', 'error');
         }
     }
 
     async loadTechnicians() {
         try {
-            const response = await API.get('/field-service/technicians');
+            const response = await this.apiRequest('/field-service/technicians');
             this.setState({ technicians: response });
         } catch (error) {
-            console.error('Error loading technicians:', error);
+            this.showNotification('Failed to load technicians', 'error');
         }
     }
 
     async loadCustomers() {
         try {
-            const response = await API.get('/field-service/customers');
+            const response = await this.apiRequest('/field-service/customers');
             this.setState({ customers: response });
         } catch (error) {
-            console.error('Error loading customers:', error);
+            this.showNotification('Failed to load customers', 'error');
         }
     }
 
     async loadServiceTypes() {
         try {
-            const response = await API.get('/field-service/service-types');
+            const response = await this.apiRequest('/field-service/service-types');
             this.setState({ serviceTypes: response });
         } catch (error) {
-            console.error('Error loading service types:', error);
+            this.showNotification('Failed to load service types', 'error');
         }
     }
 
     async loadServiceSchedule() {
         try {
-            const response = await API.get('/field-service/service-schedule');
+            const response = await this.apiRequest('/field-service/service-schedule');
             this.setState({ serviceSchedule: response });
         } catch (error) {
-            console.error('Error loading service schedule:', error);
+            this.showNotification('Failed to load service schedule', 'error');
         }
     }
 
     async loadCommunicationHistory() {
         try {
-            const response = await API.get('/field-service/communication-history');
+            const response = await this.apiRequest('/field-service/communication-history');
             this.setState({ communicationHistory: response });
         } catch (error) {
-            console.error('Error loading communication history:', error);
+            this.showNotification('Failed to load communication history', 'error');
         }
     }
 
     async loadCustomerFeedback() {
         try {
-            const response = await API.get('/field-service/customer-feedback');
+            const response = await this.apiRequest('/field-service/customer-feedback');
             this.setState({ customerFeedback: response });
         } catch (error) {
-            console.error('Error loading customer feedback:', error);
+            this.showNotification('Failed to load customer feedback', 'error');
         }
     }
 
     async loadPartsInventory() {
         try {
-            const response = await API.get('/field-service/parts-inventory');
+            const response = await this.apiRequest('/field-service/parts-inventory');
             this.setState({ partsInventory: response });
         } catch (error) {
-            console.error('Error loading parts inventory:', error);
+            this.showNotification('Failed to load parts inventory', 'error');
         }
     }
 
     async loadServiceContracts() {
         try {
-            const response = await API.get('/field-service/service-contracts');
+            const response = await this.apiRequest('/field-service/service-contracts');
             this.setState({ serviceContracts: response });
         } catch (error) {
-            console.error('Error loading service contracts:', error);
+            this.showNotification('Failed to load service contracts', 'error');
         }
     }
 
     async loadServiceAnalytics() {
         try {
-            const response = await API.get('/field-service/analytics');
+            const response = await this.apiRequest('/field-service/analytics');
             this.setState({ serviceAnalytics: response });
         } catch (error) {
-            console.error('Error loading service analytics:', error);
+            this.showNotification('Failed to load service analytics', 'error');
         }
     }
 
@@ -287,58 +375,46 @@ class FieldService extends Component {
         this.setState({ selectedTechnicians });
     }
 
-    async handleBulkAction(action) {
-        if (this.state.selectedServiceCalls.length === 0 && this.state.selectedTechnicians.length === 0) {
-            App.showNotification({
-                type: 'warning',
-                message: 'Please select items first'
-            });
+    async handleBulkAction(action, selectedIds) {
+        if (!selectedIds || selectedIds.length === 0) {
+            this.showNotification('Please select items first', 'warning');
             return;
         }
 
         try {
             switch (action) {
                 case 'bulk_update':
-                    await this.showBulkUpdateModal();
+                    await this.showBulkUpdateModal(selectedIds);
                     break;
                 case 'bulk_assign':
-                    await this.showBulkAssignModal();
+                    await this.showBulkAssignModal(selectedIds);
                     break;
                 case 'export_service_calls':
-                    await this.exportServiceCalls();
+                    await this.exportServiceCalls(selectedIds);
                     break;
                 case 'bulk_schedule':
-                    await this.showBulkScheduleModal();
+                    await this.showBulkScheduleModal(selectedIds);
                     break;
             }
         } catch (error) {
-            console.error('Bulk action failed:', error);
-            App.showNotification({
-                type: 'error',
-                message: 'Bulk action failed'
-            });
+            this.showNotification('Bulk action failed', 'error');
         }
     }
 
-    async showBulkUpdateModal() {
+    async showBulkUpdateModal(selectedIds) {
         // Implementation for bulk update modal
-        App.showNotification({
-            type: 'info',
-            message: 'Bulk update modal coming soon'
-        });
+        this.showNotification('Bulk update modal coming soon', 'info');
     }
 
-    async showBulkAssignModal() {
+    async showBulkAssignModal(selectedIds) {
         // Implementation for bulk assign modal
-        App.showNotification({
-            type: 'info',
-            message: 'Bulk assign modal coming soon'
-        });
+        this.showNotification('Bulk assign modal coming soon', 'info');
     }
 
-    async exportServiceCalls() {
+    async exportServiceCalls(selectedIds) {
         try {
-            const response = await API.get('/field-service/export-service-calls', null, 'blob');
+            const params = selectedIds ? `?ids=${selectedIds.join(',')}` : '';
+            const response = await this.apiRequest(`/field-service/export-service-calls${params}`, null, 'blob');
             const url = window.URL.createObjectURL(new Blob([response]));
             const link = document.createElement('a');
             link.href = url;
@@ -348,25 +424,15 @@ class FieldService extends Component {
             link.remove();
             window.URL.revokeObjectURL(url);
 
-            App.showNotification({
-                type: 'success',
-                message: 'Service calls exported successfully'
-            });
+            this.showNotification('Service calls exported successfully', 'success');
         } catch (error) {
-            console.error('Export failed:', error);
-            App.showNotification({
-                type: 'error',
-                message: 'Export failed'
-            });
+            this.showNotification('Export failed', 'error');
         }
     }
 
-    async showBulkScheduleModal() {
+    async showBulkScheduleModal(selectedIds) {
         // Implementation for bulk schedule modal
-        App.showNotification({
-            type: 'info',
-            message: 'Bulk schedule modal coming soon'
-        });
+        this.showNotification('Bulk schedule modal coming soon', 'info');
     }
 
     showServiceCallModal(serviceCall = null) {
@@ -390,21 +456,17 @@ class FieldService extends Component {
                 ? `/field-service/service-calls/${this.state.editingServiceCall.id}`
                 : '/field-service/service-calls';
 
-            await API.request(url, method, serviceCallData);
+            await this.apiRequest(url, method, serviceCallData);
 
-            App.showNotification({
-                type: 'success',
-                message: `Service call ${this.state.editingServiceCall ? 'updated' : 'created'} successfully`
-            });
+            this.showNotification(
+                `Service call ${this.state.editingServiceCall ? 'updated' : 'created'} successfully`,
+                'success'
+            );
 
             this.hideServiceCallModal();
             await this.loadServiceCalls();
         } catch (error) {
-            console.error('Error saving service call:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save service call'
-            });
+            this.showNotification(error.message || 'Failed to save service call', 'error');
         }
     }
 
@@ -429,120 +491,76 @@ class FieldService extends Component {
                 ? `/field-service/technicians/${this.state.editingTechnician.id}`
                 : '/field-service/technicians';
 
-            await API.request(url, method, technicianData);
+            await this.apiRequest(url, method, technicianData);
 
-            App.showNotification({
-                type: 'success',
-                message: `Technician ${this.state.editingTechnician ? 'updated' : 'created'} successfully`
-            });
+            this.showNotification(
+                `Technician ${this.state.editingTechnician ? 'updated' : 'created'} successfully`,
+                'success'
+            );
 
             this.hideTechnicianModal();
             await this.loadTechnicians();
         } catch (error) {
-            console.error('Error saving technician:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save technician'
-            });
+            this.showNotification(error.message || 'Failed to save technician', 'error');
         }
     }
 
     async assignTechnician(serviceCallId, technicianId) {
         try {
-            await API.post(`/field-service/service-calls/${serviceCallId}/assign-technician`, {
+            await this.apiRequest(`/field-service/service-calls/${serviceCallId}/assign-technician`, 'POST', {
                 technician_id: technicianId
             });
 
-            App.showNotification({
-                type: 'success',
-                message: 'Technician assigned successfully'
-            });
-
+            this.showNotification('Technician assigned successfully', 'success');
             await this.loadServiceCalls();
         } catch (error) {
-            console.error('Error assigning technician:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to assign technician'
-            });
+            this.showNotification(error.message || 'Failed to assign technician', 'error');
         }
     }
 
     async updateServiceStatus(serviceCallId, status) {
         try {
-            await API.post(`/field-service/service-calls/${serviceCallId}/update-status`, {
+            await this.apiRequest(`/field-service/service-calls/${serviceCallId}/update-status`, 'POST', {
                 status: status
             });
 
-            App.showNotification({
-                type: 'success',
-                message: 'Service call status updated successfully'
-            });
-
+            this.showNotification('Service call status updated successfully', 'success');
             await this.loadServiceCalls();
         } catch (error) {
-            console.error('Error updating service status:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to update service status'
-            });
+            this.showNotification(error.message || 'Failed to update service status', 'error');
         }
     }
 
     async sendCommunication(communicationData) {
         try {
-            await API.post('/field-service/communication', communicationData);
+            await this.apiRequest('/field-service/communication', 'POST', communicationData);
 
-            App.showNotification({
-                type: 'success',
-                message: 'Communication sent successfully'
-            });
-
+            this.showNotification('Communication sent successfully', 'success');
             await this.loadCommunicationHistory();
         } catch (error) {
-            console.error('Error sending communication:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to send communication'
-            });
+            this.showNotification(error.message || 'Failed to send communication', 'error');
         }
     }
 
     async createPartsOrder(orderData) {
         try {
-            await API.post('/field-service/parts-orders', orderData);
+            await this.apiRequest('/field-service/parts-orders', 'POST', orderData);
 
-            App.showNotification({
-                type: 'success',
-                message: 'Parts order created successfully'
-            });
-
+            this.showNotification('Parts order created successfully', 'success');
             await this.loadPartsInventory();
         } catch (error) {
-            console.error('Error creating parts order:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to create parts order'
-            });
+            this.showNotification(error.message || 'Failed to create parts order', 'error');
         }
     }
 
     async createServiceContract(contractData) {
         try {
-            await API.post('/field-service/service-contracts', contractData);
+            await this.apiRequest('/field-service/service-contracts', 'POST', contractData);
 
-            App.showNotification({
-                type: 'success',
-                message: 'Service contract created successfully'
-            });
-
+            this.showNotification('Service contract created successfully', 'success');
             await this.loadServiceContracts();
         } catch (error) {
-            console.error('Error creating service contract:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to create service contract'
-            });
+            this.showNotification(error.message || 'Failed to create service contract', 'error');
         }
     }
 
@@ -1448,26 +1466,17 @@ class FieldService extends Component {
 
     viewServiceCall(serviceCall) {
         // Implementation for viewing service call details
-        App.showNotification({
-            type: 'info',
-            message: 'Service call details view coming soon'
-        });
+        this.showNotification('Service call details view coming soon', 'info');
     }
 
     showAssignTechnicianModal(serviceCall) {
         // Implementation for assign technician modal
-        App.showNotification({
-            type: 'info',
-            message: 'Assign technician modal coming soon'
-        });
+        this.showNotification('Assign technician modal coming soon', 'info');
     }
 
     showUpdateStatusModal(serviceCall) {
         // Implementation for update status modal
-        App.showNotification({
-            type: 'info',
-            message: 'Update status modal coming soon'
-        });
+        this.showNotification('Update status modal coming soon', 'info');
     }
 }
 

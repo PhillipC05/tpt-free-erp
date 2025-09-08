@@ -1,94 +1,126 @@
 /**
- * TPT Free ERP - Quality Management Component
+ * TPT Free ERP - Quality Management Component (Refactored)
  * Complete quality control, audit management, and compliance system interface
+ * Uses shared utilities for reduced complexity and improved maintainability
  */
 
-class QualityManagement extends Component {
+class QualityManagement extends BaseComponent {
     constructor(props = {}) {
         super(props);
-        this.props = {
-            title: 'Quality Management',
-            currentView: 'dashboard',
-            ...props
-        };
 
-        this.state = {
-            loading: false,
-            currentView: this.props.currentView,
-            overview: {},
-            qualityChecks: [],
-            audits: [],
-            nonConformances: [],
-            capaRecords: [],
-            isoCompliance: {},
-            qualityStandards: {},
-            spcData: {},
-            analytics: {},
-            filters: {
-                status: '',
-                category_id: '',
-                severity: '',
-                reported_by: '',
-                date_from: '',
-                date_to: '',
-                search: '',
-                page: 1,
-                limit: 50
-            },
-            selectedChecks: [],
-            selectedAudits: [],
-            selectedNCs: [],
-            selectedCAPAs: [],
-            showCheckModal: false,
-            showAuditModal: false,
-            showNCModal: false,
-            showCAPAModal: false,
-            showFindingModal: false,
-            showRCAModal: false,
-            editingCheck: null,
-            editingAudit: null,
-            editingNC: null,
-            editingCAPA: null,
-            pagination: {
-                page: 1,
-                limit: 50,
-                total: 0,
-                pages: 0
-            }
-        };
+        // Initialize table renderers for different data types
+        this.qualityChecksTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
 
-        // Bind methods
-        this.loadOverview = this.loadOverview.bind(this);
-        this.loadQualityChecks = this.loadQualityChecks.bind(this);
-        this.loadAudits = this.loadAudits.bind(this);
-        this.loadNonConformances = this.loadNonConformances.bind(this);
-        this.loadCAPA = this.loadCAPA.bind(this);
-        this.loadISOCompliance = this.loadISOCompliance.bind(this);
-        this.loadQualityStandards = this.loadQualityStandards.bind(this);
-        this.loadSPC = this.loadSPC.bind(this);
-        this.loadAnalytics = this.loadAnalytics.bind(this);
-        this.handleViewChange = this.handleViewChange.bind(this);
-        this.handleFilterChange = this.handleFilterChange.bind(this);
-        this.handleCheckSelect = this.handleCheckSelect.bind(this);
-        this.handleAuditSelect = this.handleAuditSelect.bind(this);
-        this.handleNCSelect = this.handleNCSelect.bind(this);
-        this.handleCAPASelect = this.handleCAPASelect.bind(this);
-        this.handleBulkAction = this.handleBulkAction.bind(this);
-        this.showCheckModal = this.showCheckModal.bind(this);
-        this.hideCheckModal = this.hideCheckModal.bind(this);
-        this.saveQualityCheck = this.saveQualityCheck.bind(this);
-        this.showAuditModal = this.showAuditModal.bind(this);
-        this.hideAuditModal = this.hideAuditModal.bind(this);
-        this.saveAudit = this.saveAudit.bind(this);
-        this.showNCModal = this.showNCModal.bind(this);
-        this.hideNCModal = this.hideNCModal.bind(this);
-        this.saveNonConformance = this.saveNonConformance.bind(this);
-        this.showCAPAModal = this.showCAPAModal.bind(this);
-        this.hideCAPAModal = this.hideCAPAModal.bind(this);
-        this.saveCAPA = this.saveCAPA.bind(this);
-        this.createAuditFinding = this.createAuditFinding.bind(this);
-        this.createRootCauseAnalysis = this.createRootCauseAnalysis.bind(this);
-        this.createContainmentAction = this.createContainmentAction.bind(this);
+        this.auditsTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.nonConformancesTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        this.capaTableRenderer = this.createTableRenderer({
+            selectable: true,
+            sortable: true,
+            search: true,
+            exportable: true,
+            pagination: true
+        });
+
+        // Setup table callbacks
+        this.qualityChecksTableRenderer.setDataCallback(() => this.state.qualityChecks || []);
+        this.qualityChecksTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedChecks: selectedIds });
+        });
+        this.qualityChecksTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.qualityChecksTableRenderer.setDataChangeCallback(() => {
+            this.loadQualityChecks();
+        });
+
+        this.auditsTableRenderer.setDataCallback(() => this.state.audits || []);
+        this.auditsTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedAudits: selectedIds });
+        });
+        this.auditsTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.auditsTableRenderer.setDataChangeCallback(() => {
+            this.loadAudits();
+        });
+
+        this.nonConformancesTableRenderer.setDataCallback(() => this.state.nonConformances || []);
+        this.nonConformancesTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedNCs: selectedIds });
+        });
+        this.nonConformancesTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.nonConformancesTableRenderer.setDataChangeCallback(() => {
+            this.loadNonConformances();
+        });
+
+        this.capaTableRenderer.setDataCallback(() => this.state.capaRecords || []);
+        this.capaTableRenderer.setSelectionCallback((selectedIds) => {
+            this.setState({ selectedCAPAs: selectedIds });
+        });
+        this.capaTableRenderer.setBulkActionCallback((action, selectedIds) => {
+            this.handleBulkAction(action, selectedIds);
+        });
+        this.capaTableRenderer.setDataChangeCallback(() => {
+            this.loadCAPA();
+        });
+    }
+
+    get bindMethods() {
+        return [
+            'loadOverview',
+            'loadQualityChecks',
+            'loadAudits',
+            'loadNonConformances',
+            'loadCAPA',
+            'loadISOCompliance',
+            'loadQualityStandards',
+            'loadSPC',
+            'loadAnalytics',
+            'handleViewChange',
+            'handleFilterChange',
+            'handleCheckSelect',
+            'handleAuditSelect',
+            'handleNCSelect',
+            'handleCAPASelect',
+            'handleBulkAction',
+            'showCheckModal',
+            'hideCheckModal',
+            'saveQualityCheck',
+            'showAuditModal',
+            'hideAuditModal',
+            'saveAudit',
+            'showNCModal',
+            'hideNCModal',
+            'saveNonConformance',
+            'showCAPAModal',
+            'hideCAPAModal',
+            'saveCAPA',
+            'createAuditFinding',
+            'createRootCauseAnalysis',
+            'createContainmentAction'
+        ];
     }
 
     async componentDidMount() {
@@ -102,11 +134,7 @@ class QualityManagement extends Component {
             // Load current view data
             await this.loadCurrentViewData();
         } catch (error) {
-            console.error('Error loading quality management data:', error);
-            App.showNotification({
-                type: 'error',
-                message: 'Failed to load quality management data'
-            });
+            this.showNotification('Failed to load quality management data', 'error');
         } finally {
             this.setState({ loading: false });
         }
@@ -146,10 +174,10 @@ class QualityManagement extends Component {
 
     async loadOverview() {
         try {
-            const response = await API.get('/quality-management/overview');
+            const response = await this.apiRequest('/quality-management/overview');
             this.setState({ overview: response });
         } catch (error) {
-            console.error('Error loading quality overview:', error);
+            this.showNotification('Failed to load quality overview', 'error');
         }
     }
 
@@ -161,13 +189,13 @@ class QualityManagement extends Component {
                 limit: this.state.pagination.limit
             });
 
-            const response = await API.get(`/quality-management/quality-checks?${params}`);
+            const response = await this.apiRequest(`/quality-management/quality-checks?${params}`);
             this.setState({
                 qualityChecks: response.quality_checks,
                 pagination: response.pagination
             });
         } catch (error) {
-            console.error('Error loading quality checks:', error);
+            this.showNotification('Failed to load quality checks', 'error');
         }
     }
 
@@ -179,13 +207,13 @@ class QualityManagement extends Component {
                 limit: this.state.pagination.limit
             });
 
-            const response = await API.get(`/quality-management/audits?${params}`);
+            const response = await this.apiRequest(`/quality-management/audits?${params}`);
             this.setState({
                 audits: response.audits,
                 pagination: response.pagination
             });
         } catch (error) {
-            console.error('Error loading audits:', error);
+            this.showNotification('Failed to load audits', 'error');
         }
     }
 
@@ -197,13 +225,13 @@ class QualityManagement extends Component {
                 limit: this.state.pagination.limit
             });
 
-            const response = await API.get(`/quality-management/non-conformances?${params}`);
+            const response = await this.apiRequest(`/quality-management/non-conformances?${params}`);
             this.setState({
                 nonConformances: response.non_conformances,
                 pagination: response.pagination
             });
         } catch (error) {
-            console.error('Error loading non-conformances:', error);
+            this.showNotification('Failed to load non-conformances', 'error');
         }
     }
 
@@ -215,49 +243,49 @@ class QualityManagement extends Component {
                 limit: this.state.pagination.limit
             });
 
-            const response = await API.get(`/quality-management/capa?${params}`);
+            const response = await this.apiRequest(`/quality-management/capa?${params}`);
             this.setState({
                 capaRecords: response.capa_records,
                 pagination: response.pagination
             });
         } catch (error) {
-            console.error('Error loading CAPA records:', error);
+            this.showNotification('Failed to load CAPA records', 'error');
         }
     }
 
     async loadISOCompliance() {
         try {
-            const response = await API.get('/quality-management/iso-compliance');
+            const response = await this.apiRequest('/quality-management/iso-compliance');
             this.setState({ isoCompliance: response });
         } catch (error) {
-            console.error('Error loading ISO compliance:', error);
+            this.showNotification('Failed to load ISO compliance', 'error');
         }
     }
 
     async loadQualityStandards() {
         try {
-            const response = await API.get('/quality-management/standards');
+            const response = await this.apiRequest('/quality-management/standards');
             this.setState({ qualityStandards: response });
         } catch (error) {
-            console.error('Error loading quality standards:', error);
+            this.showNotification('Failed to load quality standards', 'error');
         }
     }
 
     async loadSPC() {
         try {
-            const response = await API.get('/quality-management/spc');
+            const response = await this.apiRequest('/quality-management/spc');
             this.setState({ spcData: response });
         } catch (error) {
-            console.error('Error loading SPC data:', error);
+            this.showNotification('Failed to load SPC data', 'error');
         }
     }
 
     async loadAnalytics() {
         try {
-            const response = await API.get('/quality-management/analytics');
+            const response = await this.apiRequest('/quality-management/analytics');
             this.setState({ analytics: response });
         } catch (error) {
-            console.error('Error loading quality analytics:', error);
+            this.showNotification('Failed to load quality analytics', 'error');
         }
     }
 
@@ -317,15 +345,9 @@ class QualityManagement extends Component {
         this.setState({ selectedCAPAs });
     }
 
-    async handleBulkAction(action) {
-        if (this.state.selectedChecks.length === 0 &&
-            this.state.selectedAudits.length === 0 &&
-            this.state.selectedNCs.length === 0 &&
-            this.state.selectedCAPAs.length === 0) {
-            App.showNotification({
-                type: 'warning',
-                message: 'Please select items first'
-            });
+    async handleBulkAction(action, selectedIds) {
+        if (!selectedIds || selectedIds.length === 0) {
+            this.showNotification('Please select items first', 'warning');
             return;
         }
 
@@ -345,36 +367,23 @@ class QualityManagement extends Component {
                     break;
             }
         } catch (error) {
-            console.error('Bulk action failed:', error);
-            App.showNotification({
-                type: 'error',
-                message: 'Bulk action failed'
-            });
+            this.showNotification('Bulk action failed', 'error');
         }
     }
 
     async showBulkUpdateModal(field) {
         // Implementation for bulk update modal
-        App.showNotification({
-            type: 'info',
-            message: 'Bulk update not yet implemented'
-        });
+        this.showNotification('Bulk update not yet implemented', 'info');
     }
 
     async exportSelected() {
         // Implementation for export selected
-        App.showNotification({
-            type: 'info',
-            message: 'Export selected not yet implemented'
-        });
+        this.showNotification('Export selected not yet implemented', 'info');
     }
 
     async deleteSelected() {
         // Implementation for delete selected
-        App.showNotification({
-            type: 'info',
-            message: 'Delete selected not yet implemented'
-        });
+        this.showNotification('Delete selected not yet implemented', 'info');
     }
 
     showCheckModal(check = null) {
@@ -393,19 +402,12 @@ class QualityManagement extends Component {
 
     async saveQualityCheck(checkData) {
         try {
-            await API.post('/quality-management/quality-checks', checkData);
-            App.showNotification({
-                type: 'success',
-                message: 'Quality check created successfully'
-            });
+            await this.apiRequest('/quality-management/quality-checks', 'POST', checkData);
+            this.showNotification('Quality check created successfully', 'success');
             this.hideCheckModal();
             await this.loadQualityChecks();
         } catch (error) {
-            console.error('Error saving quality check:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save quality check'
-            });
+            this.showNotification(error.message || 'Failed to save quality check', 'error');
         }
     }
 
@@ -425,19 +427,12 @@ class QualityManagement extends Component {
 
     async saveAudit(auditData) {
         try {
-            await API.post('/quality-management/audits', auditData);
-            App.showNotification({
-                type: 'success',
-                message: 'Audit created successfully'
-            });
+            await this.apiRequest('/quality-management/audits', 'POST', auditData);
+            this.showNotification('Audit created successfully', 'success');
             this.hideAuditModal();
             await this.loadAudits();
         } catch (error) {
-            console.error('Error saving audit:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save audit'
-            });
+            this.showNotification(error.message || 'Failed to save audit', 'error');
         }
     }
 
@@ -457,19 +452,12 @@ class QualityManagement extends Component {
 
     async saveNonConformance(ncData) {
         try {
-            await API.post('/quality-management/non-conformances', ncData);
-            App.showNotification({
-                type: 'success',
-                message: 'Non-conformance created successfully'
-            });
+            await this.apiRequest('/quality-management/non-conformances', 'POST', ncData);
+            this.showNotification('Non-conformance created successfully', 'success');
             this.hideNCModal();
             await this.loadNonConformances();
         } catch (error) {
-            console.error('Error saving non-conformance:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save non-conformance'
-            });
+            this.showNotification(error.message || 'Failed to save non-conformance', 'error');
         }
     }
 
@@ -489,67 +477,39 @@ class QualityManagement extends Component {
 
     async saveCAPA(capaData) {
         try {
-            await API.post('/quality-management/capa', capaData);
-            App.showNotification({
-                type: 'success',
-                message: 'CAPA record created successfully'
-            });
+            await this.apiRequest('/quality-management/capa', 'POST', capaData);
+            this.showNotification('CAPA record created successfully', 'success');
             this.hideCAPAModal();
             await this.loadCAPA();
         } catch (error) {
-            console.error('Error saving CAPA:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to save CAPA record'
-            });
+            this.showNotification(error.message || 'Failed to save CAPA record', 'error');
         }
     }
 
     async createAuditFinding(auditId, findingData) {
         try {
-            await API.post(`/quality-management/audits/${auditId}/findings`, findingData);
-            App.showNotification({
-                type: 'success',
-                message: 'Audit finding created successfully'
-            });
+            await this.apiRequest(`/quality-management/audits/${auditId}/findings`, 'POST', findingData);
+            this.showNotification('Audit finding created successfully', 'success');
         } catch (error) {
-            console.error('Error creating audit finding:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to create audit finding'
-            });
+            this.showNotification(error.message || 'Failed to create audit finding', 'error');
         }
     }
 
     async createRootCauseAnalysis(ncId, rcaData) {
         try {
-            await API.post(`/quality-management/non-conformances/${ncId}/root-cause`, rcaData);
-            App.showNotification({
-                type: 'success',
-                message: 'Root cause analysis created successfully'
-            });
+            await this.apiRequest(`/quality-management/non-conformances/${ncId}/root-cause`, 'POST', rcaData);
+            this.showNotification('Root cause analysis created successfully', 'success');
         } catch (error) {
-            console.error('Error creating root cause analysis:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to create root cause analysis'
-            });
+            this.showNotification(error.message || 'Failed to create root cause analysis', 'error');
         }
     }
 
     async createContainmentAction(ncId, actionData) {
         try {
-            await API.post(`/quality-management/non-conformances/${ncId}/containment`, actionData);
-            App.showNotification({
-                type: 'success',
-                message: 'Containment action created successfully'
-            });
+            await this.apiRequest(`/quality-management/non-conformances/${ncId}/containment`, 'POST', actionData);
+            this.showNotification('Containment action created successfully', 'success');
         } catch (error) {
-            console.error('Error creating containment action:', error);
-            App.showNotification({
-                type: 'error',
-                message: error.message || 'Failed to create containment action'
-            });
+            this.showNotification(error.message || 'Failed to create containment action', 'error');
         }
     }
 
@@ -1861,26 +1821,17 @@ class QualityManagement extends Component {
 
     showContainmentModal(nc) {
         // Implementation for containment modal
-        App.showNotification({
-            type: 'info',
-            message: 'Containment modal coming soon'
-        });
+        this.showNotification('Containment modal coming soon', 'info');
     }
 
     viewAudit(audit) {
         // Implementation for viewing audit details
-        App.showNotification({
-            type: 'info',
-            message: 'Audit details view coming soon'
-        });
+        this.showNotification('Audit details view coming soon', 'info');
     }
 
     viewNC(nc) {
         // Implementation for viewing non-conformance details
-        App.showNotification({
-            type: 'info',
-            message: 'Non-conformance details view coming soon'
-        });
+        this.showNotification('Non-conformance details view coming soon', 'info');
     }
 }
 

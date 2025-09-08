@@ -1,7 +1,7 @@
 <?php
 /**
  * TPT Free ERP - Finance Module
- * Complete accounting, financial management, and reporting system
+ * Complete financial management system with accounting, budgeting, and reporting
  */
 
 class Finance extends BaseController {
@@ -21,16 +21,14 @@ class Finance extends BaseController {
         $this->requirePermission('finance.view');
 
         $data = [
-            'title' => 'Financial Management',
+            'title' => 'Finance Dashboard',
             'financial_overview' => $this->getFinancialOverview(),
             'cash_flow' => $this->getCashFlow(),
             'profit_loss' => $this->getProfitLoss(),
             'balance_sheet' => $this->getBalanceSheet(),
-            'budget_vs_actual' => $this->getBudgetVsActual(),
-            'accounts_receivable' => $this->getAccountsReceivable(),
-            'accounts_payable' => $this->getAccountsPayable(),
-            'financial_ratios' => $this->getFinancialRatios(),
-            'upcoming_deadlines' => $this->getUpcomingDeadlines()
+            'key_metrics' => $this->getKeyMetrics(),
+            'recent_transactions' => $this->getRecentTransactions(),
+            'pending_approvals' => $this->getPendingApprovals()
         ];
 
         $this->render('modules/finance/dashboard', $data);
@@ -40,29 +38,16 @@ class Finance extends BaseController {
      * General ledger management
      */
     public function generalLedger() {
-        $this->requirePermission('finance.gl.view');
-
-        $filters = [
-            'account' => $_GET['account'] ?? null,
-            'date_from' => $_GET['date_from'] ?? null,
-            'date_to' => $_GET['date_to'] ?? null,
-            'entry_type' => $_GET['entry_type'] ?? null,
-            'search' => $_GET['search'] ?? null
-        ];
-
-        $ledger_entries = $this->getLedgerEntries($filters);
+        $this->requirePermission('finance.general_ledger.view');
 
         $data = [
             'title' => 'General Ledger',
-            'ledger_entries' => $ledger_entries,
-            'filters' => $filters,
             'chart_of_accounts' => $this->getChartOfAccounts(),
-            'account_types' => $this->getAccountTypes(),
-            'entry_types' => $this->getEntryTypes(),
+            'ledger_entries' => $this->getLedgerEntries(),
             'journal_entries' => $this->getJournalEntries(),
-            'ledger_summary' => $this->getLedgerSummary(),
-            'reconciliation_status' => $this->getReconciliationStatus(),
-            'bulk_actions' => $this->getBulkActions()
+            'account_balances' => $this->getAccountBalances(),
+            'ledger_filters' => $this->getLedgerFilters(),
+            'posting_rules' => $this->getPostingRules()
         ];
 
         $this->render('modules/finance/general_ledger', $data);
@@ -72,19 +57,16 @@ class Finance extends BaseController {
      * Accounts payable
      */
     public function accountsPayable() {
-        $this->requirePermission('finance.ap.view');
+        $this->requirePermission('finance.accounts_payable.view');
 
         $data = [
             'title' => 'Accounts Payable',
             'vendor_invoices' => $this->getVendorInvoices(),
-            'payment_schedule' => $this->getPaymentSchedule(),
+            'payment_schedules' => $this->getPaymentSchedules(),
             'vendor_statements' => $this->getVendorStatements(),
-            'cash_requirements' => $this->getCashRequirements(),
             'payment_terms' => $this->getPaymentTerms(),
-            'discount_opportunities' => $this->getDiscountOpportunities(),
-            'aging_analysis' => $this->getAgingAnalysis(),
-            'vendor_performance' => $this->getVendorPerformance(),
-            'ap_analytics' => $this->getAPAnalytics()
+            'aging_report' => $this->getAgingReport(),
+            'cash_requirements' => $this->getCashRequirements()
         ];
 
         $this->render('modules/finance/accounts_payable', $data);
@@ -94,19 +76,16 @@ class Finance extends BaseController {
      * Accounts receivable
      */
     public function accountsReceivable() {
-        $this->requirePermission('finance.ar.view');
+        $this->requirePermission('finance.accounts_receivable.view');
 
         $data = [
             'title' => 'Accounts Receivable',
             'customer_invoices' => $this->getCustomerInvoices(),
-            'collection_schedule' => $this->getCollectionSchedule(),
+            'payment_receipts' => $this->getPaymentReceipts(),
             'customer_statements' => $this->getCustomerStatements(),
+            'collection_policies' => $this->getCollectionPolicies(),
             'credit_limits' => $this->getCreditLimits(),
-            'collection_terms' => $this->getCollectionTerms(),
-            'dunning_process' => $this->getDunningProcess(),
-            'aging_analysis' => $this->getARAgingAnalysis(),
-            'customer_risk' => $this->getCustomerRisk(),
-            'ar_analytics' => $this->getARAnalytics()
+            'dunning_process' => $this->getDunningProcess()
         ];
 
         $this->render('modules/finance/accounts_receivable', $data);
@@ -116,19 +95,16 @@ class Finance extends BaseController {
      * Budgeting and forecasting
      */
     public function budgeting() {
-        $this->requirePermission('finance.budget.view');
+        $this->requirePermission('finance.budgeting.view');
 
         $data = [
             'title' => 'Budgeting & Forecasting',
             'budget_templates' => $this->getBudgetTemplates(),
             'budget_scenarios' => $this->getBudgetScenarios(),
-            'budget_vs_actual' => $this->getBudgetVsActual(),
             'forecast_models' => $this->getForecastModels(),
             'variance_analysis' => $this->getVarianceAnalysis(),
-            'budget_allocations' => $this->getBudgetAllocations(),
-            'rolling_forecasts' => $this->getRollingForecasts(),
-            'budget_analytics' => $this->getBudgetAnalytics(),
-            'budget_settings' => $this->getBudgetSettings()
+            'budget_approval_workflow' => $this->getBudgetApprovalWorkflow(),
+            'rolling_forecasts' => $this->getRollingForecasts()
         ];
 
         $this->render('modules/finance/budgeting', $data);
@@ -138,19 +114,17 @@ class Finance extends BaseController {
      * Financial reporting
      */
     public function reporting() {
-        $this->requirePermission('finance.reports.view');
+        $this->requirePermission('finance.reporting.view');
 
         $data = [
             'title' => 'Financial Reporting',
             'income_statement' => $this->getIncomeStatement(),
-            'balance_sheet' => $this->getBalanceSheet(),
+            'balance_sheet_report' => $this->getBalanceSheetReport(),
             'cash_flow_statement' => $this->getCashFlowStatement(),
             'financial_ratios' => $this->getFinancialRatios(),
             'trend_analysis' => $this->getTrendAnalysis(),
-            'segment_reporting' => $this->getSegmentReporting(),
-            'regulatory_reports' => $this->getRegulatoryReports(),
-            'custom_reports' => $this->getCustomReports(),
-            'report_schedules' => $this->getReportSchedules()
+            'comparative_reports' => $this->getComparativeReports(),
+            'regulatory_reports' => $this->getRegulatoryReports()
         ];
 
         $this->render('modules/finance/reporting', $data);
@@ -164,14 +138,13 @@ class Finance extends BaseController {
 
         $data = [
             'title' => 'Tax Management',
+            'tax_codes' => $this->getTaxCodes(),
+            'tax_rates' => $this->getTaxRates(),
             'tax_calculations' => $this->getTaxCalculations(),
             'tax_filings' => $this->getTaxFilings(),
-            'tax_credits' => $this->getTaxCredits(),
-            'tax_liabilities' => $this->getTaxLiabilities(),
+            'tax_audit_trail' => $this->getTaxAuditTrail(),
             'tax_compliance' => $this->getTaxCompliance(),
-            'tax_planning' => $this->getTaxPlanning(),
-            'tax_analytics' => $this->getTaxAnalytics(),
-            'tax_settings' => $this->getTaxSettings()
+            'tax_planning' => $this->getTaxPlanning()
         ];
 
         $this->render('modules/finance/tax_management', $data);
@@ -181,63 +154,38 @@ class Finance extends BaseController {
      * Fixed assets management
      */
     public function fixedAssets() {
-        $this->requirePermission('finance.assets.view');
+        $this->requirePermission('finance.fixed_assets.view');
 
         $data = [
             'title' => 'Fixed Assets',
             'asset_register' => $this->getAssetRegister(),
             'depreciation_schedule' => $this->getDepreciationSchedule(),
             'asset_disposals' => $this->getAssetDisposals(),
+            'maintenance_costs' => $this->getMaintenanceCosts(),
             'asset_valuation' => $this->getAssetValuation(),
-            'lease_accounting' => $this->getLeaseAccounting(),
-            'impairment_testing' => $this->getImpairmentTesting(),
-            'asset_analytics' => $this->getAssetAnalytics(),
-            'asset_settings' => $this->getAssetSettings()
+            'insurance_coverage' => $this->getInsuranceCoverage()
         ];
 
         $this->render('modules/finance/fixed_assets', $data);
     }
 
     /**
-     * Multi-currency management
+     * Multi-currency support
      */
     public function multiCurrency() {
-        $this->requirePermission('finance.currency.view');
+        $this->requirePermission('finance.multi_currency.view');
 
         $data = [
             'title' => 'Multi-Currency Management',
             'currency_rates' => $this->getCurrencyRates(),
-            'currency_positions' => $this->getCurrencyPositions(),
+            'exchange_rate_history' => $this->getExchangeRateHistory(),
+            'currency_conversion' => $this->getCurrencyConversion(),
             'hedging_strategies' => $this->getHedgingStrategies(),
-            'fx_gains_losses' => $this->getFXGainsLosses(),
             'currency_risk' => $this->getCurrencyRisk(),
-            'translation_adjustments' => $this->getTranslationAdjustments(),
-            'currency_analytics' => $this->getCurrencyAnalytics(),
-            'currency_settings' => $this->getCurrencySettings()
+            'translation_adjustments' => $this->getTranslationAdjustments()
         ];
 
         $this->render('modules/finance/multi_currency', $data);
-    }
-
-    /**
-     * Financial analytics
-     */
-    public function analytics() {
-        $this->requirePermission('finance.analytics.view');
-
-        $data = [
-            'title' => 'Financial Analytics',
-            'profitability_analysis' => $this->getProfitabilityAnalysis(),
-            'cash_flow_analysis' => $this->getCashFlowAnalysis(),
-            'working_capital' => $this->getWorkingCapital(),
-            'financial_ratios' => $this->getFinancialRatios(),
-            'trend_analysis' => $this->getTrendAnalysis(),
-            'benchmarking' => $this->getBenchmarking(),
-            'predictive_modeling' => $this->getPredictiveModeling(),
-            'custom_dashboards' => $this->getCustomDashboards()
-        ];
-
-        $this->render('modules/finance/analytics', $data);
     }
 
     // ============================================================================
@@ -247,752 +195,586 @@ class Finance extends BaseController {
     private function getFinancialOverview() {
         return $this->db->querySingle("
             SELECT
-                SUM(CASE WHEN a.account_type = 'asset' THEN a.balance ELSE 0 END) as total_assets,
-                SUM(CASE WHEN a.account_type = 'liability' THEN a.balance ELSE 0 END) as total_liabilities,
-                SUM(CASE WHEN a.account_type = 'equity' THEN a.balance ELSE 0 END) as total_equity,
-                SUM(CASE WHEN a.account_type = 'revenue' THEN a.balance ELSE 0 END) as total_revenue,
-                SUM(CASE WHEN a.account_type = 'expense' THEN a.balance ELSE 0 END) as total_expenses,
-                (SUM(CASE WHEN a.account_type = 'revenue' THEN a.balance ELSE 0 END) - SUM(CASE WHEN a.account_type = 'expense' THEN a.balance ELSE 0 END)) as net_income,
-                COUNT(CASE WHEN ar.status = 'overdue' THEN 1 END) as overdue_receivables,
-                COUNT(CASE WHEN ap.status = 'overdue' THEN 1 END) as overdue_payables,
-                AVG(ar.days_outstanding) as avg_collection_period,
-                AVG(ap.days_outstanding) as avg_payment_period
-            FROM accounts a
-            LEFT JOIN accounts_receivable ar ON ar.company_id = a.company_id
-            LEFT JOIN accounts_payable ap ON ap.company_id = a.company_id
-            WHERE a.company_id = ?
+                SUM(CASE WHEN account_type = 'asset' THEN balance ELSE 0 END) as total_assets,
+                SUM(CASE WHEN account_type = 'liability' THEN balance ELSE 0 END) as total_liabilities,
+                SUM(CASE WHEN account_type = 'equity' THEN balance ELSE 0 END) as total_equity,
+                SUM(CASE WHEN account_type = 'revenue' THEN balance ELSE 0 END) as total_revenue,
+                SUM(CASE WHEN account_type = 'expense' THEN balance ELSE 0 END) as total_expenses,
+                (SUM(CASE WHEN account_type = 'revenue' THEN balance ELSE 0 END) - SUM(CASE WHEN account_type = 'expense' THEN balance ELSE 0 END)) as net_income,
+                COUNT(DISTINCT CASE WHEN transaction_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) THEN transaction_id END) as recent_transactions
+            FROM financial_accounts fa
+            LEFT JOIN account_balances ab ON fa.id = ab.account_id
+            WHERE fa.company_id = ?
         ", [$this->user['company_id']]);
     }
 
     private function getCashFlow() {
         return $this->db->query("
             SELECT
-                DATE_FORMAT(t.transaction_date, '%Y-%m') as month,
-                SUM(CASE WHEN t.transaction_type = 'operating' THEN t.amount ELSE 0 END) as operating_cash_flow,
-                SUM(CASE WHEN t.transaction_type = 'investing' THEN t.amount ELSE 0 END) as investing_cash_flow,
-                SUM(CASE WHEN t.transaction_type = 'financing' THEN t.amount ELSE 0 END) as financing_cash_flow,
-                SUM(t.amount) as net_cash_flow,
-                SUM(SUM(t.amount)) OVER (ORDER BY DATE_FORMAT(t.transaction_date, '%Y-%m')) as cumulative_cash_flow
-            FROM transactions t
-            WHERE t.company_id = ? AND t.transaction_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
-            GROUP BY DATE_FORMAT(t.transaction_date, '%Y-%m')
-            ORDER BY month ASC
-        ", [$this->user['company_id']]);
+                DATE(transaction_date) as date,
+                SUM(CASE WHEN transaction_type = 'cash_inflow' THEN amount ELSE 0 END) as cash_inflow,
+                SUM(CASE WHEN transaction_type = 'cash_outflow' THEN amount ELSE 0 END) as cash_outflow,
+                SUM(CASE WHEN transaction_type = 'cash_inflow' THEN amount ELSE 0 END) - SUM(CASE WHEN transaction_type = 'cash_outflow' THEN amount ELSE 0 END) as net_cash_flow,
+                SUM(SUM(CASE WHEN transaction_type = 'cash_inflow' THEN amount ELSE 0 END) - SUM(CASE WHEN transaction_type = 'cash_outflow' THEN amount ELSE 0 END)) OVER (ORDER BY DATE(transaction_date)) as cumulative_cash_flow
+            FROM financial_transactions
+            WHERE company_id = ? AND transaction_date >= ?
+            GROUP BY DATE(transaction_date)
+            ORDER BY date DESC
+            LIMIT 30
+        ", [
+            $this->user['company_id'],
+            date('Y-m-d', strtotime('-30 days'))
+        ]);
     }
 
     private function getProfitLoss() {
         return $this->db->querySingle("
             SELECT
-                SUM(CASE WHEN a.account_type = 'revenue' THEN a.balance ELSE 0 END) as total_revenue,
-                SUM(CASE WHEN a.account_subtype = 'cost_of_goods_sold' THEN a.balance ELSE 0 END) as cost_of_goods_sold,
-                (SUM(CASE WHEN a.account_type = 'revenue' THEN a.balance ELSE 0 END) - SUM(CASE WHEN a.account_subtype = 'cost_of_goods_sold' THEN a.balance ELSE 0 END)) as gross_profit,
-                SUM(CASE WHEN a.account_subtype = 'operating_expenses' THEN a.balance ELSE 0 END) as operating_expenses,
-                (SUM(CASE WHEN a.account_type = 'revenue' THEN a.balance ELSE 0 END) - SUM(CASE WHEN a.account_subtype = 'cost_of_goods_sold' THEN a.balance ELSE 0 END) - SUM(CASE WHEN a.account_subtype = 'operating_expenses' THEN a.balance ELSE 0 END)) as operating_income,
-                SUM(CASE WHEN a.account_subtype = 'interest_expense' THEN a.balance ELSE 0 END) as interest_expense,
-                SUM(CASE WHEN a.account_subtype = 'tax_expense' THEN a.balance ELSE 0 END) as tax_expense,
-                (SUM(CASE WHEN a.account_type = 'revenue' THEN a.balance ELSE 0 END) - SUM(CASE WHEN a.account_subtype = 'cost_of_goods_sold' THEN a.balance ELSE 0 END) - SUM(CASE WHEN a.account_subtype = 'operating_expenses' THEN a.balance ELSE 0 END) - SUM(CASE WHEN a.account_subtype = 'interest_expense' THEN a.balance ELSE 0 END) - SUM(CASE WHEN a.account_subtype = 'tax_expense' THEN a.balance ELSE 0 END)) as net_income
-            FROM accounts a
-            WHERE a.company_id = ?
+                SUM(CASE WHEN account_type = 'revenue' THEN balance ELSE 0 END) as total_revenue,
+                SUM(CASE WHEN account_type = 'cost_of_goods_sold' THEN balance ELSE 0 END) as cost_of_goods_sold,
+                SUM(CASE WHEN account_type = 'revenue' THEN balance ELSE 0 END) - SUM(CASE WHEN account_type = 'cost_of_goods_sold' THEN balance ELSE 0 END) as gross_profit,
+                SUM(CASE WHEN account_type = 'operating_expense' THEN balance ELSE 0 END) as operating_expenses,
+                SUM(CASE WHEN account_type = 'revenue' THEN balance ELSE 0 END) - SUM(CASE WHEN account_type = 'cost_of_goods_sold' THEN balance ELSE 0 END) - SUM(CASE WHEN account_type = 'operating_expense' THEN balance ELSE 0 END) as operating_profit,
+                SUM(CASE WHEN account_type = 'interest_expense' THEN balance ELSE 0 END) as interest_expense,
+                SUM(CASE WHEN account_type = 'tax_expense' THEN balance ELSE 0 END) as tax_expense,
+                SUM(CASE WHEN account_type = 'revenue' THEN balance ELSE 0 END) - SUM(CASE WHEN account_type = 'cost_of_goods_sold' THEN balance ELSE 0 END) - SUM(CASE WHEN account_type = 'operating_expense' THEN balance ELSE 0 END) - SUM(CASE WHEN account_type = 'interest_expense' THEN balance ELSE 0 END) - SUM(CASE WHEN account_type = 'tax_expense' THEN balance ELSE 0 END) as net_profit
+            FROM financial_accounts fa
+            LEFT JOIN account_balances ab ON fa.id = ab.account_id
+            WHERE fa.company_id = ?
         ", [$this->user['company_id']]);
     }
 
     private function getBalanceSheet() {
         return $this->db->query("
             SELECT
-                a.account_name,
-                a.account_type,
-                a.account_subtype,
-                a.balance,
-                a.normal_balance,
-                CASE
-                    WHEN a.account_type = 'asset' THEN 'Assets'
-                    WHEN a.account_type = 'liability' THEN 'Liabilities'
-                    WHEN a.account_type = 'equity' THEN 'Equity'
-                    ELSE 'Other'
-                END as category
-            FROM accounts a
-            WHERE a.company_id = ? AND a.is_active = true
+                fa.account_type,
+                fa.account_name,
+                ab.balance,
+                fa.account_category,
+                fa.account_subcategory
+            FROM financial_accounts fa
+            LEFT JOIN account_balances ab ON fa.id = ab.account_id
+            WHERE fa.company_id = ? AND fa.account_type IN ('asset', 'liability', 'equity')
             ORDER BY
-                CASE a.account_type
+                CASE fa.account_type
                     WHEN 'asset' THEN 1
                     WHEN 'liability' THEN 2
                     WHEN 'equity' THEN 3
-                    ELSE 4
                 END,
-                a.account_code ASC
+                fa.account_category ASC,
+                fa.account_name ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getBudgetVsActual() {
+    private function getKeyMetrics() {
+        return [
+            'current_ratio' => $this->calculateCurrentRatio(),
+            'quick_ratio' => $this->calculateQuickRatio(),
+            'debt_to_equity' => $this->calculateDebtToEquity(),
+            'return_on_assets' => $this->calculateReturnOnAssets(),
+            'return_on_equity' => $this->calculateReturnOnEquity(),
+            'gross_margin' => $this->calculateGrossMargin(),
+            'operating_margin' => $this->calculateOperatingMargin(),
+            'net_margin' => $this->calculateNetMargin()
+        ];
+    }
+
+    private function calculateCurrentRatio() {
+        $result = $this->db->querySingle("
+            SELECT
+                SUM(CASE WHEN fa.account_category = 'current_asset' THEN ab.balance ELSE 0 END) as current_assets,
+                SUM(CASE WHEN fa.account_category = 'current_liability' THEN ab.balance ELSE 0 END) as current_liabilities
+            FROM financial_accounts fa
+            LEFT JOIN account_balances ab ON fa.id = ab.account_id
+            WHERE fa.company_id = ?
+        ", [$this->user['company_id']]);
+
+        return $result['current_liabilities'] > 0 ? $result['current_assets'] / $result['current_liabilities'] : 0;
+    }
+
+    private function calculateQuickRatio() {
+        $result = $this->db->querySingle("
+            SELECT
+                SUM(CASE WHEN fa.account_category = 'current_asset' AND fa.account_name NOT LIKE '%inventory%' THEN ab.balance ELSE 0 END) as quick_assets,
+                SUM(CASE WHEN fa.account_category = 'current_liability' THEN ab.balance ELSE 0 END) as current_liabilities
+            FROM financial_accounts fa
+            LEFT JOIN account_balances ab ON fa.id = ab.account_id
+            WHERE fa.company_id = ?
+        ", [$this->user['company_id']]);
+
+        return $result['current_liabilities'] > 0 ? $result['quick_assets'] / $result['current_liabilities'] : 0;
+    }
+
+    private function calculateDebtToEquity() {
+        $result = $this->db->querySingle("
+            SELECT
+                SUM(CASE WHEN fa.account_type = 'liability' THEN ab.balance ELSE 0 END) as total_liabilities,
+                SUM(CASE WHEN fa.account_type = 'equity' THEN ab.balance ELSE 0 END) as total_equity
+            FROM financial_accounts fa
+            LEFT JOIN account_balances ab ON fa.id = ab.account_id
+            WHERE fa.company_id = ?
+        ", [$this->user['company_id']]);
+
+        return $result['total_equity'] > 0 ? $result['total_liabilities'] / $result['total_equity'] : 0;
+    }
+
+    private function calculateReturnOnAssets() {
+        $result = $this->db->querySingle("
+            SELECT
+                SUM(CASE WHEN fa.account_type = 'revenue' THEN ab.balance ELSE 0 END) - SUM(CASE WHEN fa.account_type = 'expense' THEN ab.balance ELSE 0 END) as net_income,
+                SUM(CASE WHEN fa.account_type = 'asset' THEN ab.balance ELSE 0 END) as total_assets
+            FROM financial_accounts fa
+            LEFT JOIN account_balances ab ON fa.id = ab.account_id
+            WHERE fa.company_id = ?
+        ", [$this->user['company_id']]);
+
+        return $result['total_assets'] > 0 ? $result['net_income'] / $result['total_assets'] : 0;
+    }
+
+    private function calculateReturnOnEquity() {
+        $result = $this->db->querySingle("
+            SELECT
+                SUM(CASE WHEN fa.account_type = 'revenue' THEN ab.balance ELSE 0 END) - SUM(CASE WHEN fa.account_type = 'expense' THEN ab.balance ELSE 0 END) as net_income,
+                SUM(CASE WHEN fa.account_type = 'equity' THEN ab.balance ELSE 0 END) as total_equity
+            FROM financial_accounts fa
+            LEFT JOIN account_balances ab ON fa.id = ab.account_id
+            WHERE fa.company_id = ?
+        ", [$this->user['company_id']]);
+
+        return $result['total_equity'] > 0 ? $result['net_income'] / $result['total_equity'] : 0;
+    }
+
+    private function calculateGrossMargin() {
+        $result = $this->db->querySingle("
+            SELECT
+                SUM(CASE WHEN fa.account_type = 'revenue' THEN ab.balance ELSE 0 END) as total_revenue,
+                SUM(CASE WHEN fa.account_type = 'cost_of_goods_sold' THEN ab.balance ELSE 0 END) as cost_of_goods_sold
+            FROM financial_accounts fa
+            LEFT JOIN account_balances ab ON fa.id = ab.account_id
+            WHERE fa.company_id = ?
+        ", [$this->user['company_id']]);
+
+        return $result['total_revenue'] > 0 ? (($result['total_revenue'] - $result['cost_of_goods_sold']) / $result['total_revenue']) * 100 : 0;
+    }
+
+    private function calculateOperatingMargin() {
+        $result = $this->db->querySingle("
+            SELECT
+                SUM(CASE WHEN fa.account_type = 'revenue' THEN ab.balance ELSE 0 END) as total_revenue,
+                SUM(CASE WHEN fa.account_type = 'operating_expense' THEN ab.balance ELSE 0 END) as operating_expenses
+            FROM financial_accounts fa
+            LEFT JOIN account_balances ab ON fa.id = ab.account_id
+            WHERE fa.company_id = ?
+        ", [$this->user['company_id']]);
+
+        return $result['total_revenue'] > 0 ? (($result['total_revenue'] - $result['operating_expenses']) / $result['total_revenue']) * 100 : 0;
+    }
+
+    private function calculateNetMargin() {
+        $result = $this->db->querySingle("
+            SELECT
+                SUM(CASE WHEN fa.account_type = 'revenue' THEN ab.balance ELSE 0 END) as total_revenue,
+                SUM(CASE WHEN fa.account_type = 'revenue' THEN ab.balance ELSE 0 END) - SUM(CASE WHEN fa.account_type = 'expense' THEN ab.balance ELSE 0 END) as net_income
+            FROM financial_accounts fa
+            LEFT JOIN account_balances ab ON fa.id = ab.account_id
+            WHERE fa.company_id = ?
+        ", [$this->user['company_id']]);
+
+        return $result['total_revenue'] > 0 ? ($result['net_income'] / $result['total_revenue']) * 100 : 0;
+    }
+
+    private function getRecentTransactions() {
         return $this->db->query("
             SELECT
-                a.account_name,
-                b.budget_amount,
-                a.balance as actual_amount,
-                (a.balance - b.budget_amount) as variance,
-                ROUND(((a.balance - b.budget_amount) / NULLIF(b.budget_amount, 0)) * 100, 2) as variance_percentage,
-                CASE
-                    WHEN ABS((a.balance - b.budget_amount) / NULLIF(b.budget_amount, 0)) > 0.1 THEN 'significant'
-                    WHEN ABS((a.balance - b.budget_amount) / NULLIF(b.budget_amount, 0)) > 0.05 THEN 'moderate'
-                    ELSE 'minor'
-                END as variance_severity
-            FROM accounts a
-            JOIN budgets b ON a.id = b.account_id AND b.budget_period = DATE_FORMAT(CURDATE(), '%Y-%m')
-            WHERE a.company_id = ?
-            ORDER BY ABS(a.balance - b.budget_amount) DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getAccountsReceivable() {
-        return $this->db->querySingle("
-            SELECT
-                COUNT(ar.id) as total_invoices,
-                SUM(ar.amount) as total_receivable,
-                SUM(ar.amount_paid) as total_paid,
-                (SUM(ar.amount) - SUM(ar.amount_paid)) as total_outstanding,
-                COUNT(CASE WHEN ar.due_date < CURDATE() AND ar.amount > ar.amount_paid THEN 1 END) as overdue_invoices,
-                SUM(CASE WHEN ar.due_date < CURDATE() AND ar.amount > ar.amount_paid THEN (ar.amount - ar.amount_paid) ELSE 0 END) as overdue_amount,
-                AVG(ar.days_outstanding) as avg_collection_period,
-                COUNT(DISTINCT ar.customer_id) as active_customers
-            FROM accounts_receivable ar
-            WHERE ar.company_id = ?
-        ", [$this->user['company_id']]);
-    }
-
-    private function getAccountsPayable() {
-        return $this->db->querySingle("
-            SELECT
-                COUNT(ap.id) as total_invoices,
-                SUM(ap.amount) as total_payable,
-                SUM(ap.amount_paid) as total_paid,
-                (SUM(ap.amount) - SUM(ap.amount_paid)) as total_outstanding,
-                COUNT(CASE WHEN ap.due_date < CURDATE() AND ap.amount > ap.amount_paid THEN 1 END) as overdue_invoices,
-                SUM(CASE WHEN ap.due_date < CURDATE() AND ap.amount > ap.amount_paid THEN (ap.amount - ap.amount_paid) ELSE 0 END) as overdue_amount,
-                AVG(ap.days_outstanding) as avg_payment_period,
-                COUNT(DISTINCT ap.vendor_id) as active_vendors
-            FROM accounts_payable ap
-            WHERE ap.company_id = ?
-        ", [$this->user['company_id']]);
-    }
-
-    private function getFinancialRatios() {
-        return $this->db->querySingle("
-            SELECT
-                -- Liquidity Ratios
-                (SUM(CASE WHEN a.account_subtype = 'current_assets' THEN a.balance ELSE 0 END) / NULLIF(SUM(CASE WHEN a.account_subtype = 'current_liabilities' THEN a.balance ELSE 0 END), 0)) as current_ratio,
-                ((SUM(CASE WHEN a.account_subtype = 'current_assets' THEN a.balance ELSE 0 END) - SUM(CASE WHEN a.account_subtype = 'inventory' THEN a.balance ELSE 0 END)) / NULLIF(SUM(CASE WHEN a.account_subtype = 'current_liabilities' THEN a.balance ELSE 0 END), 0)) as quick_ratio,
-                
-                -- Profitability Ratios
-                ((SUM(CASE WHEN a.account_type = 'revenue' THEN a.balance ELSE 0 END) - SUM(CASE WHEN a.account_type = 'expense' THEN a.balance ELSE 0 END)) / NULLIF(SUM(CASE WHEN a.account_type = 'revenue' THEN a.balance ELSE 0 END), 0)) as net_profit_margin,
-                ((SUM(CASE WHEN a.account_type = 'revenue' THEN a.balance ELSE 0 END) - SUM(CASE WHEN a.account_type = 'expense' THEN a.balance ELSE 0 END)) / NULLIF(SUM(CASE WHEN a.account_type = 'asset' THEN a.balance ELSE 0 END), 0)) as return_on_assets,
-                
-                -- Efficiency Ratios
-                (SUM(CASE WHEN a.account_type = 'revenue' THEN a.balance ELSE 0 END) / NULLIF(SUM(CASE WHEN a.account_subtype = 'current_assets' THEN a.balance ELSE 0 END), 0)) as asset_turnover,
-                (SUM(CASE WHEN a.account_type = 'revenue' THEN a.balance ELSE 0 END) / NULLIF(SUM(CASE WHEN a.account_subtype = 'receivables' THEN a.balance ELSE 0 END), 0)) as receivables_turnover,
-                
-                -- Leverage Ratios
-                (SUM(CASE WHEN a.account_type = 'asset' THEN a.balance ELSE 0 END) / NULLIF(SUM(CASE WHEN a.account_type = 'equity' THEN a.balance ELSE 0 END), 0)) as debt_to_equity,
-                (SUM(CASE WHEN a.account_type = 'liability' THEN a.balance ELSE 0 END) / NULLIF(SUM(CASE WHEN a.account_type = 'asset' THEN a.balance ELSE 0 END), 0)) as debt_ratio
-                
-            FROM accounts a
-            WHERE a.company_id = ?
-        ", [$this->user['company_id']]);
-    }
-
-    private function getUpcomingDeadlines() {
-        return $this->db->query("
-            SELECT
-                'AR' as type,
-                ar.invoice_number as reference,
-                c.customer_name as party_name,
-                ar.due_date,
-                (ar.amount - ar.amount_paid) as amount,
-                TIMESTAMPDIFF(DAY, CURDATE(), ar.due_date) as days_until_due,
-                CASE
-                    WHEN ar.due_date < CURDATE() THEN 'overdue'
-                    WHEN ar.due_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY) THEN 'due_soon'
-                    ELSE 'upcoming'
-                END as status
-            FROM accounts_receivable ar
-            JOIN customers c ON ar.customer_id = c.id
-            WHERE ar.company_id = ? AND ar.amount > ar.amount_paid
-            UNION ALL
-            SELECT
-                'AP' as type,
-                ap.invoice_number as reference,
-                v.vendor_name as party_name,
-                ap.due_date,
-                (ap.amount - ap.amount_paid) as amount,
-                TIMESTAMPDIFF(DAY, CURDATE(), ap.due_date) as days_until_due,
-                CASE
-                    WHEN ap.due_date < CURDATE() THEN 'overdue'
-                    WHEN ap.due_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY) THEN 'due_soon'
-                    ELSE 'upcoming'
-                END as status
-            FROM accounts_payable ap
-            JOIN vendors v ON ap.vendor_id = v.id
-            WHERE ap.company_id = ? AND ap.amount > ap.amount_paid
-            ORDER BY due_date ASC
+                ft.*,
+                ft.transaction_description,
+                ft.transaction_type,
+                ft.amount,
+                ft.transaction_date,
+                fa.account_name,
+                u.first_name,
+                u.last_name
+            FROM financial_transactions ft
+            LEFT JOIN financial_accounts fa ON ft.account_id = fa.id
+            LEFT JOIN users u ON ft.created_by = u.id
+            WHERE ft.company_id = ?
+            ORDER BY ft.transaction_date DESC
             LIMIT 20
-        ", [$this->user['company_id'], $this->user['company_id']]);
+        ", [$this->user['company_id']]);
     }
 
-    private function getLedgerEntries($filters = []) {
-        $where = ["le.company_id = ?"];
-        $params = [$this->user['company_id']];
-
-        if (isset($filters['account'])) {
-            $where[] = "le.account_id = ?";
-            $params[] = $filters['account'];
-        }
-
-        if (isset($filters['date_from'])) {
-            $where[] = "le.entry_date >= ?";
-            $params[] = $filters['date_from'] . ' 00:00:00';
-        }
-
-        if (isset($filters['date_to'])) {
-            $where[] = "le.entry_date <= ?";
-            $params[] = $filters['date_to'] . ' 23:59:59';
-        }
-
-        if (isset($filters['entry_type'])) {
-            $where[] = "le.entry_type = ?";
-            $params[] = $filters['entry_type'];
-        }
-
-        if (isset($filters['search'])) {
-            $where[] = "(le.description LIKE ? OR le.reference_number LIKE ?)";
-            $search_term = '%' . $filters['search'] . '%';
-            $params[] = $search_term;
-            $params[] = $search_term;
-        }
-
-        $whereClause = implode(' AND ', $where);
-
+    private function getPendingApprovals() {
         return $this->db->query("
             SELECT
-                le.*,
-                a.account_name,
-                a.account_code,
-                a.account_type,
-                je.journal_entry_number,
-                je.entry_date as journal_date,
-                je.description as journal_description,
-                le.debit_amount,
-                le.credit_amount,
-                (le.debit_amount - le.credit_amount) as net_amount,
-                le.running_balance
-            FROM ledger_entries le
-            JOIN accounts a ON le.account_id = a.id
-            LEFT JOIN journal_entries je ON le.journal_entry_id = je.id
-            WHERE $whereClause
-            ORDER BY le.entry_date DESC, le.id DESC
-        ", $params);
+                pa.*,
+                pa.approval_type,
+                pa.description,
+                pa.amount,
+                pa.requested_date,
+                u1.first_name as requester_name,
+                u2.first_name as approver_name
+            FROM pending_approvals pa
+            LEFT JOIN users u1 ON pa.requested_by = u1.id
+            LEFT JOIN users u2 ON pa.assigned_to = u2.id
+            WHERE pa.company_id = ? AND pa.status = 'pending'
+            ORDER BY pa.requested_date DESC
+        ", [$this->user['company_id']]);
     }
 
     private function getChartOfAccounts() {
         return $this->db->query("
             SELECT
-                a.*,
-                a.account_code,
-                a.account_name,
-                a.account_type,
-                a.account_subtype,
-                a.balance,
-                a.normal_balance,
-                COUNT(le.id) as transaction_count,
-                MAX(le.entry_date) as last_transaction_date
-            FROM accounts a
-            LEFT JOIN ledger_entries le ON a.id = le.account_id
-            WHERE a.company_id = ? AND a.is_active = true
-            GROUP BY a.id
-            ORDER BY a.account_code ASC
+                fa.*,
+                fa.account_code,
+                fa.account_name,
+                fa.account_type,
+                fa.account_category,
+                fa.account_subcategory,
+                fa.is_active,
+                ab.balance,
+                ab.last_updated
+            FROM financial_accounts fa
+            LEFT JOIN account_balances ab ON fa.id = ab.account_id
+            WHERE fa.company_id = ?
+            ORDER BY fa.account_code ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getAccountTypes() {
-        return [
-            'asset' => 'Asset',
-            'liability' => 'Liability',
-            'equity' => 'Equity',
-            'revenue' => 'Revenue',
-            'expense' => 'Expense'
-        ];
-    }
-
-    private function getEntryTypes() {
-        return [
-            'journal' => 'Journal Entry',
-            'invoice' => 'Invoice',
-            'payment' => 'Payment',
-            'adjustment' => 'Adjustment',
-            'reconciliation' => 'Reconciliation'
-        ];
+    private function getLedgerEntries() {
+        return $this->db->query("
+            SELECT
+                le.*,
+                le.entry_date,
+                le.description,
+                le.debit_amount,
+                le.credit_amount,
+                fa.account_name,
+                je.journal_reference,
+                u.first_name,
+                u.last_name
+            FROM ledger_entries le
+            LEFT JOIN financial_accounts fa ON le.account_id = fa.id
+            LEFT JOIN journal_entries je ON le.journal_entry_id = je.id
+            LEFT JOIN users u ON le.created_by = u.id
+            WHERE le.company_id = ?
+            ORDER BY le.entry_date DESC, le.id DESC
+            LIMIT 100
+        ", [$this->user['company_id']]);
     }
 
     private function getJournalEntries() {
         return $this->db->query("
             SELECT
                 je.*,
-                je.journal_entry_number,
+                je.journal_reference,
                 je.entry_date,
                 je.description,
                 je.total_debit,
                 je.total_credit,
                 je.status,
-                COUNT(le.id) as line_count,
-                u.first_name as created_by_first,
-                u.last_name as created_by_last
+                u.first_name,
+                u.last_name,
+                COUNT(le.id) as line_count
             FROM journal_entries je
-            LEFT JOIN ledger_entries le ON je.id = le.journal_entry_id
             LEFT JOIN users u ON je.created_by = u.id
+            LEFT JOIN ledger_entries le ON je.id = le.journal_entry_id
             WHERE je.company_id = ?
             GROUP BY je.id
             ORDER BY je.entry_date DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getLedgerSummary() {
+    private function getAccountBalances() {
         return $this->db->query("
             SELECT
-                a.account_type,
-                COUNT(a.id) as account_count,
-                SUM(a.balance) as total_balance,
-                AVG(a.balance) as avg_balance,
-                COUNT(CASE WHEN a.balance > 0 THEN 1 END) as active_accounts,
-                COUNT(CASE WHEN a.balance = 0 THEN 1 END) as zero_balance_accounts
-            FROM accounts a
-            WHERE a.company_id = ?
-            GROUP BY a.account_type
-            ORDER BY total_balance DESC
+                fa.account_code,
+                fa.account_name,
+                fa.account_type,
+                ab.balance,
+                ab.last_updated,
+                ab.opening_balance,
+                ab.closing_balance
+            FROM financial_accounts fa
+            LEFT JOIN account_balances ab ON fa.id = ab.account_id
+            WHERE fa.company_id = ?
+            ORDER BY fa.account_code ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getReconciliationStatus() {
-        return $this->db->query("
-            SELECT
-                a.account_name,
-                a.account_code,
-                r.last_reconciliation_date,
-                r.reconciled_balance,
-                a.balance as current_balance,
-                (a.balance - r.reconciled_balance) as unreconciled_amount,
-                TIMESTAMPDIFF(DAY, r.last_reconciliation_date, CURDATE()) as days_since_reconciliation,
-                CASE
-                    WHEN TIMESTAMPDIFF(DAY, r.last_reconciliation_date, CURDATE()) > 30 THEN 'needs_attention'
-                    WHEN ABS(a.balance - r.reconciled_balance) > 100 THEN 'significant_variance'
-                    ELSE 'current'
-                END as reconciliation_status
-            FROM accounts a
-            LEFT JOIN reconciliations r ON a.id = r.account_id AND r.is_latest = true
-            WHERE a.company_id = ?
-            ORDER BY TIMESTAMPDIFF(DAY, r.last_reconciliation_date, CURDATE()) DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getBulkActions() {
+    private function getLedgerFilters() {
         return [
-            'post_entries' => 'Post Journal Entries',
-            'reverse_entries' => 'Reverse Entries',
-            'export_ledger' => 'Export Ledger',
-            'reconcile_accounts' => 'Reconcile Accounts',
-            'adjust_entries' => 'Adjust Entries',
-            'archive_entries' => 'Archive Entries'
+            'date_ranges' => [
+                'today' => 'Today',
+                'this_week' => 'This Week',
+                'this_month' => 'This Month',
+                'this_quarter' => 'This Quarter',
+                'this_year' => 'This Year',
+                'custom' => 'Custom Range'
+            ],
+            'account_types' => [
+                'asset' => 'Assets',
+                'liability' => 'Liabilities',
+                'equity' => 'Equity',
+                'revenue' => 'Revenue',
+                'expense' => 'Expenses'
+            ],
+            'transaction_types' => [
+                'journal_entry' => 'Journal Entries',
+                'invoice' => 'Invoices',
+                'payment' => 'Payments',
+                'adjustment' => 'Adjustments'
+            ]
         ];
+    }
+
+    private function getPostingRules() {
+        return $this->db->query("
+            SELECT
+                pr.*,
+                pr.rule_name,
+                pr.transaction_type,
+                pr.debit_account,
+                pr.credit_account,
+                pr.is_active,
+                pr.last_used
+            FROM posting_rules pr
+            WHERE pr.company_id = ?
+            ORDER BY pr.is_active DESC, pr.last_used DESC
+        ", [$this->user['company_id']]);
     }
 
     private function getVendorInvoices() {
         return $this->db->query("
             SELECT
-                ap.*,
-                v.vendor_name,
-                v.vendor_code,
-                ap.invoice_number,
-                ap.invoice_date,
-                ap.due_date,
-                ap.amount,
-                ap.amount_paid,
-                (ap.amount - ap.amount_paid) as balance,
-                ap.status,
-                ap.payment_terms,
-                TIMESTAMPDIFF(DAY, CURDATE(), ap.due_date) as days_until_due,
-                CASE
-                    WHEN ap.due_date < CURDATE() AND ap.amount > ap.amount_paid THEN 'overdue'
-                    WHEN ap.due_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY) AND ap.amount > ap.amount_paid THEN 'due_soon'
-                    ELSE 'current'
-                END as payment_status
-            FROM accounts_payable ap
-            JOIN vendors v ON ap.vendor_id = v.id
-            WHERE ap.company_id = ?
-            ORDER BY ap.due_date ASC
+                vi.*,
+                vi.invoice_number,
+                vi.vendor_name,
+                vi.invoice_date,
+                vi.due_date,
+                vi.amount,
+                vi.status,
+                vi.payment_terms,
+                DATEDIFF(vi.due_date, CURDATE()) as days_until_due
+            FROM vendor_invoices vi
+            WHERE vi.company_id = ?
+            ORDER BY vi.due_date ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getPaymentSchedule() {
+    private function getPaymentSchedules() {
         return $this->db->query("
             SELECT
-                DATE_FORMAT(ap.due_date, '%Y-%m-%d') as payment_date,
-                COUNT(ap.id) as invoice_count,
-                SUM(ap.amount - ap.amount_paid) as total_amount_due,
-                GROUP_CONCAT(DISTINCT v.vendor_name SEPARATOR ', ') as vendors
-            FROM accounts_payable ap
-            JOIN vendors v ON ap.vendor_id = v.id
-            WHERE ap.company_id = ? AND ap.amount > ap.amount_paid AND ap.due_date >= CURDATE()
-            GROUP BY DATE_FORMAT(ap.due_date, '%Y-%m-%d')
-            ORDER BY payment_date ASC
-            LIMIT 30
+                ps.*,
+                ps.vendor_name,
+                ps.payment_amount,
+                ps.scheduled_date,
+                ps.payment_method,
+                ps.status,
+                ps.approved_by
+            FROM payment_schedules ps
+            WHERE ps.company_id = ?
+            ORDER BY ps.scheduled_date ASC
         ", [$this->user['company_id']]);
     }
 
     private function getVendorStatements() {
         return $this->db->query("
             SELECT
-                v.vendor_name,
-                v.vendor_code,
-                COUNT(ap.id) as open_invoices,
-                SUM(CASE WHEN ap.due_date < CURDATE() AND ap.amount > ap.amount_paid THEN (ap.amount - ap.amount_paid) ELSE 0 END) as overdue_amount,
-                SUM(ap.amount - ap.amount_paid) as total_outstanding,
-                MAX(ap.due_date) as latest_due_date,
-                AVG(ap.payment_terms) as avg_payment_terms,
-                MAX(ap.invoice_date) as last_invoice_date
-            FROM vendors v
-            LEFT JOIN accounts_payable ap ON v.id = ap.vendor_id AND ap.amount > ap.amount_paid
-            WHERE v.company_id = ?
-            GROUP BY v.id, v.vendor_name, v.vendor_code
-            ORDER BY total_outstanding DESC
+                vs.*,
+                vs.vendor_name,
+                vs.statement_period,
+                vs.opening_balance,
+                vs.closing_balance,
+                vs.total_invoices,
+                vs.total_payments,
+                vs.outstanding_balance
+            FROM vendor_statements vs
+            WHERE vs.company_id = ?
+            ORDER BY vs.statement_period DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getPaymentTerms() {
+        return [
+            'net_15' => [
+                'name' => 'Net 15',
+                'description' => 'Payment due in 15 days',
+                'discount' => 0
+            ],
+            'net_30' => [
+                'name' => 'Net 30',
+                'description' => 'Payment due in 30 days',
+                'discount' => 0
+            ],
+            'net_45' => [
+                'name' => 'Net 45',
+                'description' => 'Payment due in 45 days',
+                'discount' => 0
+            ],
+            '2_10_net_30' => [
+                'name' => '2/10 Net 30',
+                'description' => '2% discount if paid within 10 days, otherwise due in 30 days',
+                'discount' => 2
+            ]
+        ];
+    }
+
+    private function getAgingReport() {
+        return $this->db->query("
+            SELECT
+                CASE
+                    WHEN DATEDIFF(CURDATE(), vi.due_date) <= 30 THEN 'current'
+                    WHEN DATEDIFF(CURDATE(), vi.due_date) <= 60 THEN '31_60_days'
+                    WHEN DATEDIFF(CURDATE(), vi.due_date) <= 90 THEN '61_90_days'
+                    ELSE 'over_90_days'
+                END as aging_category,
+                COUNT(*) as invoice_count,
+                SUM(vi.amount) as total_amount
+            FROM vendor_invoices vi
+            WHERE vi.company_id = ? AND vi.status = 'unpaid'
+            GROUP BY
+                CASE
+                    WHEN DATEDIFF(CURDATE(), vi.due_date) <= 30 THEN 'current'
+                    WHEN DATEDIFF(CURDATE(), vi.due_date) <= 60 THEN '31_60_days'
+                    WHEN DATEDIFF(CURDATE(), vi.due_date) <= 90 THEN '61_90_days'
+                    ELSE 'over_90_days'
+                END
         ", [$this->user['company_id']]);
     }
 
     private function getCashRequirements() {
         return $this->db->querySingle("
             SELECT
-                SUM(CASE WHEN ap.due_date = CURDATE() THEN (ap.amount - ap.amount_paid) ELSE 0 END) as due_today,
-                SUM(CASE WHEN ap.due_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY) THEN (ap.amount - ap.amount_paid) ELSE 0 END) as due_this_week,
-                SUM(CASE WHEN ap.due_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN (ap.amount - ap.amount_paid) ELSE 0 END) as due_this_month,
-                SUM(CASE WHEN ap.due_date < CURDATE() THEN (ap.amount - ap.amount_paid) ELSE 0 END) as overdue_amount,
-                COUNT(CASE WHEN ap.due_date = CURDATE() THEN 1 END) as invoices_due_today,
-                COUNT(CASE WHEN ap.due_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY) THEN 1 END) as invoices_due_this_week
-            FROM accounts_payable ap
-            WHERE ap.company_id = ? AND ap.amount > ap.amount_paid
-        ", [$this->user['company_id']]);
-    }
-
-    private function getPaymentTerms() {
-        return $this->db->query("
-            SELECT
-                ap.payment_terms,
-                COUNT(ap.id) as invoice_count,
-                SUM(ap.amount) as total_amount,
-                AVG(ap.payment_terms) as avg_terms,
-                COUNT(CASE WHEN ap.due_date < CURDATE() THEN 1 END) as overdue_count,
-                ROUND((COUNT(CASE WHEN ap.due_date < CURDATE() THEN 1 END) / NULLIF(COUNT(ap.id), 0)) * 100, 2) as overdue_percentage
-            FROM accounts_payable ap
-            WHERE ap.company_id = ?
-            GROUP BY ap.payment_terms
-            ORDER BY total_amount DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getDiscountOpportunities() {
-        return $this->db->query("
-            SELECT
-                ap.invoice_number,
-                v.vendor_name,
-                ap.amount,
-                ap.discount_terms,
-                ap.discount_amount,
-                ap.discount_due_date,
-                TIMESTAMPDIFF(DAY, CURDATE(), ap.discount_due_date) as days_until_discount_expires,
-                CASE
-                    WHEN ap.discount_due_date < CURDATE() THEN 'expired'
-                    WHEN ap.discount_due_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY) THEN 'expires_soon'
-                    ELSE 'available'
-                END as discount_status
-            FROM accounts_payable ap
-            JOIN vendors v ON ap.vendor_id = v.id
-            WHERE ap.company_id = ? AND ap.discount_amount > 0 AND ap.amount > ap.amount_paid
-            ORDER BY ap.discount_due_date ASC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getAgingAnalysis() {
-        return $this->db->query("
-            SELECT
-                CASE
-                    WHEN TIMESTAMPDIFF(DAY, ap.due_date, CURDATE()) <= 0 THEN 'current'
-                    WHEN TIMESTAMPDIFF(DAY, ap.due_date, CURDATE()) <= 30 THEN '1-30_days'
-                    WHEN TIMESTAMPDIFF(DAY, ap.due_date, CURDATE()) <= 60 THEN '31-60_days'
-                    WHEN TIMESTAMPDIFF(DAY, ap.due_date, CURDATE()) <= 90 THEN '61-90_days'
-                    ELSE 'over_90_days'
-                END as aging_bucket,
-                COUNT(ap.id) as invoice_count,
-                SUM(ap.amount - ap.amount_paid) as amount_outstanding,
-                ROUND((SUM(ap.amount - ap.amount_paid) / NULLIF((SELECT SUM(amount - amount_paid) FROM accounts_payable WHERE company_id = ? AND amount > amount_paid), 0)) * 100, 2) as percentage_of_total
-            FROM accounts_payable ap
-            WHERE ap.company_id = ? AND ap.amount > ap.amount_paid
-            GROUP BY
-                CASE
-                    WHEN TIMESTAMPDIFF(DAY, ap.due_date, CURDATE()) <= 0 THEN 'current'
-                    WHEN TIMESTAMPDIFF(DAY, ap.due_date, CURDATE()) <= 30 THEN '1-30_days'
-                    WHEN TIMESTAMPDIFF(DAY, ap.due_date, CURDATE()) <= 60 THEN '31-60_days'
-                    WHEN TIMESTAMPDIFF(DAY, ap.due_date, CURDATE()) <= 90 THEN '61-90_days'
-                    ELSE 'over_90_days'
-                END
-            ORDER BY
-                CASE aging_bucket
-                    WHEN 'current' THEN 1
-                    WHEN '1-30_days' THEN 2
-                    WHEN '31-60_days' THEN 3
-                    WHEN '61-90_days' THEN 4
-                    WHEN 'over_90_days' THEN 5
-                END
-        ", [$this->user['company_id'], $this->user['company_id']]);
-    }
-
-    private function getVendorPerformance() {
-        return $this->db->query("
-            SELECT
-                v.vendor_name,
-                COUNT(ap.id) as total_invoices,
-                SUM(ap.amount) as total_invoice_amount,
-                AVG(TIMESTAMPDIFF(DAY, ap.invoice_date, ap.due_date)) as avg_payment_terms,
-                AVG(CASE WHEN ap.amount_paid >= ap.amount THEN TIMESTAMPDIFF(DAY, ap.invoice_date, ap.payment_date) END) as avg_payment_time,
-                COUNT(CASE WHEN ap.due_date < CURDATE() AND ap.amount > ap.amount_paid THEN 1 END) as overdue_invoices,
-                ROUND((COUNT(CASE WHEN ap.due_date < CURDATE() AND ap.amount > ap.amount_paid THEN 1 END) / NULLIF(COUNT(ap.id), 0)) * 100, 2) as overdue_percentage,
-                SUM(ap.discount_amount) as total_discounts_taken
-            FROM vendors v
-            LEFT JOIN accounts_payable ap ON v.id = ap.vendor_id
-            WHERE v.company_id = ?
-            GROUP BY v.id, v.vendor_name
-            ORDER BY total_invoice_amount DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getAPAnalytics() {
-        return $this->db->querySingle("
-            SELECT
-                COUNT(ap.id) as total_invoices,
-                SUM(ap.amount) as total_payable,
-                SUM(ap.amount_paid) as total_paid,
-                (SUM(ap.amount) - SUM(ap.amount_paid)) as outstanding_balance,
-                COUNT(CASE WHEN ap.status = 'paid' THEN 1 END) as paid_invoices,
-                ROUND((COUNT(CASE WHEN ap.status = 'paid' THEN 1 END) / NULLIF(COUNT(ap.id), 0)) * 100, 2) as payment_percentage,
-                AVG(TIMESTAMPDIFF(DAY, ap.invoice_date, COALESCE(ap.payment_date, CURDATE()))) as avg_payment_time,
-                COUNT(DISTINCT ap.vendor_id) as active_vendors
-            FROM accounts_payable ap
-            WHERE ap.company_id = ?
+                SUM(CASE WHEN DATEDIFF(vi.due_date, CURDATE()) <= 7 THEN vi.amount ELSE 0 END) as due_this_week,
+                SUM(CASE WHEN DATEDIFF(vi.due_date, CURDATE()) <= 30 THEN vi.amount ELSE 0 END) as due_this_month,
+                SUM(CASE WHEN DATEDIFF(vi.due_date, CURDATE()) <= 90 THEN vi.amount ELSE 0 END) as due_next_quarter,
+                AVG(vi.amount) as avg_invoice_amount,
+                COUNT(*) as total_outstanding_invoices
+            FROM vendor_invoices vi
+            WHERE vi.company_id = ? AND vi.status = 'unpaid'
         ", [$this->user['company_id']]);
     }
 
     private function getCustomerInvoices() {
         return $this->db->query("
             SELECT
-                ar.*,
-                c.customer_name,
-                c.customer_code,
-                ar.invoice_number,
-                ar.invoice_date,
-                ar.due_date,
-                ar.amount,
-                ar.amount_paid,
-                (ar.amount - ar.amount_paid) as balance,
-                ar.status,
-                ar.collection_terms,
-                TIMESTAMPDIFF(DAY, CURDATE(), ar.due_date) as days_until_due,
-                CASE
-                    WHEN ar.due_date < CURDATE() AND ar.amount > ar.amount_paid THEN 'overdue'
-                    WHEN ar.due_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY) AND ar.amount > ar.amount_paid THEN 'due_soon'
-                    ELSE 'current'
-                END as collection_status
-            FROM accounts_receivable ar
-            JOIN customers c ON ar.customer_id = c.id
-            WHERE ar.company_id = ?
-            ORDER BY ar.due_date ASC
+                ci.*,
+                ci.invoice_number,
+                ci.customer_name,
+                ci.invoice_date,
+                ci.due_date,
+                ci.amount,
+                ci.status,
+                ci.payment_terms,
+                DATEDIFF(ci.due_date, CURDATE()) as days_until_due
+            FROM customer_invoices ci
+            WHERE ci.company_id = ?
+            ORDER BY ci.due_date ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getCollectionSchedule() {
+    private function getPaymentReceipts() {
         return $this->db->query("
             SELECT
-                DATE_FORMAT(ar.due_date, '%Y-%m-%d') as collection_date,
-                COUNT(ar.id) as invoice_count,
-                SUM(ar.amount - ar.amount_paid) as total_amount_due,
-                GROUP_CONCAT(DISTINCT c.customer_name SEPARATOR ', ') as customers
-            FROM accounts_receivable ar
-            JOIN customers c ON ar.customer_id = c.id
-            WHERE ar.company_id = ? AND ar.amount > ar.amount_paid AND ar.due_date >= CURDATE()
-            GROUP BY DATE_FORMAT(ar.due_date, '%Y-%m-%d')
-            ORDER BY collection_date ASC
-            LIMIT 30
+                pr.*,
+                pr.receipt_number,
+                pr.customer_name,
+                pr.payment_date,
+                pr.amount,
+                pr.payment_method,
+                pr.reference_number
+            FROM payment_receipts pr
+            WHERE pr.company_id = ?
+            ORDER BY pr.payment_date DESC
         ", [$this->user['company_id']]);
     }
 
     private function getCustomerStatements() {
         return $this->db->query("
             SELECT
-                c.customer_name,
-                c.customer_code,
-                COUNT(ar.id) as open_invoices,
-                SUM(CASE WHEN ar.due_date < CURDATE() AND ar.amount > ar.amount_paid THEN (ar.amount - ar.amount_paid) ELSE 0 END) as overdue_amount,
-                SUM(ar.amount - ar.amount_paid) as total_outstanding,
-                MAX(ar.due_date) as latest_due_date,
-                AVG(ar.collection_terms) as avg_collection_terms,
-                MAX(ar.invoice_date) as last_invoice_date
-            FROM customers c
-            LEFT JOIN accounts_receivable ar ON c.id = ar.customer_id AND ar.amount > ar.amount_paid
-            WHERE c.company_id = ?
-            GROUP BY c.id, c.customer_name, c.customer_code
-            ORDER BY total_outstanding DESC
+                cs.*,
+                cs.customer_name,
+                cs.statement_period,
+                cs.opening_balance,
+                cs.closing_balance,
+                cs.total_invoices,
+                cs.total_payments,
+                cs.outstanding_balance
+            FROM customer_statements cs
+            WHERE cs.company_id = ?
+            ORDER BY cs.statement_period DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getCollectionPolicies() {
+        return $this->db->query("
+            SELECT
+                cp.*,
+                cp.policy_name,
+                cp.days_overdue,
+                cp.action_required,
+                cp.notification_template,
+                cp.is_active
+            FROM collection_policies cp
+            WHERE cp.company_id = ?
+            ORDER BY cp.days_overdue ASC
         ", [$this->user['company_id']]);
     }
 
     private function getCreditLimits() {
         return $this->db->query("
             SELECT
-                c.customer_name,
-                c.customer_code,
+                cl.*,
+                cl.customer_name,
                 cl.credit_limit,
+                cl.current_balance,
                 cl.available_credit,
-                cl.used_credit,
-                ROUND((cl.used_credit / NULLIF(cl.credit_limit, 0)) * 100, 2) as credit_utilization,
                 cl.last_review_date,
-                cl.next_review_date,
-                CASE
-                    WHEN (cl.used_credit / NULLIF(cl.credit_limit, 0)) > 0.9 THEN 'high_utilization'
-                    WHEN (cl.used_credit / NULLIF(cl.credit_limit, 0)) > 0.75 THEN 'moderate_utilization'
-                    ELSE 'low_utilization'
-                END as utilization_status
-            FROM customers c
-            JOIN credit_limits cl ON c.id = cl.customer_id
-            WHERE c.company_id = ?
-            ORDER BY credit_utilization DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getCollectionTerms() {
-        return $this->db->query("
-            SELECT
-                ar.collection_terms,
-                COUNT(ar.id) as invoice_count,
-                SUM(ar.amount) as total_amount,
-                AVG(ar.collection_terms) as avg_terms,
-                COUNT(CASE WHEN ar.due_date < CURDATE() THEN 1 END) as overdue_count,
-                ROUND((COUNT(CASE WHEN ar.due_date < CURDATE() THEN 1 END) / NULLIF(COUNT(ar.id), 0)) * 100, 2) as overdue_percentage
-            FROM accounts_receivable ar
-            WHERE ar.company_id = ?
-            GROUP BY ar.collection_terms
-            ORDER BY total_amount DESC
+                cl.next_review_date
+            FROM credit_limits cl
+            WHERE cl.company_id = ?
+            ORDER BY cl.available_credit ASC
         ", [$this->user['company_id']]);
     }
 
     private function getDunningProcess() {
         return $this->db->query("
             SELECT
-                ar.invoice_number,
-                c.customer_name,
-                ar.due_date,
-                TIMESTAMPDIFF(DAY, ar.due_date, CURDATE()) as days_overdue,
-                (ar.amount - ar.amount_paid) as overdue_amount,
+                dp.*,
+                dp.customer_name,
+                dp.invoice_number,
+                dp.days_overdue,
                 dp.dunning_level,
-                dp.last_contact_date,
-                dp.next_action_date,
-                dp.contact_method,
-                CASE
-                    WHEN TIMESTAMPDIFF(DAY, ar.due_date, CURDATE()) > 90 THEN 'severe'
-                    WHEN TIMESTAMPDIFF(DAY, ar.due_date, CURDATE()) > 60 THEN 'high'
-                    WHEN TIMESTAMPDIFF(DAY, ar.due_date, CURDATE()) > 30 THEN 'medium'
-                    ELSE 'low'
-                END as priority_level
-            FROM accounts_receivable ar
-            JOIN customers c ON ar.customer_id = c.id
-            LEFT JOIN dunning_process dp ON ar.id = dp.invoice_id
-            WHERE ar.company_id = ? AND ar.due_date < CURDATE() AND ar.amount > ar.amount_paid
-            ORDER BY days_overdue DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getARAgingAnalysis() {
-        return $this->db->query("
-            SELECT
-                CASE
-                    WHEN TIMESTAMPDIFF(DAY, ar.due_date, CURDATE()) <= 0 THEN 'current'
-                    WHEN TIMESTAMPDIFF(DAY, ar.due_date, CURDATE()) <= 30 THEN '1-30_days'
-                    WHEN TIMESTAMPDIFF(DAY, ar.due_date, CURDATE()) <= 60 THEN '31-60_days'
-                    WHEN TIMESTAMPDIFF(DAY, ar.due_date, CURDATE()) <= 90 THEN '61-90_days'
-                    ELSE 'over_90_days'
-                END as aging_bucket,
-                COUNT(ar.id) as invoice_count,
-                SUM(ar.amount - ar.amount_paid) as amount_outstanding,
-                ROUND((SUM(ar.amount - ar.amount_paid) / NULLIF((SELECT SUM(amount - amount_paid) FROM accounts_receivable WHERE company_id = ? AND amount > amount_paid), 0)) * 100, 2) as percentage_of_total
-            FROM accounts_receivable ar
-            WHERE ar.company_id = ? AND ar.amount > ar.amount_paid
-            GROUP BY
-                CASE
-                    WHEN TIMESTAMPDIFF(DAY, ar.due_date, CURDATE()) <= 0 THEN 'current'
-                    WHEN TIMESTAMPDIFF(DAY, ar.due_date, CURDATE()) <= 30 THEN '1-30_days'
-                    WHEN TIMESTAMPDIFF(DAY, ar.due_date, CURDATE()) <= 60 THEN '31-60_days'
-                    WHEN TIMESTAMPDIFF(DAY, ar.due_date, CURDATE()) <= 90 THEN '61-90_days'
-                    ELSE 'over_90_days'
-                END
-            ORDER BY
-                CASE aging_bucket
-                    WHEN 'current' THEN 1
-                    WHEN '1-30_days' THEN 2
-                    WHEN '31-60_days' THEN 3
-                    WHEN '61-90_days' THEN 4
-                    WHEN 'over_90_days' THEN 5
-                END
-        ", [$this->user['company_id'], $this->user['company_id']]);
-    }
-
-    private function getCustomerRisk() {
-        return $this->db->query("
-            SELECT
-                c.customer_name,
-                c.customer_code,
-                cr.risk_score,
-                cr.risk_level,
-                cr.payment_history_score,
-                cr.credit_utilization,
-                cr.overdue_amount,
-                cr.average_payment_days,
-                cr.last_risk_assessment,
-                CASE
-                    WHEN cr.risk_score >= 80 THEN 'low_risk'
-                    WHEN cr.risk_score >= 60 THEN 'medium_risk'
-                    WHEN cr.risk_score >= 40 THEN 'high_risk'
-                    ELSE 'very_high_risk'
-                END as risk_category
-            FROM customers c
-            JOIN customer_risk cr ON c.id = cr.customer_id
-            WHERE c.company_id = ?
-            ORDER BY cr.risk_score ASC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getARAnalytics() {
-        return $this->db->querySingle("
-            SELECT
-                COUNT(ar.id) as total_invoices,
-                SUM(ar.amount) as total_receivable,
-                SUM(ar.amount_paid) as total_collected,
-                (SUM(ar.amount) - SUM(ar.amount_paid)) as outstanding_balance,
-                COUNT(CASE WHEN ar.status = 'paid' THEN 1 END) as paid_invoices,
-                ROUND((COUNT(CASE WHEN ar.status = 'paid' THEN 1 END) / NULLIF(COUNT(ar.id), 0)) * 100, 2) as collection_percentage,
-                AVG(TIMESTAMPDIFF(DAY, ar.invoice_date, COALESCE(ar.payment_date, CURDATE()))) as avg_collection_time,
-                COUNT(DISTINCT ar.customer_id) as active_customers
-            FROM accounts_receivable ar
-            WHERE ar.company_id = ?
+                dp.last_contact,
+                dp.next_action,
+                dp.amount_due
+            FROM dunning_process dp
+            WHERE dp.company_id = ?
+            ORDER BY dp.days_overdue DESC
         ", [$this->user['company_id']]);
     }
 
     private function getBudgetTemplates() {
-        return $this->db->query("
-            SELECT * FROM budget_templates
-            WHERE company_id = ? AND is_active = true
-            ORDER BY template_name ASC
-        ", [$this->user['company_id']]);
+        return [
+            'operating_budget' => [
+                'name' => 'Operating Budget',
+                'description' => 'Monthly operating expenses and revenue',
+                'categories' => ['revenue', 'cost_of_goods_sold', 'operating_expenses', 'capital_expenditures'],
+                'frequency' => 'monthly'
+            ],
+            'capital_budget' => [
+                'name' => 'Capital Budget',
+                'description' => 'Capital expenditures and investments',
+                'categories' => ['equipment', 'facilities', 'technology', 'vehicles'],
+                'frequency' => 'annual'
+            ],
+            'cash_flow_budget' => [
+                'name' => 'Cash Flow Budget',
+                'description' => 'Cash inflows and outflows',
+                'categories' => ['operating_cash_flow', 'investing_cash_flow', 'financing_cash_flow'],
+                'frequency' => 'monthly'
+            ]
+        ];
     }
 
     private function getBudgetScenarios() {
@@ -1000,16 +782,15 @@ class Finance extends BaseController {
             SELECT
                 bs.*,
                 bs.scenario_name,
-                bs.scenario_type,
-                bs.probability_percentage,
-                bs.created_date,
-                bs.last_modified,
-                u.first_name as created_by_first,
-                u.last_name as created_by_last
+                bs.budget_type,
+                bs.fiscal_year,
+                bs.total_budget,
+                bs.status,
+                bs.created_by,
+                bs.last_updated
             FROM budget_scenarios bs
-            LEFT JOIN users u ON bs.created_by = u.id
             WHERE bs.company_id = ?
-            ORDER BY bs.probability_percentage DESC
+            ORDER BY bs.fiscal_year DESC, bs.last_updated DESC
         ", [$this->user['company_id']]);
     }
 
@@ -1018,166 +799,254 @@ class Finance extends BaseController {
             SELECT
                 fm.*,
                 fm.model_name,
-                fm.model_type,
-                fm.accuracy_score,
-                fm.training_period_months,
-                fm.last_trained,
-                fm.next_training_date,
-                fm.model_status
+                fm.forecast_type,
+                fm.accuracy_percentage,
+                fm.last_run,
+                fm.next_run,
+                fm.is_active
             FROM forecast_models fm
             WHERE fm.company_id = ?
-            ORDER BY fm.accuracy_score DESC
+            ORDER BY fm.is_active DESC, fm.last_run DESC
         ", [$this->user['company_id']]);
     }
 
     private function getVarianceAnalysis() {
         return $this->db->query("
             SELECT
-                a.account_name,
-                b.budget_amount,
-                a.balance as actual_amount,
-                (a.balance - b.budget_amount) as variance,
-                ROUND(((a.balance - b.budget_amount) / NULLIF(b.budget_amount, 0)) * 100, 2) as variance_percentage,
-                CASE
-                    WHEN ABS((a.balance - b.budget_amount) / NULLIF(b.budget_amount, 0)) > 0.1 THEN 'significant'
-                    WHEN ABS((a.balance - b.budget_amount) / NULLIF(b.budget_amount, 0)) > 0.05 THEN 'moderate'
-                    ELSE 'minor'
-                END as variance_severity,
-                b.budget_period
-            FROM accounts a
-            JOIN budgets b ON a.id = b.account_id
-            WHERE a.company_id = ? AND b.budget_period >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 6 MONTH), '%Y-%m')
-            ORDER BY ABS(a.balance - b.budget_amount) DESC
+                va.*,
+                va.budget_category,
+                va.budgeted_amount,
+                va.actual_amount,
+                va.variance_amount,
+                va.variance_percentage,
+                va.variance_type,
+                va.explanation
+            FROM variance_analysis va
+            WHERE va.company_id = ?
+            ORDER BY ABS(va.variance_percentage) DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getBudgetAllocations() {
+    private function getBudgetApprovalWorkflow() {
         return $this->db->query("
             SELECT
-                ba.*,
-                a.account_name,
-                ba.allocation_percentage,
-                ba.allocated_amount,
-                ba.allocation_date,
-                ba.allocation_type,
-                u.first_name as allocated_by_first,
-                u.last_name as allocated_by_last
-            FROM budget_allocations ba
-            JOIN accounts a ON ba.account_id = a.id
-            LEFT JOIN users u ON ba.allocated_by = u.id
-            WHERE ba.company_id = ?
-            ORDER BY ba.allocation_date DESC
+                baw.*,
+                baw.budget_name,
+                baw.submitted_amount,
+                baw.approved_amount,
+                baw.status,
+                baw.submitted_by,
+                baw.approved_by,
+                baw.submission_date,
+                baw.approval_date
+            FROM budget_approval_workflow baw
+            WHERE baw.company_id = ?
+            ORDER BY baw.submission_date DESC
         ", [$this->user['company_id']]);
     }
 
     private function getRollingForecasts() {
         return $this->db->query("
             SELECT
-                DATE_FORMAT(rf.forecast_date, '%Y-%m') as forecast_month,
-                SUM(rf.forecast_amount) as total_forecast,
-                SUM(rf.actual_amount) as total_actual,
-                ROUND(((SUM(rf.actual_amount) - SUM(rf.forecast_amount)) / NULLIF(SUM(rf.forecast_amount), 0)) * 100, 2) as forecast_accuracy,
-                COUNT(rf.id) as forecast_items
+                rf.*,
+                rf.forecast_period,
+                rf.forecast_type,
+                rf.predicted_value,
+                rf.confidence_level,
+                rf.actual_value,
+                rf.accuracy_percentage
             FROM rolling_forecasts rf
-            WHERE rf.company_id = ? AND rf.forecast_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
-            GROUP BY DATE_FORMAT(rf.forecast_date, '%Y-%m')
-            ORDER BY forecast_month ASC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getBudgetAnalytics() {
-        return $this->db->querySingle("
-            SELECT
-                COUNT(DISTINCT b.account_id) as budgeted_accounts,
-                SUM(b.budget_amount) as total_budget,
-                SUM(a.balance) as total_actual,
-                ROUND(((SUM(a.balance) - SUM(b.budget_amount)) / NULLIF(SUM(b.budget_amount), 0)) * 100, 2) as overall_variance,
-                COUNT(CASE WHEN ABS((a.balance - b.budget_amount) / NULLIF(b.budget_amount, 0)) > 0.1 THEN 1 END) as significant_variances,
-                AVG(CASE WHEN b.budget_amount > 0 THEN (a.balance / b.budget_amount) ELSE 0 END) as budget_utilization
-            FROM budgets b
-            JOIN accounts a ON b.account_id = a.id
-            WHERE b.company_id = ? AND b.budget_period = DATE_FORMAT(CURDATE(), '%Y-%m')
-        ", [$this->user['company_id']]);
-    }
-
-    private function getBudgetSettings() {
-        return $this->db->querySingle("
-            SELECT * FROM budget_settings
-            WHERE company_id = ?
+            WHERE rf.company_id = ?
+            ORDER BY rf.forecast_period DESC
         ", [$this->user['company_id']]);
     }
 
     private function getIncomeStatement() {
         return $this->db->query("
             SELECT
-                a.account_name,
-                a.account_subtype,
-                a.balance,
-                CASE
-                    WHEN a.account_subtype = 'sales_revenue' THEN 'Revenue'
-                    WHEN a.account_subtype = 'cost_of_goods_sold' THEN 'Cost of Goods Sold'
-                    WHEN a.account_subtype = 'operating_expenses' THEN 'Operating Expenses'
-                    WHEN a.account_subtype = 'interest_expense' THEN 'Interest Expense'
-                    WHEN a.account_subtype = 'tax_expense' THEN 'Tax Expense'
-                    ELSE 'Other'
-                END as category
-            FROM accounts a
-            WHERE a.company_id = ? AND a.account_type IN ('revenue', 'expense')
+                fa.account_category,
+                fa.account_name,
+                ab.balance,
+                fa.account_type
+            FROM financial_accounts fa
+            LEFT JOIN account_balances ab ON fa.id = ab.account_id
+            WHERE fa.company_id = ? AND fa.account_type IN ('revenue', 'expense', 'cost_of_goods_sold')
             ORDER BY
-                CASE a.account_type
+                CASE fa.account_type
                     WHEN 'revenue' THEN 1
-                    WHEN 'expense' THEN 2
+                    WHEN 'cost_of_goods_sold' THEN 2
+                    WHEN 'expense' THEN 3
                 END,
-                a.account_subtype ASC
+                fa.account_category ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getBalanceSheetReport() {
+        return $this->db->query("
+            SELECT
+                fa.account_type,
+                fa.account_category,
+                fa.account_name,
+                ab.balance
+            FROM financial_accounts fa
+            LEFT JOIN account_balances ab ON fa.id = ab.account_id
+            WHERE fa.company_id = ? AND fa.account_type IN ('asset', 'liability', 'equity')
+            ORDER BY
+                CASE fa.account_type
+                    WHEN 'asset' THEN 1
+                    WHEN 'liability' THEN 2
+                    WHEN 'equity' THEN 3
+                END,
+                fa.account_category ASC
         ", [$this->user['company_id']]);
     }
 
     private function getCashFlowStatement() {
         return $this->db->query("
             SELECT
-                DATE_FORMAT(t.transaction_date, '%Y-%m') as month,
-                SUM(CASE WHEN t.transaction_type = 'operating' THEN t.amount ELSE 0 END) as operating_activities,
-                SUM(CASE WHEN t.transaction_type = 'investing' THEN t.amount ELSE 0 END) as investing_activities,
-                SUM(CASE WHEN t.transaction_type = 'financing' THEN t.amount ELSE 0 END) as financing_activities,
-                SUM(t.amount) as net_cash_flow,
-                SUM(SUM(t.amount)) OVER (ORDER BY DATE_FORMAT(t.transaction_date, '%Y-%m')) as ending_cash_balance
-            FROM transactions t
-            WHERE t.company_id = ? AND t.transaction_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
-            GROUP BY DATE_FORMAT(t.transaction_date, '%Y-%m')
-            ORDER BY month ASC
+                cfs.cash_flow_category,
+                cfs.activity_type,
+                cfs.amount,
+                cfs.description
+            FROM cash_flow_statement cfs
+            WHERE cfs.company_id = ?
+            ORDER BY cfs.cash_flow_category ASC, cfs.activity_type ASC
         ", [$this->user['company_id']]);
+    }
+
+    private function getFinancialRatios() {
+        return [
+            'liquidity_ratios' => [
+                'current_ratio' => $this->calculateCurrentRatio(),
+                'quick_ratio' => $this->calculateQuickRatio(),
+                'cash_ratio' => $this->calculateCashRatio()
+            ],
+            'leverage_ratios' => [
+                'debt_ratio' => $this->calculateDebtRatio(),
+                'debt_to_equity' => $this->calculateDebtToEquity(),
+                'interest_coverage' => $this->calculateInterestCoverage()
+            ],
+            'profitability_ratios' => [
+                'gross_margin' => $this->calculateGrossMargin(),
+                'operating_margin' => $this->calculateOperatingMargin(),
+                'net_margin' => $this->calculateNetMargin(),
+                'return_on_assets' => $this->calculateReturnOnAssets(),
+                'return_on_equity' => $this->calculateReturnOnEquity()
+            ],
+            'efficiency_ratios' => [
+                'asset_turnover' => $this->calculateAssetTurnover(),
+                'inventory_turnover' => $this->calculateInventoryTurnover(),
+                'receivables_turnover' => $this->calculateReceivablesTurnover()
+            ]
+        ];
+    }
+
+    private function calculateCashRatio() {
+        $result = $this->db->querySingle("
+            SELECT
+                SUM(CASE WHEN fa.account_name LIKE '%cash%' THEN ab.balance ELSE 0 END) as cash_equivalents,
+                SUM(CASE WHEN fa.account_category = 'current_liability' THEN ab.balance ELSE 0 END) as current_liabilities
+            FROM financial_accounts fa
+            LEFT JOIN account_balances ab ON fa.id = ab.account_id
+            WHERE fa.company_id = ?
+        ", [$this->user['company_id']]);
+
+        return $result['current_liabilities'] > 0 ? $result['cash_equivalents'] / $result['current_liabilities'] : 0;
+    }
+
+    private function calculateDebtRatio() {
+        $result = $this->db->querySingle("
+            SELECT
+                SUM(CASE WHEN fa.account_type = 'liability' THEN ab.balance ELSE 0 END) as total_liabilities,
+                SUM(CASE WHEN fa.account_type = 'asset' THEN ab.balance ELSE 0 END) as total_assets
+            FROM financial_accounts fa
+            LEFT JOIN account_balances ab ON fa.id = ab.account_id
+            WHERE fa.company_id = ?
+        ", [$this->user['company_id']]);
+
+        return $result['total_assets'] > 0 ? $result['total_liabilities'] / $result['total_assets'] : 0;
+    }
+
+    private function calculateInterestCoverage() {
+        $result = $this->db->querySingle("
+            SELECT
+                SUM(CASE WHEN fa.account_type = 'revenue' THEN ab.balance ELSE 0 END) - SUM(CASE WHEN fa.account_type = 'expense' THEN ab.balance ELSE 0 END) as ebit,
+                SUM(CASE WHEN fa.account_name LIKE '%interest%' THEN ab.balance ELSE 0 END) as interest_expense
+            FROM financial_accounts fa
+            LEFT JOIN account_balances ab ON fa.id = ab.account_id
+            WHERE fa.company_id = ?
+        ", [$this->user['company_id']]);
+
+        return $result['interest_expense'] > 0 ? $result['ebit'] / $result['interest_expense'] : 0;
+    }
+
+    private function calculateAssetTurnover() {
+        $result = $this->db->querySingle("
+            SELECT
+                SUM(CASE WHEN fa.account_type = 'revenue' THEN ab.balance ELSE 0 END) as total_revenue,
+                SUM(CASE WHEN fa.account_type = 'asset' THEN ab.balance ELSE 0 END) as total_assets
+            FROM financial_accounts fa
+            LEFT JOIN account_balances ab ON fa.id = ab.account_id
+            WHERE fa.company_id = ?
+        ", [$this->user['company_id']]);
+
+        return $result['total_assets'] > 0 ? $result['total_revenue'] / $result['total_assets'] : 0;
+    }
+
+    private function calculateInventoryTurnover() {
+        $result = $this->db->querySingle("
+            SELECT
+                SUM(CASE WHEN fa.account_type = 'cost_of_goods_sold' THEN ab.balance ELSE 0 END) as cost_of_goods_sold,
+                SUM(CASE WHEN fa.account_name LIKE '%inventory%' THEN ab.balance ELSE 0 END) as avg_inventory
+            FROM financial_accounts fa
+            LEFT JOIN account_balances ab ON fa.id = ab.account_id
+            WHERE fa.company_id = ?
+        ", [$this->user['company_id']]);
+
+        return $result['avg_inventory'] > 0 ? $result['cost_of_goods_sold'] / $result['avg_inventory'] : 0;
+    }
+
+    private function calculateReceivablesTurnover() {
+        $result = $this->db->querySingle("
+            SELECT
+                SUM(CASE WHEN fa.account_type = 'revenue' THEN ab.balance ELSE 0 END) as total_revenue,
+                SUM(CASE WHEN fa.account_name LIKE '%receivable%' THEN ab.balance ELSE 0 END) as avg_receivables
+            FROM financial_accounts fa
+            LEFT JOIN account_balances ab ON fa.id = ab.account_id
+            WHERE fa.company_id = ?
+        ", [$this->user['company_id']]);
+
+        return $result['avg_receivables'] > 0 ? $result['total_revenue'] / $result['avg_receivables'] : 0;
     }
 
     private function getTrendAnalysis() {
         return $this->db->query("
             SELECT
-                DATE_FORMAT(t.transaction_date, '%Y-%m') as month,
-                SUM(CASE WHEN a.account_type = 'revenue' THEN t.amount ELSE 0 END) as revenue,
-                SUM(CASE WHEN a.account_type = 'expense' THEN t.amount ELSE 0 END) as expenses,
-                (SUM(CASE WHEN a.account_type = 'revenue' THEN t.amount ELSE 0 END) - SUM(CASE WHEN a.account_type = 'expense' THEN t.amount ELSE 0 END)) as net_income,
-                ROUND(((SUM(CASE WHEN a.account_type = 'revenue' THEN t.amount ELSE 0 END) - SUM(CASE WHEN a.account_type = 'expense' THEN t.amount ELSE 0 END)) / NULLIF(SUM(CASE WHEN a.account_type = 'revenue' THEN t.amount ELSE 0 END), 0)) * 100, 2) as profit_margin
-            FROM transactions t
-            JOIN accounts a ON t.account_id = a.id
-            WHERE t.company_id = ? AND t.transaction_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
-            GROUP BY DATE_FORMAT(t.transaction_date, '%Y-%m')
-            ORDER BY month ASC
+                DATE(created_at) as period,
+                SUM(CASE WHEN account_type = 'revenue' THEN balance ELSE 0 END) as revenue,
+                SUM(CASE WHEN account_type = 'expense' THEN balance ELSE 0 END) as expenses,
+                SUM(CASE WHEN account_type = 'revenue' THEN balance ELSE 0 END) - SUM(CASE WHEN account_type = 'expense' THEN balance ELSE 0 END) as net_income
+            FROM financial_accounts fa
+            LEFT JOIN account_balances ab ON fa.id = ab.account_id
+            WHERE fa.company_id = ?
+            GROUP BY DATE(created_at)
+            ORDER BY period DESC
+            LIMIT 12
         ", [$this->user['company_id']]);
     }
 
-    private function getSegmentReporting() {
+    private function getComparativeReports() {
         return $this->db->query("
             SELECT
-                sr.segment_name,
-                sr.segment_type,
-                SUM(sr.revenue) as total_revenue,
-                SUM(sr.expenses) as total_expenses,
-                (SUM(sr.revenue) - SUM(sr.expenses)) as segment_profit,
-                ROUND(((SUM(sr.revenue) - SUM(sr.expenses)) / NULLIF(SUM(sr.revenue), 0)) * 100, 2) as profit_margin,
-                sr.reporting_period
-            FROM segment_reporting sr
-            WHERE sr.company_id = ?
-            GROUP BY sr.segment_name, sr.segment_type, sr.reporting_period
-            ORDER BY segment_profit DESC
+                cr.*,
+                cr.report_period,
+                cr.current_period_amount,
+                cr.previous_period_amount,
+                cr.percentage_change,
+                cr.report_type
+            FROM comparative_reports cr
+            WHERE cr.company_id = ?
+            ORDER BY cr.report_period DESC
         ", [$this->user['company_id']]);
     }
 
@@ -1186,52 +1055,43 @@ class Finance extends BaseController {
             SELECT
                 rr.*,
                 rr.report_name,
-                rr.report_type,
-                rr.reporting_period,
-                rr.submission_deadline,
+                rr.regulatory_body,
+                rr.filing_deadline,
                 rr.status,
-                rr.generated_date,
-                rr.submitted_date,
-                TIMESTAMPDIFF(DAY, CURDATE(), rr.submission_deadline) as days_until_deadline
+                rr.last_filed
             FROM regulatory_reports rr
             WHERE rr.company_id = ?
-            ORDER BY rr.submission_deadline ASC
+            ORDER BY rr.filing_deadline ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getCustomReports() {
+    private function getTaxCodes() {
         return $this->db->query("
             SELECT
-                cr.*,
-                cr.report_name,
-                cr.report_type,
-                cr.created_date,
-                cr.last_run_date,
-                cr.run_count,
-                u.first_name as created_by_first,
-                u.last_name as created_by_last
-            FROM custom_reports cr
-            LEFT JOIN users u ON cr.created_by = u.id
-            WHERE cr.company_id = ?
-            ORDER BY cr.last_run_date DESC
+                tc.*,
+                tc.tax_code,
+                tc.tax_rate,
+                tc.description,
+                tc.is_active,
+                tc.last_updated
+            FROM tax_codes tc
+            WHERE tc.company_id = ?
+            ORDER BY tc.tax_code ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getReportSchedules() {
+    private function getTaxRates() {
         return $this->db->query("
             SELECT
-                rs.*,
-                rs.schedule_name,
-                rs.report_type,
-                rs.frequency,
-                rs.next_run_date,
-                rs.last_run_date,
-                rs.recipients,
-                rs.is_active,
-                TIMESTAMPDIFF(DAY, CURDATE(), rs.next_run_date) as days_until_next
-            FROM report_schedules rs
-            WHERE rs.company_id = ?
-            ORDER BY rs.next_run_date ASC
+                tr.*,
+                tr.jurisdiction,
+                tr.tax_type,
+                tr.rate_percentage,
+                tr.effective_date,
+                tr.expiration_date
+            FROM tax_rates tr
+            WHERE tr.company_id = ?
+            ORDER BY tr.effective_date DESC
         ", [$this->user['company_id']]);
     }
 
@@ -1239,17 +1099,14 @@ class Finance extends BaseController {
         return $this->db->query("
             SELECT
                 tc.*,
-                tc.tax_year,
-                tc.tax_type,
-                tc.taxable_income,
-                tc.tax_rate,
+                tc.transaction_id,
+                tc.taxable_amount,
                 tc.tax_amount,
-                tc.payments_made,
-                tc.balance_due,
-                tc.filing_status
+                tc.tax_code_used,
+                tc.calculation_date
             FROM tax_calculations tc
             WHERE tc.company_id = ?
-            ORDER BY tc.tax_year DESC
+            ORDER BY tc.calculation_date DESC
         ", [$this->user['company_id']]);
     }
 
@@ -1257,64 +1114,45 @@ class Finance extends BaseController {
         return $this->db->query("
             SELECT
                 tf.*,
-                tf.tax_year,
-                tf.filing_type,
-                tf.filing_deadline,
-                tf.submission_date,
-                tf.status,
-                tf.processing_fee,
-                u.first_name as filed_by_first,
-                u.last_name as filed_by_last
+                tf.filing_period,
+                tf.tax_authority,
+                tf.amount_due,
+                tf.filing_status,
+                tf.due_date,
+                tf.filed_date
             FROM tax_filings tf
-            LEFT JOIN users u ON tf.filed_by = u.id
             WHERE tf.company_id = ?
-            ORDER BY tf.filing_deadline DESC
+            ORDER BY tf.due_date ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getTaxCredits() {
+    private function getTaxAuditTrail() {
         return $this->db->query("
             SELECT
-                tc.*,
-                tc.credit_type,
-                tc.credit_amount,
-                tc.claim_date,
-                tc.approval_date,
-                tc.status,
-                tc.expiration_date,
-                TIMESTAMPDIFF(DAY, CURDATE(), tc.expiration_date) as days_until_expiration
-            FROM tax_credits tc
-            WHERE tc.company_id = ?
-            ORDER BY tc.claim_date DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getTaxLiabilities() {
-        return $this->db->querySingle("
-            SELECT
-                SUM(tc.tax_amount) as total_tax_liability,
-                SUM(tc.payments_made) as total_payments_made,
-                (SUM(tc.tax_amount) - SUM(tc.payments_made)) as outstanding_liability,
-                COUNT(CASE WHEN tc.filing_status = 'pending' THEN 1 END) as pending_filings,
-                COUNT(CASE WHEN tc.filing_status = 'overdue' THEN 1 END) as overdue_filings,
-                MAX(tc.tax_year) as latest_tax_year
-            FROM tax_calculations tc
-            WHERE tc.company_id = ?
+                tat.*,
+                tat.action,
+                tat.transaction_id,
+                tat.old_value,
+                tat.new_value,
+                tat.user_id,
+                tat.timestamp
+            FROM tax_audit_trail tat
+            WHERE tat.company_id = ?
+            ORDER BY tat.timestamp DESC
         ", [$this->user['company_id']]);
     }
 
     private function getTaxCompliance() {
         return $this->db->querySingle("
             SELECT
-                COUNT(tf.id) as total_filings,
-                COUNT(CASE WHEN tf.status = 'filed_on_time' THEN 1 END) as on_time_filings,
-                ROUND((COUNT(CASE WHEN tf.status = 'filed_on_time' THEN 1 END) / NULLIF(COUNT(tf.id), 0)) * 100, 2) as compliance_rate,
-                COUNT(CASE WHEN tf.filing_deadline < CURDATE() AND tf.status = 'pending' THEN 1 END) as overdue_filings,
-                AVG(tc.tax_amount) as avg_tax_amount,
-                SUM(tc.balance_due) as total_outstanding
-            FROM tax_filings tf
-            LEFT JOIN tax_calculations tc ON tf.tax_year = tc.tax_year AND tf.company_id = tc.company_id
-            WHERE tf.company_id = ?
+                COUNT(*) as total_filings,
+                COUNT(CASE WHEN filing_status = 'on_time' THEN 1 END) as on_time_filings,
+                COUNT(CASE WHEN filing_status = 'late' THEN 1 END) as late_filings,
+                ROUND((COUNT(CASE WHEN filing_status = 'on_time' THEN 1 END) / NULLIF(COUNT(*), 0)) * 100, 2) as compliance_rate,
+                MAX(filed_date) as last_filing_date,
+                MIN(due_date) as next_due_date
+            FROM tax_filings
+            WHERE company_id = ?
         ", [$this->user['company_id']]);
     }
 
@@ -1322,176 +1160,112 @@ class Finance extends BaseController {
         return $this->db->query("
             SELECT
                 tp.*,
-                tp.planning_type,
-                tp.target_tax_year,
-                tp.estimated_savings,
-                tp.implementation_cost,
-                tp.roi_percentage,
-                tp.priority_level,
-                tp.implementation_date
+                tp.strategy_name,
+                tp.potential_savings,
+                tp.implementation_complexity,
+                tp.time_horizon,
+                tp.status
             FROM tax_planning tp
             WHERE tp.company_id = ?
-            ORDER BY tp.priority_level DESC, tp.estimated_savings DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getTaxAnalytics() {
-        return $this->db->querySingle("
-            SELECT
-                COUNT(DISTINCT tc.tax_year) as tax_years_filed,
-                SUM(tc.tax_amount) as total_tax_paid,
-                AVG(tc.tax_rate) as avg_effective_rate,
-                SUM(tc.balance_due) as current_liabilities,
-                COUNT(tc.id) as total_calculations,
-                MAX(tc.tax_year) as latest_year,
-                AVG(tc.taxable_income) as avg_taxable_income
-            FROM tax_calculations tc
-            WHERE tc.company_id = ?
-        ", [$this->user['company_id']]);
-    }
-
-    private function getTaxSettings() {
-        return $this->db->querySingle("
-            SELECT * FROM tax_settings
-            WHERE company_id = ?
+            ORDER BY tp.potential_savings DESC
         ", [$this->user['company_id']]);
     }
 
     private function getAssetRegister() {
         return $this->db->query("
             SELECT
-                fa.*,
-                fa.asset_name,
-                fa.asset_code,
-                fa.purchase_date,
-                fa.purchase_cost,
-                fa.accumulated_depreciation,
-                (fa.purchase_cost - fa.accumulated_depreciation) as book_value,
-                fa.depreciation_method,
-                fa.useful_life_years,
-                fa.location,
-                fa.status
-            FROM fixed_assets fa
-            WHERE fa.company_id = ?
-            ORDER BY fa.purchase_date DESC
+                ar.*,
+                ar.asset_name,
+                ar.asset_category,
+                ar.purchase_date,
+                ar.purchase_cost,
+                ar.current_value,
+                ar.depreciation_method,
+                ar.useful_life_years
+            FROM asset_register ar
+            WHERE ar.company_id = ?
+            ORDER BY ar.purchase_date DESC
         ", [$this->user['company_id']]);
     }
 
     private function getDepreciationSchedule() {
         return $this->db->query("
             SELECT
-                fa.asset_name,
-                fa.asset_code,
-                ds.depreciation_year,
+                ds.*,
+                ds.asset_id,
+                ds.depreciation_period,
                 ds.depreciation_amount,
                 ds.accumulated_depreciation,
                 ds.book_value,
-                ds.depreciation_method,
-                ds.fiscal_year
-            FROM fixed_assets fa
-            JOIN depreciation_schedule ds ON fa.id = ds.asset_id
-            WHERE fa.company_id = ?
-            ORDER BY fa.asset_name, ds.depreciation_year
+                ds.depreciation_date
+            FROM depreciation_schedule ds
+            WHERE ds.company_id = ?
+            ORDER BY ds.depreciation_date DESC
         ", [$this->user['company_id']]);
     }
 
     private function getAssetDisposals() {
         return $this->db->query("
             SELECT
-                fa.asset_name,
-                fa.asset_code,
+                ad.*,
+                ad.asset_id,
                 ad.disposal_date,
+                ad.disposal_value,
                 ad.disposal_method,
-                ad.disposal_proceeds,
-                ad.book_value_at_disposal,
-                (ad.disposal_proceeds - ad.book_value_at_disposal) as gain_loss,
-                ad.disposal_reason,
-                u.first_name as disposed_by_first,
-                u.last_name as disposed_by_last
-            FROM fixed_assets fa
-            JOIN asset_disposals ad ON fa.id = ad.asset_id
-            LEFT JOIN users u ON ad.disposed_by = u.id
-            WHERE fa.company_id = ?
+                ad.gain_loss_amount,
+                ad.reason_for_disposal
+            FROM asset_disposals ad
+            WHERE ad.company_id = ?
             ORDER BY ad.disposal_date DESC
         ", [$this->user['company_id']]);
     }
 
+    private function getMaintenanceCosts() {
+        return $this->db->query("
+            SELECT
+                mc.*,
+                mc.asset_id,
+                mc.maintenance_date,
+                mc.maintenance_type,
+                mc.cost,
+                mc.description,
+                mc.next_maintenance_date
+            FROM maintenance_costs mc
+            WHERE mc.company_id = ?
+            ORDER BY mc.maintenance_date DESC
+        ", [$this->user['company_id']]);
+    }
+
     private function getAssetValuation() {
-        return $this->db->querySingle("
-            SELECT
-                COUNT(fa.id) as total_assets,
-                SUM(fa.purchase_cost) as total_cost,
-                SUM(fa.accumulated_depreciation) as total_depreciation,
-                SUM(fa.purchase_cost - fa.accumulated_depreciation) as total_book_value,
-                AVG(fa.purchase_cost) as avg_asset_cost,
-                AVG(fa.purchase_cost - fa.accumulated_depreciation) as avg_book_value,
-                COUNT(CASE WHEN fa.status = 'active' THEN 1 END) as active_assets,
-                COUNT(CASE WHEN fa.status = 'disposed' THEN 1 END) as disposed_assets
-            FROM fixed_assets fa
-            WHERE fa.company_id = ?
-        ", [$this->user['company_id']]);
-    }
-
-    private function getLeaseAccounting() {
         return $this->db->query("
             SELECT
-                la.*,
-                la.lease_description,
-                la.lease_start_date,
-                la.lease_end_date,
-                la.monthly_payment,
-                la.present_value,
-                la.interest_rate,
-                la.lease_type,
-                la.remaining_term_months,
-                la.unamortized_balance
-            FROM lease_accounting la
-            WHERE la.company_id = ?
-            ORDER BY la.lease_end_date ASC
+                av.*,
+                av.asset_id,
+                av.valuation_date,
+                av.market_value,
+                av.book_value,
+                av.appraisal_method,
+                av.appraiser_name
+            FROM asset_valuation av
+            WHERE av.company_id = ?
+            ORDER BY av.valuation_date DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getImpairmentTesting() {
+    private function getInsuranceCoverage() {
         return $this->db->query("
             SELECT
-                fa.asset_name,
-                fa.asset_code,
-                it.testing_date,
-                it.carrying_amount,
-                it.recoverable_amount,
-                it.impairment_loss,
-                it.testing_method,
-                it.testing_frequency,
-                u.first_name as tested_by_first,
-                u.last_name as tested_by_last
-            FROM fixed_assets fa
-            JOIN impairment_testing it ON fa.id = it.asset_id
-            LEFT JOIN users u ON it.tested_by = u.id
-            WHERE fa.company_id = ?
-            ORDER BY it.testing_date DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getAssetAnalytics() {
-        return $this->db->querySingle("
-            SELECT
-                COUNT(fa.id) as total_assets,
-                SUM(fa.purchase_cost) as total_acquisition_cost,
-                SUM(fa.accumulated_depreciation) as total_depreciation,
-                AVG(fa.purchase_cost) as avg_asset_cost,
-                AVG(fa.useful_life_years) as avg_useful_life,
-                COUNT(DISTINCT fa.location) as locations_used,
-                COUNT(CASE WHEN fa.status = 'active' THEN 1 END) as active_assets,
-                ROUND((SUM(fa.accumulated_depreciation) / NULLIF(SUM(fa.purchase_cost), 0)) * 100, 2) as overall_depreciation_rate
-            FROM fixed_assets fa
-            WHERE fa.company_id = ?
-        ", [$this->user['company_id']]);
-    }
-
-    private function getAssetSettings() {
-        return $this->db->querySingle("
-            SELECT * FROM asset_settings
-            WHERE company_id = ?
+                ic.*,
+                ic.asset_id,
+                ic.insurance_policy,
+                ic.coverage_amount,
+                ic.premium_amount,
+                ic.coverage_start_date,
+                ic.coverage_end_date,
+                ic.insurance_provider
+            FROM insurance_coverage ic
+            WHERE ic.company_id = ?
+            ORDER BY ic.coverage_end_date ASC
         ", [$this->user['company_id']]);
     }
 
@@ -1503,30 +1277,41 @@ class Finance extends BaseController {
                 cr.to_currency,
                 cr.exchange_rate,
                 cr.effective_date,
-                cr.source,
-                cr.last_updated,
-                TIMESTAMPDIFF(HOUR, cr.last_updated, NOW()) as hours_since_update
+                cr.source
             FROM currency_rates cr
             WHERE cr.company_id = ?
-            ORDER BY cr.last_updated DESC
+            ORDER BY cr.effective_date DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getCurrencyPositions() {
+    private function getExchangeRateHistory() {
         return $this->db->query("
             SELECT
-                cp.*,
-                cp.currency_code,
-                cp.balance_amount,
-                cp.average_rate,
-                cp.current_rate,
-                (cp.balance_amount * (cp.current_rate - cp.average_rate)) as unrealized_gain_loss,
-                cp.position_type,
-                cp.maturity_date,
-                TIMESTAMPDIFF(DAY, CURDATE(), cp.maturity_date) as days_to_maturity
-            FROM currency_positions cp
-            WHERE cp.company_id = ?
-            ORDER BY ABS(cp.balance_amount) DESC
+                erh.*,
+                erh.currency_pair,
+                erh.exchange_rate,
+                erh.date,
+                erh.source
+            FROM exchange_rate_history erh
+            WHERE erh.company_id = ?
+            ORDER BY erh.date DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getCurrencyConversion() {
+        return $this->db->query("
+            SELECT
+                cc.*,
+                cc.transaction_id,
+                cc.original_amount,
+                cc.original_currency,
+                cc.converted_amount,
+                cc.converted_currency,
+                cc.exchange_rate_used,
+                cc.conversion_date
+            FROM currency_conversion cc
+            WHERE cc.company_id = ?
+            ORDER BY cc.conversion_date DESC
         ", [$this->user['company_id']]);
     }
 
@@ -1535,48 +1320,28 @@ class Finance extends BaseController {
             SELECT
                 hs.*,
                 hs.strategy_name,
-                hs.hedge_type,
-                hs.notional_amount,
-                hs.hedge_rate,
+                hs.currency_pair,
+                hs.contract_amount,
                 hs.maturity_date,
-                hs.effectiveness_percentage,
-                hs.counterparty,
-                TIMESTAMPDIFF(DAY, CURDATE(), hs.maturity_date) as days_to_maturity
+                hs.hedge_effectiveness,
+                hs.status
             FROM hedging_strategies hs
             WHERE hs.company_id = ?
             ORDER BY hs.maturity_date ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getFXGainsLosses() {
-        return $this->db->query("
-            SELECT
-                DATE_FORMAT(fx.transaction_date, '%Y-%m') as month,
-                SUM(fx.gain_loss_amount) as total_fx_gain_loss,
-                SUM(CASE WHEN fx.gain_loss_amount > 0 THEN fx.gain_loss_amount ELSE 0 END) as realized_gains,
-                SUM(CASE WHEN fx.gain_loss_amount < 0 THEN ABS(fx.gain_loss_amount) ELSE 0 END) as realized_losses,
-                COUNT(fx.id) as fx_transactions,
-                AVG(fx.exchange_rate) as avg_exchange_rate
-            FROM fx_gains_losses fx
-            WHERE fx.company_id = ? AND fx.transaction_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
-            GROUP BY DATE_FORMAT(fx.transaction_date, '%Y-%m')
-            ORDER BY month DESC
-        ", [$this->user['company_id']]);
-    }
-
     private function getCurrencyRisk() {
         return $this->db->querySingle("
             SELECT
-                COUNT(DISTINCT cp.currency_code) as currencies_held,
-                SUM(ABS(cp.balance_amount)) as total_exposure,
-                SUM(ABS(cp.balance_amount * (cp.current_rate - cp.average_rate))) as total_unrealized_risk,
-                COUNT(CASE WHEN ABS(cp.balance_amount * (cp.current_rate - cp.average_rate)) > 10000 THEN 1 END) as high_risk_positions,
-                AVG(ABS(cp.balance_amount * (cp.current_rate - cp.average_rate))) as avg_position_risk,
-                COUNT(hs.id) as active_hedges,
-                ROUND((COUNT(hs.id) / NULLIF(COUNT(DISTINCT cp.currency_code), 0)) * 100, 2) as hedge_coverage_percentage
-            FROM currency_positions cp
-            LEFT JOIN hedging_strategies hs ON cp.currency_code = hs.currency_code AND hs.company_id = cp.company_id
-            WHERE cp.company_id = ?
+                COUNT(*) as total_exposure,
+                SUM(CASE WHEN exposure_type = 'transaction' THEN amount ELSE 0 END) as transaction_exposure,
+                SUM(CASE WHEN exposure_type = 'translation' THEN amount ELSE 0 END) as translation_exposure,
+                SUM(CASE WHEN exposure_type = 'economic' THEN amount ELSE 0 END) as economic_exposure,
+                AVG(volatility_percentage) as avg_volatility,
+                MAX(volatility_percentage) as max_volatility
+            FROM currency_risk
+            WHERE company_id = ?
         ", [$this->user['company_id']]);
     }
 
@@ -1584,146 +1349,435 @@ class Finance extends BaseController {
         return $this->db->query("
             SELECT
                 ta.*,
-                ta.adjustment_period,
-                ta.functional_currency,
-                ta.foreign_currency,
-                ta.exchange_rate,
-                ta.adjustment_amount,
-                ta.adjustment_type,
-                ta.affected_accounts,
-                ta.created_date
+                ta.account_id,
+                ta.original_amount,
+                ta.adjusted_amount,
+                ta.exchange_rate_used,
+                ta.adjustment_date,
+                ta.adjustment_reason
             FROM translation_adjustments ta
             WHERE ta.company_id = ?
-            ORDER BY ta.created_date DESC
+            ORDER BY ta.adjustment_date DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getCurrencyAnalytics() {
-        return $this->db->querySingle("
-            SELECT
-                COUNT(DISTINCT cr.from_currency) as currencies_used,
-                COUNT(cr.id) as total_rate_updates,
-                AVG(TIMESTAMPDIFF(HOUR, cr.last_updated, NOW())) as avg_update_frequency,
-                COUNT(DISTINCT cp.currency_code) as currencies_with_positions,
-                SUM(ABS(cp.balance_amount)) as total_currency_exposure,
-                COUNT(CASE WHEN ABS(cp.balance_amount * (cp.current_rate - cp.average_rate)) > 5000 THEN 1 END) as significant_exposure_positions
-            FROM currency_rates cr
-            LEFT JOIN currency_positions cp ON cr.from_currency = cp.currency_code AND cr.company_id = cp.company_id
-            WHERE cr.company_id = ?
-        ", [$this->user['company_id']]);
+    // ============================================================================
+    // API ENDPOINTS
+    // ============================================================================
+
+    public function createJournalEntry() {
+        $this->requirePermission('finance.journal_entry.create');
+
+        $data = $this->validateRequest([
+            'reference' => 'required|string',
+            'date' => 'required|date',
+            'description' => 'required|string',
+            'entries' => 'required|array'
+        ]);
+
+        try {
+            // Start transaction
+            $this->db->beginTransaction();
+
+            // Create journal entry
+            $journalId = $this->db->insert('journal_entries', [
+                'company_id' => $this->user['company_id'],
+                'journal_reference' => $data['reference'],
+                'entry_date' => $data['date'],
+                'description' => $data['description'],
+                'status' => 'posted',
+                'created_by' => $this->user['id']
+            ]);
+
+            $totalDebit = 0;
+            $totalCredit = 0;
+
+            // Create ledger entries
+            foreach ($data['entries'] as $entry) {
+                $debitAmount = $entry['debit_amount'] ?? 0;
+                $creditAmount = $entry['credit_amount'] ?? 0;
+
+                $this->db->insert('ledger_entries', [
+                    'company_id' => $this->user['company_id'],
+                    'journal_entry_id' => $journalId,
+                    'account_id' => $entry['account_id'],
+                    'entry_date' => $data['date'],
+                    'description' => $entry['description'] ?? $data['description'],
+                    'debit_amount' => $debitAmount,
+                    'credit_amount' => $creditAmount,
+                    'created_by' => $this->user['id']
+                ]);
+
+                $totalDebit += $debitAmount;
+                $totalCredit += $creditAmount;
+            }
+
+            // Validate that debits equal credits
+            if (abs($totalDebit - $totalCredit) > 0.01) {
+                $this->db->rollback();
+                $this->jsonResponse(['error' => 'Debits must equal credits'], 400);
+            }
+
+            // Update journal entry totals
+            $this->db->update('journal_entries', [
+                'total_debit' => $totalDebit,
+                'total_credit' => $totalCredit
+            ], 'id = ?', [$journalId]);
+
+            $this->db->commit();
+
+            $this->jsonResponse([
+                'success' => true,
+                'journal_id' => $journalId,
+                'message' => 'Journal entry created successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->db->rollback();
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
-    private function getCurrencySettings() {
-        return $this->db->querySingle("
-            SELECT * FROM currency_settings
-            WHERE company_id = ?
-        ", [$this->user['company_id']]);
+    public function createInvoice() {
+        $this->requirePermission('finance.invoice.create');
+
+        $data = $this->validateRequest([
+            'customer_id' => 'required|integer',
+            'invoice_date' => 'required|date',
+            'due_date' => 'required|date',
+            'items' => 'required|array',
+            'tax_rate' => 'numeric',
+            'notes' => 'string'
+        ]);
+
+        try {
+            $this->db->beginTransaction();
+
+            // Calculate totals
+            $subtotal = 0;
+            foreach ($data['items'] as $item) {
+                $subtotal += $item['quantity'] * $item['unit_price'];
+            }
+
+            $taxAmount = $subtotal * ($data['tax_rate'] ?? 0) / 100;
+            $total = $subtotal + $taxAmount;
+
+            // Create invoice
+            $invoiceId = $this->db->insert('customer_invoices', [
+                'company_id' => $this->user['company_id'],
+                'customer_id' => $data['customer_id'],
+                'invoice_number' => $this->generateInvoiceNumber(),
+                'invoice_date' => $data['invoice_date'],
+                'due_date' => $data['due_date'],
+                'subtotal' => $subtotal,
+                'tax_amount' => $taxAmount,
+                'total_amount' => $total,
+                'status' => 'sent',
+                'notes' => $data['notes'] ?? '',
+                'created_by' => $this->user['id']
+            ]);
+
+            // Create invoice items
+            foreach ($data['items'] as $item) {
+                $this->db->insert('invoice_items', [
+                    'invoice_id' => $invoiceId,
+                    'item_description' => $item['description'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'line_total' => $item['quantity'] * $item['unit_price']
+                ]);
+            }
+
+            $this->db->commit();
+
+            $this->jsonResponse([
+                'success' => true,
+                'invoice_id' => $invoiceId,
+                'invoice_number' => $this->getInvoiceNumber($invoiceId),
+                'message' => 'Invoice created successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->db->rollback();
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
-    private function getProfitabilityAnalysis() {
+    private function generateInvoiceNumber() {
+        $year = date('Y');
+        $count = $this->db->querySingle("
+            SELECT COUNT(*) as count FROM customer_invoices
+            WHERE company_id = ? AND YEAR(invoice_date) = ?
+        ", [$this->user['company_id'], $year]);
+
+        return 'INV-' . $year . '-' . str_pad($count['count'] + 1, 4, '0', STR_PAD_LEFT);
+    }
+
+    private function getInvoiceNumber($invoiceId) {
+        $invoice = $this->db->querySingle("
+            SELECT invoice_number FROM customer_invoices WHERE id = ?
+        ", [$invoiceId]);
+
+        return $invoice['invoice_number'];
+    }
+
+    public function recordPayment() {
+        $this->requirePermission('finance.payment.record');
+
+        $data = $this->validateRequest([
+            'invoice_id' => 'required|integer',
+            'payment_date' => 'required|date',
+            'amount' => 'required|numeric',
+            'payment_method' => 'required|string',
+            'reference' => 'string',
+            'notes' => 'string'
+        ]);
+
+        try {
+            $this->db->beginTransaction();
+
+            // Get invoice details
+            $invoice = $this->db->querySingle("
+                SELECT * FROM customer_invoices WHERE id = ? AND company_id = ?
+            ", [$data['invoice_id'], $this->user['company_id']]);
+
+            if (!$invoice) {
+                $this->jsonResponse(['error' => 'Invoice not found'], 404);
+            }
+
+            // Create payment receipt
+            $receiptId = $this->db->insert('payment_receipts', [
+                'company_id' => $this->user['company_id'],
+                'invoice_id' => $data['invoice_id'],
+                'receipt_number' => $this->generateReceiptNumber(),
+                'payment_date' => $data['payment_date'],
+                'amount' => $data['amount'],
+                'payment_method' => $data['payment_method'],
+                'reference' => $data['reference'] ?? '',
+                'notes' => $data['notes'] ?? '',
+                'created_by' => $this->user['id']
+            ]);
+
+            // Update invoice status
+            $paidAmount = $this->getPaidAmount($data['invoice_id']);
+            $newPaidAmount = $paidAmount + $data['amount'];
+
+            if ($newPaidAmount >= $invoice['total_amount']) {
+                $status = 'paid';
+            } elseif ($newPaidAmount > 0) {
+                $status = 'partially_paid';
+            } else {
+                $status = $invoice['status'];
+            }
+
+            $this->db->update('customer_invoices', [
+                'status' => $status,
+                'paid_amount' => $newPaidAmount
+            ], 'id = ?', [$data['invoice_id']]);
+
+            $this->db->commit();
+
+            $this->jsonResponse([
+                'success' => true,
+                'receipt_id' => $receiptId,
+                'receipt_number' => $this->getReceiptNumber($receiptId),
+                'message' => 'Payment recorded successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->db->rollback();
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function generateReceiptNumber() {
+        $year = date('Y');
+        $count = $this->db->querySingle("
+            SELECT COUNT(*) as count FROM payment_receipts
+            WHERE company_id = ? AND YEAR(payment_date) = ?
+        ", [$this->user['company_id'], $year]);
+
+        return 'REC-' . $year . '-' . str_pad($count['count'] + 1, 4, '0', STR_PAD_LEFT);
+    }
+
+    private function getReceiptNumber($receiptId) {
+        $receipt = $this->db->querySingle("
+            SELECT receipt_number FROM payment_receipts WHERE id = ?
+        ", [$receiptId]);
+
+        return $receipt['receipt_number'];
+    }
+
+    private function getPaidAmount($invoiceId) {
+        $result = $this->db->querySingle("
+            SELECT COALESCE(SUM(amount), 0) as paid_amount
+            FROM payment_receipts
+            WHERE invoice_id = ?
+        ", [$invoiceId]);
+
+        return $result['paid_amount'];
+    }
+
+    public function generateFinancialReport() {
+        $this->requirePermission('finance.reporting.generate');
+
+        $data = $this->validateRequest([
+            'report_type' => 'required|string',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date',
+            'format' => 'required|string'
+        ]);
+
+        try {
+            $reportData = [];
+
+            switch ($data['report_type']) {
+                case 'income_statement':
+                    $reportData = $this->getIncomeStatement();
+                    break;
+                case 'balance_sheet':
+                    $reportData = $this->getBalanceSheetReport();
+                    break;
+                case 'cash_flow':
+                    $reportData = $this->getCashFlowStatement();
+                    break;
+                case 'trial_balance':
+                    $reportData = $this->getTrialBalance();
+                    break;
+                default:
+                    $this->jsonResponse(['error' => 'Invalid report type'], 400);
+            }
+
+            // Create report record
+            $reportId = $this->db->insert('financial_reports', [
+                'company_id' => $this->user['company_id'],
+                'report_type' => $data['report_type'],
+                'start_date' => $data['start_date'],
+                'end_date' => $data['end_date'],
+                'format' => $data['format'],
+                'generated_by' => $this->user['id'],
+                'generated_at' => date('Y-m-d H:i:s'),
+                'data' => json_encode($reportData)
+            ]);
+
+            $this->jsonResponse([
+                'success' => true,
+                'report_id' => $reportId,
+                'data' => $reportData,
+                'message' => 'Financial report generated successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function getTrialBalance() {
         return $this->db->query("
             SELECT
-                pa.product_service,
-                pa.revenue,
-                pa.direct_costs,
-                pa.contribution_margin,
-                ROUND((pa.contribution_margin / NULLIF(pa.revenue, 0)) * 100, 2) as contribution_margin_percentage,
-                pa.indirect_costs,
-                pa.net_profit,
-                ROUND((pa.net_profit / NULLIF(pa.revenue, 0)) * 100, 2) as profit_margin_percentage,
-                pa.analysis_period
-            FROM profitability_analysis pa
-            WHERE pa.company_id = ?
-            ORDER BY pa.net_profit DESC
+                fa.account_code,
+                fa.account_name,
+                SUM(le.debit_amount) as debit_total,
+                SUM(le.credit_amount) as credit_total,
+                (SUM(le.debit_amount) - SUM(le.credit_amount)) as balance
+            FROM financial_accounts fa
+            LEFT JOIN ledger_entries le ON fa.id = le.account_id
+            WHERE fa.company_id = ?
+            GROUP BY fa.id, fa.account_code, fa.account_name
+            HAVING ABS(SUM(le.debit_amount) - SUM(le.credit_amount)) > 0.01
+            ORDER BY fa.account_code ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getCashFlowAnalysis() {
-        return $this->db->querySingle("
-            SELECT
-                SUM(CASE WHEN cf.cash_flow_type = 'operating' THEN cf.amount ELSE 0 END) as operating_cash_flow,
-                SUM(CASE WHEN cf.cash_flow_type = 'investing' THEN cf.amount ELSE 0 END) as investing_cash_flow,
-                SUM(CASE WHEN cf.cash_flow_type = 'financing' THEN cf.amount ELSE 0 END) as financing_cash_flow,
-                SUM(cf.amount) as net_cash_flow,
-                COUNT(CASE WHEN cf.amount < 0 THEN 1 END) as negative_cash_flow_periods,
-                AVG(cf.amount) as avg_monthly_cash_flow,
-                MIN(cf.amount) as lowest_cash_flow,
-                MAX(cf.amount) as highest_cash_flow
-            FROM cash_flow_analysis cf
-            WHERE cf.company_id = ?
-        ", [$this->user['company_id']]);
+    public function approveTransaction() {
+        $this->requirePermission('finance.transaction.approve');
+
+        $data = $this->validateRequest([
+            'transaction_id' => 'required|integer',
+            'approval_notes' => 'string'
+        ]);
+
+        try {
+            $this->db->update('pending_approvals', [
+                'status' => 'approved',
+                'approved_by' => $this->user['id'],
+                'approved_at' => date('Y-m-d H:i:s'),
+                'approval_notes' => $data['approval_notes'] ?? ''
+            ], 'id = ? AND company_id = ?', [
+                $data['transaction_id'],
+                $this->user['company_id']
+            ]);
+
+            $this->jsonResponse([
+                'success' => true,
+                'message' => 'Transaction approved successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
-    private function getWorkingCapital() {
-        return $this->db->querySingle("
-            SELECT
-                SUM(CASE WHEN a.account_subtype = 'current_assets' THEN a.balance ELSE 0 END) as current_assets,
-                SUM(CASE WHEN a.account_subtype = 'current_liabilities' THEN a.balance ELSE 0 END) as current_liabilities,
-                (SUM(CASE WHEN a.account_subtype = 'current_assets' THEN a.balance ELSE 0 END) - SUM(CASE WHEN a.account_subtype = 'current_liabilities' THEN a.balance ELSE 0 END)) as working_capital,
-                ROUND(((SUM(CASE WHEN a.account_subtype = 'current_assets' THEN a.balance ELSE 0 END) - SUM(CASE WHEN a.account_subtype = 'current_liabilities' THEN a.balance ELSE 0 END)) / NULLIF(SUM(CASE WHEN a.account_subtype = 'current_liabilities' THEN a.balance ELSE 0 END), 0)), 2) as working_capital_ratio,
-                SUM(CASE WHEN a.account_subtype = 'inventory' THEN a.balance ELSE 0 END) as inventory_value,
-                SUM(CASE WHEN a.account_subtype = 'receivables' THEN a.balance ELSE 0 END) as receivables_value,
-                SUM(CASE WHEN a.account_subtype = 'payables' THEN a.balance ELSE 0 END) as payables_value
-            FROM accounts a
-            WHERE a.company_id = ?
-        ", [$this->user['company_id']]);
-    }
+    public function calculateTax() {
+        $this->requirePermission('finance.tax.calculate');
 
-    private function getBenchmarking() {
-        return $this->db->query("
-            SELECT
-                b.metric_name,
-                b.company_value,
-                b.industry_average,
-                b.top_performer,
-                ROUND(((b.company_value - b.industry_average) / NULLIF(b.industry_average, 0)) * 100, 2) as variance_from_average,
-                CASE
-                    WHEN b.company_value >= b.top_performer THEN 'leader'
-                    WHEN b.company_value >= b.industry_average THEN 'above_average'
-                    WHEN b.company_value >= b.industry_average * 0.9 THEN 'average'
-                    ELSE 'below_average'
-                END as performance_level,
-                b.benchmark_period
-            FROM benchmarking b
-            WHERE b.company_id = ?
-            ORDER BY ABS(b.company_value - b.industry_average) DESC
-        ", [$this->user['company_id']]);
-    }
+        $data = $this->validateRequest([
+            'taxable_amount' => 'required|numeric',
+            'tax_code' => 'required|string',
+            'transaction_date' => 'required|date'
+        ]);
 
-    private function getPredictiveModeling() {
-        return $this->db->query("
-            SELECT
-                pm.model_name,
-                pm.target_metric,
-                pm.prediction_accuracy,
-                pm.confidence_interval,
-                pm.prediction_horizon,
-                pm.last_run_date,
-                pm.next_run_date,
-                pm.model_status,
-                TIMESTAMPDIFF(DAY, CURDATE(), pm.next_run_date) as days_until_next_run
-            FROM predictive_models pm
-            WHERE pm.company_id = ?
-            ORDER BY pm.prediction_accuracy DESC
-        ", [$this->user['company_id']]);
-    }
+        try {
+            // Get tax rate
+            $taxRate = $this->db->querySingle("
+                SELECT tax_rate FROM tax_codes
+                WHERE tax_code = ? AND company_id = ? AND is_active = true
+            ", [$data['tax_code'], $this->user['company_id']]);
 
-    private function getCustomDashboards() {
-        return $this->db->query("
-            SELECT
-                cd.*,
-                cd.dashboard_name,
-                cd.dashboard_type,
-                cd.created_date,
-                cd.last_modified,
-                cd.created_by,
-                cd.access_level,
-                COUNT(cdw.id) as widget_count
-            FROM custom_dashboards cd
-            LEFT JOIN custom_dashboard_widgets cdw ON cd.id = cdw.dashboard_id
-            WHERE cd.company_id = ?
-            GROUP BY cd.id
-            ORDER BY cd.last_modified DESC
-        ", [$this->user['company_id']]);
+            if (!$taxRate) {
+                $this->jsonResponse(['error' => 'Invalid tax code'], 400);
+            }
+
+            $taxAmount = $data['taxable_amount'] * $taxRate['tax_rate'] / 100;
+
+            // Record tax calculation
+            $this->db->insert('tax_calculations', [
+                'company_id' => $this->user['company_id'],
+                'taxable_amount' => $data['taxable_amount'],
+                'tax_amount' => $taxAmount,
+                'tax_code_used' => $data['tax_code'],
+                'calculation_date' => $data['transaction_date'],
+                'calculated_by' => $this->user['id']
+            ]);
+
+            $this->jsonResponse([
+                'success' => true,
+                'tax_amount' => $taxAmount,
+                'tax_rate' => $taxRate['tax_rate'],
+                'total_amount' => $data['taxable_amount'] + $taxAmount
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
+?>

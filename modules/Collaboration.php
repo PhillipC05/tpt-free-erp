@@ -992,166 +992,51 @@ class Collaboration extends BaseController {
         }
     }
 
-    public function uploadFile() {
-        $this->requirePermission('collaboration.files.upload');
-
-        try {
-            $file = $_FILES['file'];
-            $description = $_POST['description'] ?? '';
-            $isShared = isset($_POST['is_shared']) ? (bool)$_POST['is_shared'] : false;
-
-            // Validate file
-            if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
-                throw new Exception('File upload failed');
-            }
-
-            // Generate unique filename
-            $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-            $filename = uniqid() . '_' . time() . '.' . $extension;
-            $filepath = '/uploads/files/' . $filename;
-
-            // Move uploaded file
-            if (!move_uploaded_file($file['tmp_name'], $filepath)) {
-                throw new Exception('Failed to save file');
-            }
-
-            $fileId = $this->db->insert('files', [
-                'company_id' => $this->user['company_id'],
-                'name' => $file['name'],
-                'filename' => $filename,
-                'filepath' => $filepath,
-                'file_type' => $this->getFileType($extension),
-                'file_size_bytes' => $file['size'],
-                'mime_type' => $file['type'],
-                'description' => $description,
-                'is_shared' => $isShared,
-                'uploaded_by' => $this->user['id']
-            ]);
-
-            $this->jsonResponse([
-                'success' => true,
-                'file_id' => $fileId,
-                'filename' => $filename,
-                'message' => 'File uploaded successfully'
-            ]);
-
-        } catch (Exception $e) {
-            $this->jsonResponse([
-                'success' => false,
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    private function getFileType($extension) {
-        $types = [
-            'pdf' => 'documents',
-            'doc' => 'documents',
-            'docx' => 'documents',
-            'txt' => 'documents',
-            'jpg' => 'images',
-            'jpeg' => 'images',
-            'png' => 'images',
-            'gif' => 'images',
-            'mp4' => 'videos',
-            'avi' => 'videos',
-            'mp3' => 'audio',
-            'wav' => 'audio',
-            'zip' => 'archives',
-            'rar' => 'archives',
-            'xls' => 'spreadsheets',
-            'xlsx' => 'spreadsheets',
-            'ppt' => 'presentations',
-            'pptx' => 'presentations'
-        ];
-
-        return $types[$extension] ?? 'other';
-    }
-
-    public function createDocument() {
-        $this->requirePermission('collaboration.documents.create');
+    public function createChannel() {
+        $this->requirePermission('collaboration.messaging.create_channel');
 
         $data = $this->validateRequest([
-            'title' => 'required|string',
-            'content' => 'string',
-            'template_id' => 'integer',
-            'is_collaborative' => 'boolean'
+            'name' => 'required|string',
+            'description' => 'string',
+            'is_private' => 'boolean',
+            'members' => 'array'
         ]);
 
         try {
-            $documentId = $this->db->insert('documents', [
+            $channelId = $this->db->insert('channels', [
                 'company_id' => $this->user['company_id'],
-                'title' => $data['title'],
-                'content' => $data['content'] ?? '',
-                'template_id' => $data['template_id'] ?? null,
-                'is_collaborative' => $data['is_collaborative'] ?? false,
-                'status' => 'draft',
-                'created_by' => $this->user['id']
+                'name' => $data['name'],
+                'description' => $data['description'] ?? '',
+                'is_private' => $data['is_private'] ?? false,
+                'is_active' => true,
+                'created_by' => $this->user['id'],
+                'last_activity_at' => date('Y-m-d H:i:s')
             ]);
 
-            // Add creator as collaborator
-            $this->db->insert('document_collaborators', [
-                'company_id' => $this->user['company_id'],
-                'document_id' => $documentId,
+            // Add creator as member
+            $this->db->insert('channel_members', [
+                'channel_id' => $channelId,
                 'user_id' => $this->user['id'],
-                'permission_level' => 'owner',
-                'added_at' => date('Y-m-d H:i:s')
+                'role' => 'admin',
+                'joined_at' => date('Y-m-d H:i:s')
             ]);
 
-            $this->jsonResponse([
-                'success' => true,
-                'document_id' => $documentId,
-                'message' => 'Document created successfully'
-            ]);
-
-        } catch (Exception $e) {
-            $this->jsonResponse([
-                'success' => false,
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function startMeeting() {
-        $this->requirePermission('collaboration.video.start');
-
-        $data = $this->validateRequest([
-            'title' => 'required|string',
-            'room_id' => 'integer',
-            'is_recording' => 'boolean',
-            'participants' => 'array'
-        ]);
-
-        try {
-            $meetingId = $this->db->insert('video_meetings', [
-                'company_id' => $this->user['company_id'],
-                'title' => $data['title'],
-                'room_id' => $data['room_id'] ?? null,
-                'host_id' => $this->user['id'],
-                'meeting_type' => 'instant',
-                'status' => 'active',
-                'is_recording' => $data['is_recording'] ?? false,
-                'started_at' => date('Y-m-d H:i:s'),
-                'meeting_code' => $this->generateMeetingCode()
-            ]);
-
-            // Add participants
-            if (!empty($data['participants'])) {
-                foreach ($data['participants'] as $participantId) {
-                    $this->db->insert('video_meeting_participants', [
-                        'meeting_id' => $meetingId,
-                        'user_id' => $participantId,
-                        'joined_at' => date('Y-m-d H:i:s'),
-                        'status' => 'invited'
+            // Add other members if provided
+            if (!empty($data['members'])) {
+                foreach ($data['members'] as $memberId) {
+                    $this->db->insert('channel_members', [
+                        'channel_id' => $channelId,
+                        'user_id' => $memberId,
+                        'role' => 'member',
+                        'joined_at' => date('Y-m-d H:i:s')
                     ]);
                 }
             }
 
             $this->jsonResponse([
                 'success' => true,
-                'meeting_id' => $meetingId,
-                'meeting_code' => $this->generateMeetingCode(),
-                'message' => 'Meeting started successfully'
+                'channel_id' => $channelId,
+                'message' => 'Channel created successfully'
             ]);
 
         } catch (Exception $e) {
@@ -1162,42 +1047,818 @@ class Collaboration extends BaseController {
         }
     }
 
-    private function generateMeetingCode() {
-        return strtoupper(substr(md5(uniqid()), 0, 8));
+    public function shareFile() {
+        $this->requirePermission('collaboration.files.share');
+
+        $data = $this->validateRequest([
+            'file_id' => 'required|integer',
+            'shared_with' => 'required|array',
+            'permissions' => 'required|string',
+            'message' => 'string'
+        ]);
+
+        try {
+            $file = $this->db->querySingle("
+                SELECT * FROM files
+                WHERE id = ? AND company_id = ?
+            ", [$data['file_id'], $this->user['company_id']]);
+
+            if (!$file) {
+                throw new Exception('File not found');
+            }
+
+            // Share with each user
+            foreach ($data['shared_with'] as $userId) {
+                $this->db->insert('file_permissions', [
+                    'company_id' => $this->user['company_id'],
+                    'file_id' => $data['file_id'],
+                    'shared_by' => $this->user['id'],
+                    'shared_with' => $userId,
+                    'permissions' => $data['permissions'],
+                    'shared_at' => date('Y-m-d H:i:s')
+                ]);
+
+                // Send notification
+                $this->sendFileShareNotification($userId, $file, $data['message'] ?? '');
+            }
+
+            // Update file as shared
+            $this->db->update('files', [
+                'is_shared' => true
+            ], 'id = ?', [$data['file_id']]);
+
+            $this->jsonResponse([
+                'success' => true,
+                'message' => 'File shared successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
-    public function createTask() {
-        $this->requirePermission('collaboration.tasks.create');
+    private function sendFileShareNotification($userId, $file, $message) {
+        // Implementation for sending file share notification
+        // This would integrate with the notification system
+    }
+
+    public function addDocumentCollaborator() {
+        $this->requirePermission('collaboration.documents.collaborate');
+
+        $data = $this->validateRequest([
+            'document_id' => 'required|integer',
+            'user_id' => 'required|integer',
+            'permission_level' => 'required|string'
+        ]);
+
+        try {
+            $document = $this->db->querySingle("
+                SELECT * FROM documents
+                WHERE id = ? AND company_id = ?
+            ", [$data['document_id'], $this->user['company_id']]);
+
+            if (!$document) {
+                throw new Exception('Document not found');
+            }
+
+            // Check if user is already a collaborator
+            $existing = $this->db->querySingle("
+                SELECT id FROM document_collaborators
+                WHERE document_id = ? AND user_id = ?
+            ", [$data['document_id'], $data['user_id']]);
+
+            if ($existing) {
+                // Update permission level
+                $this->db->update('document_collaborators', [
+                    'permission_level' => $data['permission_level'],
+                    'last_accessed' => date('Y-m-d H:i:s')
+                ], 'id = ?', [$existing['id']]);
+            } else {
+                // Add new collaborator
+                $this->db->insert('document_collaborators', [
+                    'company_id' => $this->user['company_id'],
+                    'document_id' => $data['document_id'],
+                    'user_id' => $data['user_id'],
+                    'permission_level' => $data['permission_level'],
+                    'added_by' => $this->user['id'],
+                    'added_at' => date('Y-m-d H:i:s'),
+                    'last_accessed' => date('Y-m-d H:i:s')
+                ]);
+            }
+
+            $this->jsonResponse([
+                'success' => true,
+                'message' => 'Collaborator added successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function scheduleMeeting() {
+        $this->requirePermission('collaboration.video.schedule');
 
         $data = $this->validateRequest([
             'title' => 'required|string',
             'description' => 'string',
-            'board_id' => 'required|integer',
-            'assigned_to' => 'integer',
-            'due_date' => 'date',
-            'priority' => 'string',
-            'labels' => 'array'
+            'scheduled_at' => 'required|datetime',
+            'duration_minutes' => 'required|integer',
+            'room_id' => 'integer',
+            'participants' => 'required|array',
+            'is_recurring' => 'boolean',
+            'recurrence_pattern' => 'string'
         ]);
 
         try {
-            $taskId = $this->db->insert('tasks', [
+            $meetingId = $this->db->insert('video_meetings', [
                 'company_id' => $this->user['company_id'],
                 'title' => $data['title'],
                 'description' => $data['description'] ?? '',
-                'board_id' => $data['board_id'],
-                'assigned_to' => $data['assigned_to'] ?? null,
-                'due_date' => $data['due_date'] ?? null,
-                'priority' => $data['priority'] ?? 'medium',
-                'status' => 'todo',
-                'labels' => json_encode($data['labels'] ?? []),
+                'host_id' => $this->user['id'],
+                'room_id' => $data['room_id'] ?? null,
+                'meeting_type' => 'scheduled',
+                'status' => 'scheduled',
+                'scheduled_at' => $data['scheduled_at'],
+                'duration_minutes' => $data['duration_minutes'],
+                'is_recurring' => $data['is_recurring'] ?? false,
+                'recurrence_pattern' => $data['recurrence_pattern'] ?? null,
+                'meeting_code' => $this->generateMeetingCode()
+            ]);
+
+            // Add participants
+            foreach ($data['participants'] as $participantId) {
+                $this->db->insert('video_meeting_participants', [
+                    'meeting_id' => $meetingId,
+                    'user_id' => $participantId,
+                    'status' => 'invited'
+                ]);
+            }
+
+            $this->jsonResponse([
+                'success' => true,
+                'meeting_id' => $meetingId,
+                'meeting_code' => $this->generateMeetingCode(),
+                'message' => 'Meeting scheduled successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function createCalendarEvent() {
+        $this->requirePermission('collaboration.calendar.create');
+
+        $data = $this->validateRequest([
+            'title' => 'required|string',
+            'description' => 'string',
+            'start_date' => 'required|datetime',
+            'end_date' => 'required|datetime',
+            'event_type' => 'required|string',
+            'location' => 'string',
+            'attendees' => 'array',
+            'is_recurring' => 'boolean',
+            'recurrence_pattern' => 'string',
+            'reminder_minutes' => 'integer'
+        ]);
+
+        try {
+            $eventId = $this->db->insert('calendar_events', [
+                'company_id' => $this->user['company_id'],
+                'title' => $data['title'],
+                'description' => $data['description'] ?? '',
+                'start_date' => $data['start_date'],
+                'end_date' => $data['end_date'],
+                'event_type' => $data['event_type'],
+                'location' => $data['location'] ?? '',
+                'is_recurring' => $data['is_recurring'] ?? false,
+                'recurrence_pattern' => $data['recurrence_pattern'] ?? null,
+                'reminder_minutes' => $data['reminder_minutes'] ?? 15,
+                'created_by' => $this->user['id']
+            ]);
+
+            // Add attendees
+            if (!empty($data['attendees'])) {
+                foreach ($data['attendees'] as $attendeeId) {
+                    $this->db->insert('calendar_event_attendees', [
+                        'event_id' => $eventId,
+                        'user_id' => $attendeeId,
+                        'status' => 'pending'
+                    ]);
+                }
+            }
+
+            $this->jsonResponse([
+                'success' => true,
+                'event_id' => $eventId,
+                'message' => 'Calendar event created successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function createKnowledgeArticle() {
+        $this->requirePermission('collaboration.knowledge.create');
+
+        $data = $this->validateRequest([
+            'title' => 'required|string',
+            'content' => 'required|string',
+            'category_id' => 'required|integer',
+            'tags' => 'array',
+            'is_featured' => 'boolean',
+            'attachments' => 'array'
+        ]);
+
+        try {
+            $articleId = $this->db->insert('knowledge_articles', [
+                'company_id' => $this->user['company_id'],
+                'title' => $data['title'],
+                'content' => $data['content'],
+                'category_id' => $data['category_id'],
+                'tags' => json_encode($data['tags'] ?? []),
+                'is_featured' => $data['is_featured'] ?? false,
+                'attachments' => json_encode($data['attachments'] ?? []),
+                'status' => 'draft',
                 'created_by' => $this->user['id']
             ]);
 
             $this->jsonResponse([
                 'success' => true,
-                'task_id' => $taskId,
-                'message' => 'Task created successfully'
+                'article_id' => $articleId,
+                'message' => 'Knowledge article created successfully'
             ]);
 
         } catch (Exception $e) {
             $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function createWorkspace() {
+        $this->requirePermission('collaboration.workspaces.create');
+
+        $data = $this->validateRequest([
+            'name' => 'required|string',
+            'description' => 'string',
+            'template_id' => 'integer',
+            'members' => 'array',
+            'settings' => 'array'
+        ]);
+
+        try {
+            $workspaceId = $this->db->insert('workspaces', [
+                'company_id' => $this->user['company_id'],
+                'name' => $data['name'],
+                'description' => $data['description'] ?? '',
+                'template_id' => $data['template_id'] ?? null,
+                'settings' => json_encode($data['settings'] ?? []),
+                'is_active' => true,
+                'created_by' => $this->user['id']
+            ]);
+
+            // Add creator as admin member
+            $this->db->insert('workspace_members', [
+                'workspace_id' => $workspaceId,
+                'user_id' => $this->user['id'],
+                'role' => 'admin',
+                'joined_at' => date('Y-m-d H:i:s')
+            ]);
+
+            // Add other members if provided
+            if (!empty($data['members'])) {
+                foreach ($data['members'] as $member) {
+                    $this->db->insert('workspace_members', [
+                        'workspace_id' => $workspaceId,
+                        'user_id' => $member['user_id'],
+                        'role' => $member['role'] ?? 'member',
+                        'joined_at' => date('Y-m-d H:i:s')
+                    ]);
+                }
+            }
+
+            // Create default channels if using template
+            if ($data['template_id']) {
+                $this->createWorkspaceFromTemplate($workspaceId, $data['template_id']);
+            }
+
+            $this->jsonResponse([
+                'success' => true,
+                'workspace_id' => $workspaceId,
+                'message' => 'Workspace created successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->db->rollback();
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function createWorkspaceFromTemplate($workspaceId, $templateId) {
+        $template = $this->db->querySingle("
+            SELECT * FROM workspace_templates
+            WHERE id = ? AND company_id = ?
+        ", [$templateId, $this->user['company_id']]);
+
+        if ($template && $template['default_channels']) {
+            $channels = json_decode($template['default_channels'], true);
+            foreach ($channels as $channel) {
+                $channelId = $this->db->insert('channels', [
+                    'company_id' => $this->user['company_id'],
+                    'workspace_id' => $workspaceId,
+                    'name' => $channel['name'],
+                    'description' => $channel['description'] ?? '',
+                    'is_private' => $channel['is_private'] ?? false,
+                    'is_active' => true,
+                    'created_by' => $this->user['id']
+                ]);
+
+                // Add all workspace members to the channel
+                $members = $this->db->query("
+                    SELECT user_id FROM workspace_members
+                    WHERE workspace_id = ?
+                ", [$workspaceId]);
+
+                foreach ($members as $member) {
+                    $this->db->insert('channel_members', [
+                        'channel_id' => $channelId,
+                        'user_id' => $member['user_id'],
+                        'role' => 'member',
+                        'joined_at' => date('Y-m-d H:i:s')
+                    ]);
+                }
+            }
+        }
+    }
+
+    public function joinMeeting() {
+        $this->requirePermission('collaboration.video.join');
+
+        $data = $this->validateRequest([
+            'meeting_code' => 'required|string'
+        ]);
+
+        try {
+            $meeting = $this->db->querySingle("
+                SELECT * FROM video_meetings
+                WHERE meeting_code = ? AND company_id = ?
+            ", [$data['meeting_code'], $this->user['company_id']]);
+
+            if (!$meeting) {
+                throw new Exception('Meeting not found');
+            }
+
+            if ($meeting['status'] !== 'active') {
+                throw new Exception('Meeting is not active');
+            }
+
+            // Check if user is a participant
+            $participant = $this->db->querySingle("
+                SELECT * FROM video_meeting_participants
+                WHERE meeting_id = ? AND user_id = ?
+            ", [$meeting['id'], $this->user['id']]);
+
+            if (!$participant) {
+                // Add user as participant
+                $this->db->insert('video_meeting_participants', [
+                    'meeting_id' => $meeting['id'],
+                    'user_id' => $this->user['id'],
+                    'joined_at' => date('Y-m-d H:i:s'),
+                    'status' => 'joined'
+                ]);
+            } else {
+                // Update participant status
+                $this->db->update('video_meeting_participants', [
+                    'joined_at' => date('Y-m-d H:i:s'),
+                    'status' => 'joined'
+                ], 'id = ?', [$participant['id']]);
+            }
+
+            $this->jsonResponse([
+                'success' => true,
+                'meeting' => $meeting,
+                'message' => 'Joined meeting successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function leaveMeeting() {
+        $this->requirePermission('collaboration.video.join');
+
+        $data = $this->validateRequest([
+            'meeting_id' => 'required|integer'
+        ]);
+
+        try {
+            $participant = $this->db->querySingle("
+                SELECT * FROM video_meeting_participants
+                WHERE meeting_id = ? AND user_id = ?
+            ", [$data['meeting_id'], $this->user['id']]);
+
+            if ($participant) {
+                $this->db->update('video_meeting_participants', [
+                    'left_at' => date('Y-m-d H:i:s'),
+                    'status' => 'left'
+                ], 'id = ?', [$participant['id']]);
+            }
+
+            $this->jsonResponse([
+                'success' => true,
+                'message' => 'Left meeting successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function addTaskComment() {
+        $this->requirePermission('collaboration.tasks.comment');
+
+        $data = $this->validateRequest([
+            'task_id' => 'required|integer',
+            'comment' => 'required|string',
+            'attachments' => 'array'
+        ]);
+
+        try {
+            $commentId = $this->db->insert('task_comments', [
+                'company_id' => $this->user['company_id'],
+                'task_id' => $data['task_id'],
+                'commented_by' => $this->user['id'],
+                'comment' => $data['comment'],
+                'attachments' => json_encode($data['attachments'] ?? [])
+            ]);
+
+            $this->jsonResponse([
+                'success' => true,
+                'comment_id' => $commentId,
+                'message' => 'Comment added successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updateTaskStatus() {
+        $this->requirePermission('collaboration.tasks.update');
+
+        $data = $this->validateRequest([
+            'task_id' => 'required|integer',
+            'status' => 'required|string'
+        ]);
+
+        try {
+            $this->db->update('tasks', [
+                'status' => $data['status'],
+                'updated_at' => date('Y-m-d H:i:s')
+            ], 'id = ? AND company_id = ?', [
+                $data['task_id'],
+                $this->user['company_id']
+            ]);
+
+            $this->jsonResponse([
+                'success' => true,
+                'message' => 'Task status updated successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function searchKnowledgeBase() {
+        $this->requirePermission('collaboration.knowledge.view');
+
+        $data = $this->validateRequest([
+            'query' => 'required|string',
+            'category_id' => 'integer',
+            'limit' => 'integer'
+        ]);
+
+        try {
+            $limit = min($data['limit'] ?? 20, 50); // Max 50 results
+
+            $where = ["ka.company_id = ? AND ka.status = 'published'"];
+            $params = [$this->user['company_id']];
+
+            if ($data['category_id']) {
+                $where[] = "ka.category_id = ?";
+                $params[] = $data['category_id'];
+            }
+
+            $whereClause = implode(' AND ', $where);
+
+            $results = $this->db->query("
+                SELECT
+                    ka.*,
+                    kc.name as category_name,
+                    MATCH(ka.title, ka.content, ka.tags) AGAINST(? IN NATURAL LANGUAGE MODE) as relevance_score
+                FROM knowledge_articles ka
+                LEFT JOIN knowledge_categories kc ON ka.category_id = kc.id
+                WHERE $whereClause
+                    AND MATCH(ka.title, ka.content, ka.tags) AGAINST(? IN NATURAL LANGUAGE MODE)
+                ORDER BY relevance_score DESC
+                LIMIT ?
+            ", array_merge($params, [$data['query'], $data['query'], $limit]));
+
+            $this->jsonResponse([
+                'success' => true,
+                'results' => $results,
+                'query' => $data['query'],
+                'total_results' => count($results)
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getOnlineUsers() {
+        try {
+            $users = $this->db->query("
+                SELECT
+                    u.id,
+                    u.first_name,
+                    u.last_name,
+                    u.email,
+                    us.status as online_status,
+                    us.last_seen,
+                    TIMESTAMPDIFF(MINUTE, us.last_seen, NOW()) as minutes_since_seen
+                FROM users u
+                LEFT JOIN user_status us ON u.id = us.user_id
+                WHERE u.company_id = ? AND u.is_active = true
+                    AND us.last_seen >= DATE_SUB(NOW(), INTERVAL 5 MINUTE)
+                ORDER BY us.last_seen DESC
+            ", [$this->user['company_id']]);
+
+            $this->jsonResponse([
+                'success' => true,
+                'users' => $users,
+                'total_online' => count($users)
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getChannelMessages() {
+        $this->requirePermission('collaboration.messaging.view');
+
+        $data = $this->validateRequest([
+            'channel_id' => 'required|integer',
+            'limit' => 'integer',
+            'offset' => 'integer'
+        ]);
+
+        try {
+            $limit = min($data['limit'] ?? 50, 100); // Max 100 messages
+            $offset = $data['offset'] ?? 0;
+
+            $messages = $this->db->query("
+                SELECT
+                    m.*,
+                    u.first_name as sender_first,
+                    u.last_name as sender_last,
+                    COUNT(mr.id) as reply_count,
+                    COUNT(ml.id) as like_count
+                FROM messages m
+                LEFT JOIN users u ON m.sender_id = u.id
+                LEFT JOIN message_replies mr ON m.id = mr.message_id
+                LEFT JOIN message_likes ml ON m.id = ml.message_id
+                WHERE m.channel_id = ? AND m.company_id = ?
+                GROUP BY m.id, u.first_name, u.last_name
+                ORDER BY m.created_at DESC
+                LIMIT ? OFFSET ?
+            ", [
+                $data['channel_id'],
+                $this->user['company_id'],
+                $limit,
+                $offset
+            ]);
+
+            $this->jsonResponse([
+                'success' => true,
+                'messages' => array_reverse($messages), // Return in chronological order
+                'has_more' => count($messages) === $limit
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getFileDownloadUrl() {
+        $this->requirePermission('collaboration.files.view');
+
+        $data = $this->validateRequest([
+            'file_id' => 'required|integer'
+        ]);
+
+        try {
+            $file = $this->db->querySingle("
+                SELECT * FROM files
+                WHERE id = ? AND company_id = ?
+            ", [$data['file_id'], $this->user['company_id']]);
+
+            if (!$file) {
+                throw new Exception('File not found');
+            }
+
+            // Check permissions
+            $hasPermission = $this->checkFilePermission($data['file_id'], $this->user['id']);
+            if (!$hasPermission && $file['uploaded_by'] !== $this->user['id']) {
+                throw new Exception('Access denied');
+            }
+
+            // Log file access
+            $this->db->insert('file_access', [
+                'file_id' => $data['file_id'],
+                'user_id' => $this->user['id'],
+                'accessed_at' => date('Y-m-d H:i:s')
+            ]);
+
+            $downloadUrl = '/api/collaboration/files/' . $file['id'] . '/download';
+
+            $this->jsonResponse([
+                'success' => true,
+                'download_url' => $downloadUrl,
+                'filename' => $file['name']
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function checkFilePermission($fileId, $userId) {
+        $permission = $this->db->querySingle("
+            SELECT permissions FROM file_permissions
+            WHERE file_id = ? AND shared_with = ?
+        ", [$fileId, $userId]);
+
+        return $permission && in_array($permission['permissions'], ['read', 'write', 'admin']);
+    }
+
+    public function getDocumentContent() {
+        $this->requirePermission('collaboration.documents.view');
+
+        $data = $this->validateRequest([
+            'document_id' => 'required|integer'
+        ]);
+
+        try {
+            $document = $this->db->querySingle("
+                SELECT * FROM documents
+                WHERE id = ? AND company_id = ?
+            ", [$data['document_id'], $this->user['company_id']]);
+
+            if (!$document) {
+                throw new Exception('Document not found');
+            }
+
+            // Check collaboration permissions
+            $collaborator = $this->db->querySingle("
+                SELECT permission_level FROM document_collaborators
+                WHERE document_id = ? AND user_id = ?
+            ", [$data['document_id'], $this->user['id']]);
+
+            if (!$collaborator && $document['created_by'] !== $this->user['id']) {
+                throw new Exception('Access denied');
+            }
+
+            // Update last accessed
+            $this->db->update('document_collaborators', [
+                'last_accessed' => date('Y-m-d H:i:s')
+            ], 'document_id = ? AND user_id = ?', [
+                $data['document_id'],
+                $this->user['id']
+            ]);
+
+            $this->jsonResponse([
+                'success' => true,
+                'document' => $document,
+                'permission_level' => $collaborator['permission_level'] ?? 'owner'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updateDocumentContent() {
+        $this->requirePermission('collaboration.documents.edit');
+
+        $data = $this->validateRequest([
+            'document_id' => 'required|integer',
+            'content' => 'required|string',
+            'version_comment' => 'string'
+        ]);
+
+        try {
+            $document = $this->db->querySingle("
+                SELECT * FROM documents
+                WHERE id = ? AND company_id = ?
+            ", [$data['document_id'], $this->user['company_id']]);
+
+            if (!$document) {
+                throw new Exception('Document not found');
+            }
+
+            // Check write permissions
+            $collaborator = $this->db->querySingle("
+                SELECT permission_level FROM document_collaborators
+                WHERE document_id = ? AND user_id = ?
+            ", [$data['document_id'], $this->user['id']]);
+
+            if (!$collaborator && $document['created_by'] !== $this->user['id']) {
+                throw new Exception('Access denied');
+            }
+
+            if ($collaborator && !in_array($collaborator['permission_level'], ['write', 'admin', 'owner'])) {
+                throw new Exception('Insufficient permissions');
+            }
+
+            // Create version backup
+            $this->db->insert('document_versions', [
+                'document_id' => $data['document_id'],
+                'version_number' => $document['version'] + 1,
+                'content' => $document['content'],
+                'modified_by' => $this->user['id'],
+                'comment' => $data['version_comment'] ?? 'Content updated'
+            ]);
+
+            // Update document
+            $this->db->update('documents', [
+                'content' => $data['content'],
+                'version' => $document['version'] + 1,
+                'last_modified' => date('Y-m-d H:i:s'),
+                'last_modified_by' => $this->user['id']
+            ], 'id = ?', [$data['document_id']]);
+
+            $this->jsonResponse([
+                'success' => true,
+                'message' => 'Document updated successfully',
+                'new_version' => $document['version'] + 1
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+}
+?>

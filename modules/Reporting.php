@@ -182,6 +182,187 @@ class Reporting extends BaseController {
         $this->render('modules/reporting/report_analytics', $data);
     }
 
+    /**
+     * AI-powered report optimization
+     */
+    public function reportOptimization() {
+        $this->requirePermission('reporting.optimization.view');
+
+        $reportId = $_GET['report_id'] ?? null;
+        $analysis = null;
+
+        if ($reportId) {
+            $optimizer = new ReportOptimizer();
+            $analysis = $optimizer->analyzeReport($reportId);
+        }
+
+        $data = [
+            'title' => 'Report Optimization',
+            'report_id' => $reportId,
+            'analysis' => $analysis,
+            'optimization_history' => $this->getOptimizationHistory(),
+            'ai_suggestions' => $this->getAISuggestions(),
+            'performance_insights' => $this->getPerformanceInsights()
+        ];
+
+        $this->render('modules/reporting/report_optimization', $data);
+    }
+
+    /**
+     * BI tool integration management
+     */
+    public function biIntegration() {
+        $this->requirePermission('reporting.bi.view');
+
+        $biIntegration = new BIToolIntegration();
+
+        $data = [
+            'title' => 'BI Tool Integration',
+            'supported_tools' => ['tableau', 'powerbi', 'qlik', 'looker'],
+            'configured_tools' => $this->getConfiguredBITools(),
+            'export_history' => $this->getBIExportHistory(),
+            'sync_jobs' => $this->getBISyncJobs(),
+            'embedded_dashboards' => $this->getEmbeddedDashboards(),
+            'integration_stats' => $this->getBIIntegrationStats()
+        ];
+
+        $this->render('modules/reporting/bi_integration', $data);
+    }
+
+    /**
+     * Configure BI tool
+     */
+    public function configureBITool() {
+        $this->requirePermission('reporting.bi.configure');
+
+        $toolName = $_POST['tool_name'] ?? '';
+        $config = $_POST['config'] ?? [];
+
+        try {
+            $biIntegration = new BIToolIntegration();
+            $result = $biIntegration->configureTool($toolName, $config);
+
+            $this->jsonResponse([
+                'success' => true,
+                'message' => "BI tool {$toolName} configured successfully",
+                'data' => $result
+            ]);
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    /**
+     * Export data to BI tool
+     */
+    public function exportToBITool() {
+        $this->requirePermission('reporting.bi.export');
+
+        $toolName = $_POST['tool_name'] ?? '';
+        $dataSource = $_POST['data_source'] ?? '';
+        $options = $_POST['options'] ?? [];
+
+        try {
+            $biIntegration = new BIToolIntegration();
+            $result = $biIntegration->exportToTool($toolName, $dataSource, $options);
+
+            $this->jsonResponse([
+                'success' => true,
+                'message' => "Data exported to {$toolName} successfully",
+                'data' => $result
+            ]);
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    /**
+     * Import data from BI tool
+     */
+    public function importFromBITool() {
+        $this->requirePermission('reporting.bi.import');
+
+        $toolName = $_POST['tool_name'] ?? '';
+        $remoteDataSource = $_POST['remote_data_source'] ?? '';
+        $options = $_POST['options'] ?? [];
+
+        try {
+            $biIntegration = new BIToolIntegration();
+            $result = $biIntegration->importFromTool($toolName, $remoteDataSource, $options);
+
+            $this->jsonResponse([
+                'success' => true,
+                'message' => "Data imported from {$toolName} successfully",
+                'data' => $result
+            ]);
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    /**
+     * Create embedded BI dashboard
+     */
+    public function createEmbeddedDashboard() {
+        $this->requirePermission('reporting.bi.embed');
+
+        $toolName = $_POST['tool_name'] ?? '';
+        $dashboardConfig = $_POST['dashboard_config'] ?? [];
+
+        try {
+            $biIntegration = new BIToolIntegration();
+            $result = $biIntegration->createEmbeddedDashboard($toolName, $dashboardConfig);
+
+            $this->jsonResponse([
+                'success' => true,
+                'message' => "Embedded dashboard created successfully",
+                'data' => $result
+            ]);
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    /**
+     * Sync data with BI tool
+     */
+    public function syncWithBITool() {
+        $this->requirePermission('reporting.bi.sync');
+
+        $toolName = $_POST['tool_name'] ?? '';
+        $direction = $_POST['direction'] ?? '';
+        $dataSource = $_POST['data_source'] ?? '';
+        $options = $_POST['options'] ?? [];
+
+        try {
+            $biIntegration = new BIToolIntegration();
+            $result = $biIntegration->syncData($toolName, $direction, $dataSource, $options);
+
+            $this->jsonResponse([
+                'success' => true,
+                'message' => "Data sync with {$toolName} completed successfully",
+                'data' => $result
+            ]);
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
+
     // ============================================================================
     // PRIVATE METHODS
     // ============================================================================
@@ -1325,4 +1506,147 @@ class Reporting extends BaseController {
 
     private function validateDataSource($dataSourceId) {
         // Implementation for validating data source connections
-        $dataSource = $this->db->querySingle("SELECT * FROM data_sources WHERE id
+        $dataSource = $this->db->querySingle("SELECT * FROM data_sources WHERE id = ? AND company_id = ?", [$dataSourceId, $this->user['company_id']]);
+
+        if (!$dataSource) {
+            throw new Exception("Data source not found");
+        }
+
+        return $dataSource;
+    }
+
+    private function getOptimizationHistory() {
+        return $this->db->query("
+            SELECT
+                ro.*,
+                r.report_name,
+                u.first_name as analyzed_by_first,
+                u.last_name as analyzed_by_last,
+                ro.generated_at
+            FROM report_optimizations ro
+            JOIN reports r ON ro.report_id = r.id
+            LEFT JOIN users u ON ro.created_by = u.id
+            WHERE ro.company_id = ?
+            ORDER BY ro.generated_at DESC
+            LIMIT 20
+        ", [$this->user['company_id']]);
+    }
+
+    private function getAISuggestions() {
+        return $this->db->query("
+            SELECT
+                ai.*,
+                ai.insight_type,
+                ai.confidence_score,
+                ai.description,
+                ai.recommendation,
+                ai.generated_at
+            FROM ai_insights ai
+            WHERE ai.company_id = ?
+            ORDER BY ai.confidence_score DESC, ai.generated_at DESC
+            LIMIT 10
+        ", [$this->user['company_id']]);
+    }
+
+    private function getPerformanceInsights() {
+        return $this->db->query("
+            SELECT
+                pi.*,
+                pi.insight_type,
+                pi.confidence_interval,
+                pi.recommended_action,
+                pi.potential_impact,
+                pi.generated_at
+            FROM performance_insights pi
+            WHERE pi.company_id = ?
+            ORDER BY pi.potential_impact DESC, pi.generated_at DESC
+            LIMIT 10
+        ", [$this->user['company_id']]);
+    }
+
+    private function getConfiguredBITools() {
+        return $this->db->query("
+            SELECT
+                btc.*,
+                btc.tool_name,
+                btc.created_at,
+                btc.updated_at,
+                u.first_name as configured_by_first,
+                u.last_name as configured_by_last
+            FROM bi_tool_configs btc
+            LEFT JOIN users u ON btc.created_by = u.id
+            WHERE btc.company_id = ? AND btc.is_active = true
+            ORDER BY btc.tool_name ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getBIExportHistory() {
+        return $this->db->query("
+            SELECT
+                beh.*,
+                beh.tool_name,
+                beh.data_source,
+                beh.exported_at,
+                u.first_name as exported_by_first,
+                u.last_name as exported_by_last
+            FROM bi_export_history beh
+            LEFT JOIN users u ON beh.exported_by = u.id
+            WHERE beh.company_id = ?
+            ORDER BY beh.exported_at DESC
+            LIMIT 20
+        ", [$this->user['company_id']]);
+    }
+
+    private function getBISyncJobs() {
+        return $this->db->query("
+            SELECT
+                bsj.*,
+                bsj.tool_name,
+                bsj.direction,
+                bsj.data_source,
+                bsj.status,
+                bsj.created_at,
+                bsj.completed_at,
+                u.first_name as created_by_first,
+                u.last_name as created_by_last
+            FROM bi_sync_jobs bsj
+            LEFT JOIN users u ON bsj.created_by = u.id
+            WHERE bsj.company_id = ?
+            ORDER BY bsj.created_at DESC
+            LIMIT 20
+        ", [$this->user['company_id']]);
+    }
+
+    private function getEmbeddedDashboards() {
+        return $this->db->query("
+            SELECT
+                ed.*,
+                ed.tool_name,
+                ed.dashboard_name,
+                ed.embed_url,
+                ed.created_at,
+                u.first_name as created_by_first,
+                u.last_name as created_by_last
+            FROM embedded_dashboards ed
+            LEFT JOIN users u ON ed.created_by = u.id
+            WHERE ed.company_id = ?
+            ORDER BY ed.created_at DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getBIIntegrationStats() {
+        return $this->db->querySingle("
+            SELECT
+                COUNT(DISTINCT btc.id) as configured_tools,
+                COUNT(DISTINCT beh.id) as total_exports,
+                COUNT(DISTINCT bsj.id) as total_syncs,
+                COUNT(CASE WHEN bsj.status = 'completed' THEN 1 END) as successful_syncs,
+                COUNT(CASE WHEN bsj.status = 'failed' THEN 1 END) as failed_syncs,
+                AVG(CASE WHEN bsj.status = 'completed' THEN TIMESTAMPDIFF(SECOND, bsj.created_at, bsj.completed_at) END) as avg_sync_time
+            FROM bi_tool_configs btc
+            LEFT JOIN bi_export_history beh ON beh.company_id = btc.company_id
+            LEFT JOIN bi_sync_jobs bsj ON bsj.company_id = btc.company_id
+            WHERE btc.company_id = ? AND btc.is_active = true
+        ", [$this->user['company_id']]);
+    }
+}

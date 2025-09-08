@@ -1,7 +1,7 @@
 <?php
 /**
  * TPT Free ERP - Asset Management Module
- * Complete asset tracking, maintenance, depreciation, and lifecycle management system
+ * Complete asset tracking, maintenance, and lifecycle management system
  */
 
 class AssetManagement extends BaseController {
@@ -21,56 +21,56 @@ class AssetManagement extends BaseController {
         $this->requirePermission('assets.view');
 
         $data = [
-            'title' => 'Asset Management',
+            'title' => 'Asset Management Dashboard',
             'asset_overview' => $this->getAssetOverview(),
-            'asset_status' => $this->getAssetStatus(),
+            'asset_metrics' => $this->getAssetMetrics(),
+            'recent_assets' => $this->getRecentAssets(),
             'maintenance_schedule' => $this->getMaintenanceSchedule(),
             'depreciation_summary' => $this->getDepreciationSummary(),
-            'asset_valuation' => $this->getAssetValuation(),
-            'maintenance_alerts' => $this->getMaintenanceAlerts(),
-            'compliance_status' => $this->getComplianceStatus(),
-            'asset_analytics' => $this->getAssetAnalytics()
+            'asset_alerts' => $this->getAssetAlerts()
         ];
 
-        $this->render('modules/asset_management/dashboard', $data);
+        $this->render('modules/assets/dashboard', $data);
     }
 
     /**
-     * Asset registration and tracking
+     * Asset catalog and inventory
      */
-    public function assets() {
-        $this->requirePermission('assets.manage');
-
-        $filters = [
-            'status' => $_GET['status'] ?? null,
-            'category' => $_GET['category'] ?? null,
-            'location' => $_GET['location'] ?? null,
-            'department' => $_GET['department'] ?? null,
-            'date_from' => $_GET['date_from'] ?? null,
-            'date_to' => $_GET['date_to'] ?? null,
-            'search' => $_GET['search'] ?? null
-        ];
-
-        $assets = $this->getAssets($filters);
+    public function assetCatalog() {
+        $this->requirePermission('assets.view');
 
         $data = [
-            'title' => 'Asset Tracking',
-            'assets' => $assets,
-            'filters' => $filters,
+            'title' => 'Asset Catalog',
+            'assets' => $this->getAssets(),
             'asset_categories' => $this->getAssetCategories(),
-            'asset_status' => $this->getAssetStatus(),
             'asset_locations' => $this->getAssetLocations(),
-            'asset_departments' => $this->getAssetDepartments(),
-            'asset_templates' => $this->getAssetTemplates(),
-            'bulk_actions' => $this->getBulkActions(),
-            'asset_analytics' => $this->getAssetAnalytics()
+            'asset_statuses' => $this->getAssetStatuses(),
+            'filters' => $this->getAssetFilters()
         ];
 
-        $this->render('modules/asset_management/assets', $data);
+        $this->render('modules/assets/catalog', $data);
     }
 
     /**
-     * Maintenance scheduling
+     * Asset lifecycle management
+     */
+    public function assetLifecycle() {
+        $this->requirePermission('assets.lifecycle.view');
+
+        $data = [
+            'title' => 'Asset Lifecycle Management',
+            'lifecycle_stages' => $this->getLifecycleStages(),
+            'asset_transitions' => $this->getAssetTransitions(),
+            'retirement_schedule' => $this->getRetirementSchedule(),
+            'disposal_records' => $this->getDisposalRecords(),
+            'lifecycle_metrics' => $this->getLifecycleMetrics()
+        ];
+
+        $this->render('modules/assets/lifecycle', $data);
+    }
+
+    /**
+     * Maintenance management
      */
     public function maintenance() {
         $this->requirePermission('assets.maintenance.view');
@@ -79,57 +79,50 @@ class AssetManagement extends BaseController {
             'title' => 'Maintenance Management',
             'maintenance_schedule' => $this->getMaintenanceSchedule(),
             'maintenance_history' => $this->getMaintenanceHistory(),
-            'maintenance_plans' => $this->getMaintenancePlans(),
-            'maintenance_work_orders' => $this->getMaintenanceWorkOrders(),
             'preventive_maintenance' => $this->getPreventiveMaintenance(),
+            'maintenance_work_orders' => $this->getMaintenanceWorkOrders(),
             'maintenance_costs' => $this->getMaintenanceCosts(),
-            'maintenance_analytics' => $this->getMaintenanceAnalytics(),
-            'maintenance_templates' => $this->getMaintenanceTemplates()
+            'maintenance_metrics' => $this->getMaintenanceMetrics()
         ];
 
-        $this->render('modules/asset_management/maintenance', $data);
+        $this->render('modules/assets/maintenance', $data);
     }
 
     /**
-     * Depreciation calculation
+     * Depreciation tracking
      */
     public function depreciation() {
         $this->requirePermission('assets.depreciation.view');
 
         $data = [
-            'title' => 'Depreciation Management',
+            'title' => 'Depreciation Tracking',
             'depreciation_schedule' => $this->getDepreciationSchedule(),
             'depreciation_methods' => $this->getDepreciationMethods(),
-            'depreciation_calculations' => $this->getDepreciationCalculations(),
+            'depreciation_entries' => $this->getDepreciationEntries(),
+            'asset_values' => $this->getAssetValues(),
             'depreciation_reports' => $this->getDepreciationReports(),
-            'asset_valuation' => $this->getAssetValuation(),
-            'depreciation_analytics' => $this->getDepreciationAnalytics(),
-            'depreciation_templates' => $this->getDepreciationTemplates(),
-            'tax_implications' => $this->getTaxImplications()
+            'depreciation_metrics' => $this->getDepreciationMetrics()
         ];
 
-        $this->render('modules/asset_management/depreciation', $data);
+        $this->render('modules/assets/depreciation', $data);
     }
 
     /**
-     * Asset lifecycle management
+     * Asset tracking and location
      */
-    public function lifecycle() {
-        $this->requirePermission('assets.lifecycle.view');
+    public function assetTracking() {
+        $this->requirePermission('assets.tracking.view');
 
         $data = [
-            'title' => 'Asset Lifecycle',
-            'lifecycle_stages' => $this->getLifecycleStages(),
-            'lifecycle_transitions' => $this->getLifecycleTransitions(),
-            'asset_disposal' => $this->getAssetDisposal(),
-            'asset_retirement' => $this->getAssetRetirement(),
-            'lifecycle_analytics' => $this->getLifecycleAnalytics(),
-            'lifecycle_reports' => $this->getLifecycleReports(),
-            'lifecycle_templates' => $this->getLifecycleTemplates(),
-            'upgrade_planning' => $this->getUpgradePlanning()
+            'title' => 'Asset Tracking',
+            'asset_locations' => $this->getAssetLocations(),
+            'location_history' => $this->getLocationHistory(),
+            'asset_movements' => $this->getAssetMovements(),
+            'geofencing' => $this->getGeofencingData(),
+            'tracking_metrics' => $this->getTrackingMetrics()
         ];
 
-        $this->render('modules/asset_management/lifecycle', $data);
+        $this->render('modules/assets/tracking', $data);
     }
 
     /**
@@ -142,36 +135,32 @@ class AssetManagement extends BaseController {
             'title' => 'Compliance & Insurance',
             'compliance_requirements' => $this->getComplianceRequirements(),
             'insurance_policies' => $this->getInsurancePolicies(),
-            'compliance_audits' => $this->getComplianceAudits(),
-            'regulatory_compliance' => $this->getRegulatoryCompliance(),
-            'safety_compliance' => $this->getSafetyCompliance(),
-            'environmental_compliance' => $this->getEnvironmentalCompliance(),
-            'compliance_reports' => $this->getComplianceReports(),
-            'compliance_analytics' => $this->getComplianceAnalytics()
+            'audit_trail' => $this->getAuditTrail(),
+            'regulatory_reports' => $this->getRegulatoryReports(),
+            'compliance_alerts' => $this->getComplianceAlerts(),
+            'compliance_metrics' => $this->getComplianceMetrics()
         ];
 
-        $this->render('modules/asset_management/compliance', $data);
+        $this->render('modules/assets/compliance', $data);
     }
 
     /**
-     * Asset analytics and reporting
+     * Asset reporting and analytics
      */
-    public function analytics() {
-        $this->requirePermission('assets.analytics.view');
+    public function reports() {
+        $this->requirePermission('assets.reports.view');
 
         $data = [
-            'title' => 'Asset Analytics',
-            'asset_utilization' => $this->getAssetUtilization(),
-            'maintenance_costs' => $this->getMaintenanceCosts(),
-            'asset_performance' => $this->getAssetPerformance(),
-            'lifecycle_costs' => $this->getLifecycleCosts(),
-            'asset_depreciation' => $this->getAssetDepreciation(),
-            'asset_efficiency' => $this->getAssetEfficiency(),
-            'predictive_maintenance' => $this->getPredictiveMaintenance(),
-            'asset_benchmarks' => $this->getAssetBenchmarks()
+            'title' => 'Asset Reports & Analytics',
+            'asset_reports' => $this->getAssetReports(),
+            'utilization_reports' => $this->getUtilizationReports(),
+            'cost_analysis' => $this->getCostAnalysis(),
+            'performance_metrics' => $this->getPerformanceMetrics(),
+            'predictive_analytics' => $this->getPredictiveAnalytics(),
+            'custom_reports' => $this->getCustomReports()
         ];
 
-        $this->render('modules/asset_management/analytics', $data);
+        $this->render('modules/assets/reports', $data);
     }
 
     // ============================================================================
@@ -181,215 +170,212 @@ class AssetManagement extends BaseController {
     private function getAssetOverview() {
         return $this->db->querySingle("
             SELECT
-                COUNT(DISTINCT a.id) as total_assets,
-                COUNT(CASE WHEN a.status = 'active' THEN 1 END) as active_assets,
-                COUNT(CASE WHEN a.status = 'maintenance' THEN 1 END) as maintenance_assets,
-                COUNT(CASE WHEN a.status = 'retired' THEN 1 END) as retired_assets,
-                SUM(a.purchase_value) as total_asset_value,
-                AVG(a.purchase_value) as avg_asset_value,
-                COUNT(CASE WHEN a.next_maintenance_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 1 END) as upcoming_maintenance,
-                COUNT(CASE WHEN a.warranty_expiry <= DATE_ADD(CURDATE(), INTERVAL 90 DAY) THEN 1 END) as expiring_warranties,
-                COUNT(CASE WHEN a.insurance_expiry <= DATE_ADD(CURDATE(), INTERVAL 90 DAY) THEN 1 END) as expiring_insurance
-            FROM assets a
-            WHERE a.company_id = ?
+                COUNT(*) as total_assets,
+                COUNT(CASE WHEN status = 'active' THEN 1 END) as active_assets,
+                COUNT(CASE WHEN status = 'maintenance' THEN 1 END) as maintenance_assets,
+                COUNT(CASE WHEN status = 'retired' THEN 1 END) as retired_assets,
+                SUM(acquisition_cost) as total_acquisition_value,
+                SUM(current_value) as total_current_value,
+                COUNT(CASE WHEN next_maintenance_date <= CURDATE() THEN 1 END) as overdue_maintenance,
+                COUNT(CASE WHEN insurance_expiry <= CURDATE() THEN 1 END) as expired_insurance
+            FROM assets
+            WHERE company_id = ?
         ", [$this->user['company_id']]);
     }
 
-    private function getAssetStatus() {
-        return $this->db->query("
+    private function getAssetMetrics() {
+        return [
+            'asset_utilization_rate' => $this->calculateAssetUtilizationRate(),
+            'maintenance_cost_ratio' => $this->calculateMaintenanceCostRatio(),
+            'depreciation_rate' => $this->calculateDepreciationRate(),
+            'asset_turnover_ratio' => $this->calculateAssetTurnoverRatio(),
+            'return_on_assets' => $this->calculateReturnOnAssets(),
+            'asset_lifecycle_efficiency' => $this->calculateAssetLifecycleEfficiency()
+        ];
+    }
+
+    private function calculateAssetUtilizationRate() {
+        $result = $this->db->querySingle("
             SELECT
-                status,
-                COUNT(*) as asset_count,
-                SUM(purchase_value) as total_value,
-                AVG(purchase_value) as avg_value,
-                COUNT(CASE WHEN next_maintenance_date <= CURDATE() THEN 1 END) as overdue_maintenance
+                COUNT(CASE WHEN utilization_status = 'in_use' THEN 1 END) as in_use,
+                COUNT(*) as total
+            FROM assets
+            WHERE company_id = ? AND status = 'active'
+        ", [$this->user['company_id']]);
+
+        return $result['total'] > 0 ? ($result['in_use'] / $result['total']) * 100 : 0;
+    }
+
+    private function calculateMaintenanceCostRatio() {
+        $result = $this->db->querySingle("
+            SELECT
+                SUM(cost) as maintenance_cost,
+                SUM(acquisition_cost) as total_asset_value
+            FROM maintenance_records mr
+            JOIN assets a ON mr.asset_id = a.id
+            WHERE a.company_id = ? AND mr.maintenance_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+        ", [$this->user['company_id']]);
+
+        return $result['total_asset_value'] > 0 ? ($result['maintenance_cost'] / $result['total_asset_value']) * 100 : 0;
+    }
+
+    private function calculateDepreciationRate() {
+        $result = $this->db->querySingle("
+            SELECT
+                AVG((acquisition_cost - current_value) / acquisition_cost * 100) as avg_depreciation_rate
+            FROM assets
+            WHERE company_id = ? AND status = 'active' AND acquisition_cost > 0
+        ", [$this->user['company_id']]);
+
+        return $result['avg_depreciation_rate'] ?? 0;
+    }
+
+    private function calculateAssetTurnoverRatio() {
+        $result = $this->db->querySingle("
+            SELECT
+                COUNT(CASE WHEN status = 'retired' AND retirement_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH) THEN 1 END) as retired_assets,
+                COUNT(*) as total_assets
             FROM assets
             WHERE company_id = ?
-            GROUP BY status
-            ORDER BY asset_count DESC
+        ", [$this->user['company_id']]);
+
+        return $result['total_assets'] > 0 ? ($result['retired_assets'] / $result['total_assets']) * 100 : 0;
+    }
+
+    private function calculateReturnOnAssets() {
+        $result = $this->db->querySingle("
+            SELECT
+                SUM(revenue_generated) as total_revenue,
+                SUM(acquisition_cost) as total_asset_value
+            FROM assets
+            WHERE company_id = ? AND status = 'active'
+        ", [$this->user['company_id']]);
+
+        return $result['total_asset_value'] > 0 ? ($result['total_revenue'] / $result['total_asset_value']) * 100 : 0;
+    }
+
+    private function calculateAssetLifecycleEfficiency() {
+        $result = $this->db->querySingle("
+            SELECT
+                AVG(DATEDIFF(retirement_date, acquisition_date) / 365) as avg_lifecycle_years,
+                AVG(utilization_rate) as avg_utilization
+            FROM assets
+            WHERE company_id = ? AND retirement_date IS NOT NULL
+        ", [$this->user['company_id']]);
+
+        return ($result['avg_lifecycle_years'] ?? 0) * ($result['avg_utilization'] ?? 0);
+    }
+
+    private function getRecentAssets() {
+        return $this->db->query("
+            SELECT
+                a.*,
+                a.asset_tag,
+                a.asset_name,
+                a.category,
+                a.status,
+                a.acquisition_date,
+                a.acquisition_cost,
+                l.location_name,
+                u.first_name,
+                u.last_name
+            FROM assets a
+            LEFT JOIN asset_locations l ON a.location_id = l.id
+            LEFT JOIN users u ON a.assigned_to = u.id
+            WHERE a.company_id = ?
+            ORDER BY a.acquisition_date DESC
+            LIMIT 10
         ", [$this->user['company_id']]);
     }
 
     private function getMaintenanceSchedule() {
         return $this->db->query("
             SELECT
+                ms.*,
+                ms.asset_id,
+                ms.maintenance_type,
+                ms.scheduled_date,
+                ms.priority,
+                ms.status,
                 a.asset_name,
                 a.asset_tag,
-                ms.scheduled_date,
-                ms.maintenance_type,
-                ms.description,
-                ms.priority,
-                TIMESTAMPDIFF(DAY, CURDATE(), ms.scheduled_date) as days_until_due,
-                ms.estimated_duration,
-                ms.assigned_technician
-            FROM assets a
-            JOIN maintenance_schedule ms ON a.id = ms.asset_id
-            WHERE a.company_id = ? AND ms.status = 'scheduled' AND ms.scheduled_date >= CURDATE()
-            ORDER BY ms.scheduled_date ASC, ms.priority DESC
+                DATEDIFF(ms.scheduled_date, CURDATE()) as days_until_due
+            FROM maintenance_schedule ms
+            JOIN assets a ON ms.asset_id = a.id
+            WHERE a.company_id = ? AND ms.status = 'scheduled'
+            ORDER BY ms.scheduled_date ASC
         ", [$this->user['company_id']]);
     }
 
     private function getDepreciationSummary() {
         return $this->db->query("
             SELECT
-                DATE_FORMAT(d.depreciation_date, '%Y-%m') as month,
-                SUM(d.depreciation_amount) as total_depreciation,
-                COUNT(DISTINCT d.asset_id) as assets_depreciated,
-                AVG(d.depreciation_amount) as avg_depreciation
-            FROM depreciation d
-            WHERE d.company_id = ? AND d.depreciation_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
-            GROUP BY DATE_FORMAT(d.depreciation_date, '%Y-%m')
-            ORDER BY month DESC
+                MONTH(depreciation_date) as month,
+                YEAR(depreciation_date) as year,
+                SUM(depreciation_amount) as monthly_depreciation,
+                SUM(accumulated_depreciation) as total_accumulated
+            FROM depreciation_entries
+            WHERE company_id = ? AND depreciation_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+            GROUP BY YEAR(depreciation_date), MONTH(depreciation_date)
+            ORDER BY year DESC, month DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getAssetValuation() {
-        return $this->db->querySingle("
-            SELECT
-                SUM(a.purchase_value) as total_purchase_value,
-                SUM(a.current_value) as total_current_value,
-                SUM(a.accumulated_depreciation) as total_accumulated_depreciation,
-                AVG(a.current_value) as avg_current_value,
-                COUNT(CASE WHEN a.current_value < a.purchase_value * 0.1 THEN 1 END) as fully_depreciated,
-                COUNT(CASE WHEN a.current_value > a.purchase_value * 0.5 THEN 1 END) as high_value_assets
-            FROM assets a
-            WHERE a.company_id = ?
-        ", [$this->user['company_id']]);
-    }
-
-    private function getMaintenanceAlerts() {
+    private function getAssetAlerts() {
         return $this->db->query("
             SELECT
+                aa.*,
+                aa.alert_type,
+                aa.severity,
+                aa.message,
+                aa.created_at,
+                aa.status,
                 a.asset_name,
-                a.asset_tag,
-                ma.alert_type,
-                ma.severity,
-                ma.message,
-                ma.due_date,
-                TIMESTAMPDIFF(DAY, CURDATE(), ma.due_date) as days_until_due,
-                ma.estimated_cost,
-                ma.priority
-            FROM assets a
-            JOIN maintenance_alerts ma ON a.id = ma.asset_id
-            WHERE a.company_id = ? AND ma.status = 'active'
-            ORDER BY ma.priority DESC, ma.due_date ASC
+                a.asset_tag
+            FROM asset_alerts aa
+            LEFT JOIN assets a ON aa.asset_id = a.id
+            WHERE aa.company_id = ? AND aa.status = 'active'
+            ORDER BY aa.severity DESC, aa.created_at DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getComplianceStatus() {
-        return $this->db->query("
-            SELECT
-                a.asset_name,
-                a.asset_tag,
-                cs.compliance_type,
-                cs.compliance_status,
-                cs.last_check_date,
-                cs.next_check_date,
-                TIMESTAMPDIFF(DAY, CURDATE(), cs.next_check_date) as days_until_next,
-                cs.compliance_score
-            FROM assets a
-            JOIN compliance_status cs ON a.id = cs.asset_id
-            WHERE a.company_id = ?
-            ORDER BY cs.next_check_date ASC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getAssetAnalytics() {
-        return $this->db->querySingle("
-            SELECT
-                COUNT(a.id) as total_assets,
-                ROUND((COUNT(CASE WHEN a.status = 'active' THEN 1 END) / NULLIF(COUNT(a.id), 0)) * 100, 2) as active_asset_percentage,
-                AVG(TIMESTAMPDIFF(YEAR, a.purchase_date, CURDATE())) as avg_asset_age,
-                SUM(a.purchase_value) as total_asset_value,
-                AVG(a.purchase_value) as avg_asset_value,
-                COUNT(CASE WHEN a.next_maintenance_date <= CURDATE() THEN 1 END) as overdue_maintenance,
-                COUNT(CASE WHEN a.warranty_expiry <= CURDATE() THEN 1 END) as expired_warranties
-            FROM assets a
-            WHERE a.company_id = ?
-        ", [$this->user['company_id']]);
-    }
-
-    private function getAssets($filters) {
-        $where = ["a.company_id = ?"];
-        $params = [$this->user['company_id']];
-
-        if ($filters['status']) {
-            $where[] = "a.status = ?";
-            $params[] = $filters['status'];
-        }
-
-        if ($filters['category']) {
-            $where[] = "a.category_id = ?";
-            $params[] = $filters['category'];
-        }
-
-        if ($filters['location']) {
-            $where[] = "a.location_id = ?";
-            $params[] = $filters['location'];
-        }
-
-        if ($filters['department']) {
-            $where[] = "a.department_id = ?";
-            $params[] = $filters['department'];
-        }
-
-        if ($filters['date_from']) {
-            $where[] = "a.purchase_date >= ?";
-            $params[] = $filters['date_from'] . ' 00:00:00';
-        }
-
-        if ($filters['date_to']) {
-            $where[] = "a.purchase_date <= ?";
-            $params[] = $filters['date_to'] . ' 23:59:59';
-        }
-
-        if ($filters['search']) {
-            $where[] = "(a.asset_name LIKE ? OR a.asset_tag LIKE ? OR a.serial_number LIKE ? OR a.model LIKE ?)";
-            $search_term = '%' . $filters['search'] . '%';
-            $params[] = $search_term;
-            $params[] = $search_term;
-            $params[] = $search_term;
-            $params[] = $search_term;
-        }
-
-        $whereClause = implode(' AND ', $where);
-
+    private function getAssets() {
         return $this->db->query("
             SELECT
                 a.*,
-                ac.category_name,
-                al.location_name,
-                ad.department_name,
-                u.first_name as assigned_to_first,
-                u.last_name as assigned_to_last,
-                a.purchase_value,
+                a.asset_tag,
+                a.asset_name,
+                a.category,
+                a.status,
+                a.acquisition_cost,
                 a.current_value,
-                a.accumulated_depreciation,
-                TIMESTAMPDIFF(YEAR, a.purchase_date, CURDATE()) as asset_age_years,
-                TIMESTAMPDIFF(DAY, CURDATE(), a.next_maintenance_date) as days_until_maintenance,
-                TIMESTAMPDIFF(DAY, CURDATE(), a.warranty_expiry) as days_until_warranty_expiry
+                a.location_id,
+                a.assigned_to,
+                l.location_name,
+                u.first_name,
+                u.last_name,
+                c.category_name
             FROM assets a
-            LEFT JOIN asset_categories ac ON a.category_id = ac.id
-            LEFT JOIN asset_locations al ON a.location_id = al.id
-            LEFT JOIN asset_departments ad ON a.department_id = ad.id
+            LEFT JOIN asset_locations l ON a.location_id = l.id
             LEFT JOIN users u ON a.assigned_to = u.id
-            WHERE $whereClause
+            LEFT JOIN asset_categories c ON a.category_id = c.id
+            WHERE a.company_id = ?
             ORDER BY a.asset_name ASC
-        ", $params);
+        ", [$this->user['company_id']]);
     }
 
     private function getAssetCategories() {
         return $this->db->query("
             SELECT
                 ac.*,
-                COUNT(a.id) as asset_count,
-                SUM(a.purchase_value) as total_value,
-                AVG(a.purchase_value) as avg_value
+                ac.category_name,
+                ac.description,
+                COUNT(a.id) as asset_count
             FROM asset_categories ac
             LEFT JOIN assets a ON ac.id = a.category_id
             WHERE ac.company_id = ?
             GROUP BY ac.id
-            ORDER BY asset_count DESC
+            ORDER BY ac.category_name ASC
         ", [$this->user['company_id']]);
     }
 
@@ -397,168 +383,196 @@ class AssetManagement extends BaseController {
         return $this->db->query("
             SELECT
                 al.*,
-                COUNT(a.id) as asset_count,
-                SUM(a.purchase_value) as total_value
+                al.location_name,
+                al.address,
+                al.capacity,
+                COUNT(a.id) as asset_count
             FROM asset_locations al
             LEFT JOIN assets a ON al.id = a.location_id
             WHERE al.company_id = ?
             GROUP BY al.id
-            ORDER BY asset_count DESC
+            ORDER BY al.location_name ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getAssetDepartments() {
+    private function getAssetStatuses() {
+        return [
+            'active' => 'Active',
+            'maintenance' => 'Under Maintenance',
+            'retired' => 'Retired',
+            'disposed' => 'Disposed',
+            'lost' => 'Lost/Stolen'
+        ];
+    }
+
+    private function getAssetFilters() {
+        return [
+            'categories' => $this->getAssetCategories(),
+            'locations' => $this->getAssetLocations(),
+            'statuses' => $this->getAssetStatuses(),
+            'value_ranges' => [
+                '0-1000' => '$0 - $1,000',
+                '1000-10000' => '$1,000 - $10,000',
+                '10000-50000' => '$10,000 - $50,000',
+                '50000+' => '$50,000+'
+            ]
+        ];
+    }
+
+    private function getLifecycleStages() {
+        return [
+            'planning' => 'Planning & Acquisition',
+            'deployment' => 'Deployment & Installation',
+            'operation' => 'Operation & Maintenance',
+            'upgrade' => 'Upgrade & Enhancement',
+            'retirement' => 'Retirement & Disposal'
+        ];
+    }
+
+    private function getAssetTransitions() {
         return $this->db->query("
             SELECT
-                ad.*,
-                COUNT(a.id) as asset_count,
-                SUM(a.purchase_value) as total_value
-            FROM asset_departments ad
-            LEFT JOIN assets a ON ad.id = a.department_id
-            WHERE ad.company_id = ?
-            GROUP BY ad.id
-            ORDER BY asset_count DESC
+                at.*,
+                at.asset_id,
+                at.from_stage,
+                at.to_stage,
+                at.transition_date,
+                at.reason,
+                a.asset_name,
+                a.asset_tag
+            FROM asset_transitions at
+            JOIN assets a ON at.asset_id = a.id
+            WHERE a.company_id = ?
+            ORDER BY at.transition_date DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getAssetTemplates() {
+    private function getRetirementSchedule() {
         return $this->db->query("
-            SELECT * FROM asset_templates
-            WHERE company_id = ? AND is_active = true
-            ORDER BY template_name ASC
+            SELECT
+                a.*,
+                a.asset_name,
+                a.asset_tag,
+                a.expected_retirement_date,
+                a.retirement_reason,
+                DATEDIFF(a.expected_retirement_date, CURDATE()) as days_until_retirement
+            FROM assets a
+            WHERE a.company_id = ? AND a.expected_retirement_date IS NOT NULL
+            AND a.status = 'active'
+            ORDER BY a.expected_retirement_date ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getBulkActions() {
-        return [
-            'update_category' => 'Update Category',
-            'update_location' => 'Update Location',
-            'update_department' => 'Update Department',
-            'update_status' => 'Update Status',
-            'schedule_maintenance' => 'Schedule Maintenance',
-            'export_assets' => 'Export Asset Data',
-            'import_assets' => 'Import Asset Data',
-            'bulk_depreciation' => 'Bulk Depreciation',
-            'bulk_disposal' => 'Bulk Disposal'
-        ];
+    private function getDisposalRecords() {
+        return $this->db->query("
+            SELECT
+                dr.*,
+                dr.asset_id,
+                dr.disposal_date,
+                dr.disposal_method,
+                dr.disposal_value,
+                dr.reason,
+                a.asset_name,
+                a.asset_tag
+            FROM disposal_records dr
+            JOIN assets a ON dr.asset_id = a.id
+            WHERE a.company_id = ?
+            ORDER BY dr.disposal_date DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getLifecycleMetrics() {
+        return $this->db->querySingle("
+            SELECT
+                AVG(DATEDIFF(COALESCE(retirement_date, CURDATE()), acquisition_date)) as avg_lifecycle_days,
+                COUNT(CASE WHEN retirement_date IS NOT NULL THEN 1 END) as retired_assets,
+                COUNT(CASE WHEN status = 'active' THEN 1 END) as active_assets,
+                AVG(acquisition_cost) as avg_acquisition_cost
+            FROM assets
+            WHERE company_id = ?
+        ", [$this->user['company_id']]);
     }
 
     private function getMaintenanceHistory() {
         return $this->db->query("
             SELECT
+                mr.*,
+                mr.asset_id,
+                mr.maintenance_date,
+                mr.maintenance_type,
+                mr.description,
+                mr.cost,
+                mr.technician,
                 a.asset_name,
-                a.asset_tag,
-                mh.maintenance_date,
-                mh.maintenance_type,
-                mh.description,
-                mh.technician,
-                mh.cost,
-                mh.downtime_hours,
-                mh.parts_used
-            FROM assets a
-            JOIN maintenance_history mh ON a.id = mh.asset_id
+                a.asset_tag
+            FROM maintenance_records mr
+            JOIN assets a ON mr.asset_id = a.id
             WHERE a.company_id = ?
-            ORDER BY mh.maintenance_date DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getMaintenancePlans() {
-        return $this->db->query("
-            SELECT
-                a.asset_name,
-                a.asset_tag,
-                mp.plan_name,
-                mp.frequency_days,
-                mp.maintenance_type,
-                mp.description,
-                mp.estimated_cost,
-                mp.last_performed,
-                mp.next_due
-            FROM assets a
-            JOIN maintenance_plans mp ON a.id = mp.asset_id
-            WHERE a.company_id = ?
-            ORDER BY mp.next_due ASC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getMaintenanceWorkOrders() {
-        return $this->db->query("
-            SELECT
-                a.asset_name,
-                a.asset_tag,
-                mwo.work_order_number,
-                mwo.maintenance_type,
-                mwo.priority,
-                mwo.status,
-                mwo.scheduled_date,
-                mwo.completed_date,
-                mwo.assigned_technician,
-                mwo.estimated_cost
-            FROM assets a
-            JOIN maintenance_work_orders mwo ON a.id = mwo.asset_id
-            WHERE a.company_id = ?
-            ORDER BY mwo.scheduled_date DESC
+            ORDER BY mr.maintenance_date DESC
         ", [$this->user['company_id']]);
     }
 
     private function getPreventiveMaintenance() {
         return $this->db->query("
             SELECT
-                a.asset_name,
-                a.asset_tag,
+                pm.*,
+                pm.asset_id,
                 pm.schedule_type,
-                pm.frequency,
-                pm.last_pm_date,
-                pm.next_pm_date,
-                pm.pm_tasks,
-                pm.estimated_duration,
-                TIMESTAMPDIFF(DAY, CURDATE(), pm.next_pm_date) as days_until_next
-            FROM assets a
-            JOIN preventive_maintenance pm ON a.id = pm.asset_id
+                pm.frequency_days,
+                pm.last_performed,
+                pm.next_due,
+                a.asset_name,
+                a.asset_tag
+            FROM preventive_maintenance pm
+            JOIN assets a ON pm.asset_id = a.id
             WHERE a.company_id = ?
-            ORDER BY pm.next_pm_date ASC
+            ORDER BY pm.next_due ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getMaintenanceWorkOrders() {
+        return $this->db->query("
+            SELECT
+                wo.*,
+                wo.asset_id,
+                wo.work_order_number,
+                wo.priority,
+                wo.status,
+                wo.requested_date,
+                wo.due_date,
+                a.asset_name,
+                a.asset_tag
+            FROM maintenance_work_orders wo
+            JOIN assets a ON wo.asset_id = a.id
+            WHERE a.company_id = ?
+            ORDER BY wo.priority DESC, wo.due_date ASC
         ", [$this->user['company_id']]);
     }
 
     private function getMaintenanceCosts() {
         return $this->db->query("
             SELECT
-                DATE_FORMAT(mh.maintenance_date, '%Y-%m') as month,
-                COUNT(mh.id) as maintenance_count,
-                SUM(mh.cost) as total_cost,
-                AVG(mh.cost) as avg_cost,
-                SUM(mh.downtime_hours) as total_downtime,
-                AVG(mh.downtime_hours) as avg_downtime
-            FROM maintenance_history mh
-            JOIN assets a ON mh.asset_id = a.id
-            WHERE a.company_id = ? AND mh.maintenance_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
-            GROUP BY DATE_FORMAT(mh.maintenance_date, '%Y-%m')
-            ORDER BY month DESC
+                MONTH(maintenance_date) as month,
+                YEAR(maintenance_date) as year,
+                SUM(cost) as monthly_cost,
+                COUNT(*) as maintenance_count
+            FROM maintenance_records
+            WHERE company_id = ? AND maintenance_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+            GROUP BY YEAR(maintenance_date), MONTH(maintenance_date)
+            ORDER BY year DESC, month DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getMaintenanceAnalytics() {
+    private function getMaintenanceMetrics() {
         return $this->db->querySingle("
             SELECT
-                COUNT(mh.id) as total_maintenance,
-                SUM(mh.cost) as total_maintenance_cost,
-                AVG(mh.cost) as avg_maintenance_cost,
-                SUM(mh.downtime_hours) as total_downtime,
-                AVG(mh.downtime_hours) as avg_downtime,
-                COUNT(CASE WHEN mh.maintenance_type = 'preventive' THEN 1 END) as preventive_maintenance,
-                COUNT(CASE WHEN mh.maintenance_type = 'corrective' THEN 1 END) as corrective_maintenance,
-                ROUND((COUNT(CASE WHEN mh.maintenance_type = 'preventive' THEN 1 END) / NULLIF(COUNT(mh.id), 0)) * 100, 2) as preventive_percentage
-            FROM maintenance_history mh
-            JOIN assets a ON mh.asset_id = a.id
-            WHERE a.company_id = ?
-        ", [$this->user['company_id']]);
-    }
-
-    private function getMaintenanceTemplates() {
-        return $this->db->query("
-            SELECT * FROM maintenance_templates
-            WHERE company_id = ? AND is_active = true
-            ORDER BY template_name ASC
+                COUNT(*) as total_maintenance,
+                AVG(cost) as avg_cost,
+                SUM(cost) as total_cost,
+                COUNT(CASE WHEN priority = 'critical' THEN 1 END) as critical_maintenance,
+                AVG(DATEDIFF(completion_date, requested_date)) as avg_completion_days
+            FROM maintenance_records
+            WHERE company_id = ? AND maintenance_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
         ", [$this->user['company_id']]);
     }
 
@@ -567,17 +581,16 @@ class AssetManagement extends BaseController {
             SELECT
                 a.asset_name,
                 a.asset_tag,
-                ds.depreciation_method,
-                ds.useful_life_years,
-                ds.salvage_value,
-                ds.annual_depreciation,
-                ds.accumulated_depreciation,
-                ds.current_book_value,
-                ds.next_depreciation_date
+                a.acquisition_cost,
+                a.useful_life_years,
+                de.depreciation_date,
+                de.depreciation_amount,
+                de.accumulated_depreciation,
+                a.current_value
             FROM assets a
-            JOIN depreciation_schedule ds ON a.id = ds.asset_id
-            WHERE a.company_id = ?
-            ORDER BY ds.next_depreciation_date ASC
+            LEFT JOIN depreciation_entries de ON a.id = de.asset_id
+            WHERE a.company_id = ? AND a.status = 'active'
+            ORDER BY a.asset_name ASC, de.depreciation_date DESC
         ", [$this->user['company_id']]);
     }
 
@@ -586,436 +599,676 @@ class AssetManagement extends BaseController {
             'straight_line' => 'Straight Line',
             'declining_balance' => 'Declining Balance',
             'units_of_production' => 'Units of Production',
-            'sum_of_years_digits' => 'Sum of Years Digits',
-            'double_declining_balance' => 'Double Declining Balance'
+            'sum_of_years_digits' => 'Sum of Years Digits'
         ];
     }
 
-    private function getDepreciationCalculations() {
+    private function getDepreciationEntries() {
+        return $this->db->query("
+            SELECT
+                de.*,
+                de.asset_id,
+                de.depreciation_date,
+                de.depreciation_amount,
+                de.accumulated_depreciation,
+                de.book_value,
+                a.asset_name,
+                a.asset_tag
+            FROM depreciation_entries de
+            JOIN assets a ON de.asset_id = a.id
+            WHERE a.company_id = ?
+            ORDER BY de.depreciation_date DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getAssetValues() {
         return $this->db->query("
             SELECT
                 a.asset_name,
                 a.asset_tag,
-                dc.calculation_date,
-                dc.depreciation_method,
-                dc.depreciation_amount,
-                dc.accumulated_depreciation,
-                dc.book_value,
-                dc.fiscal_year,
-                dc.fiscal_period
+                a.acquisition_cost,
+                a.current_value,
+                (a.acquisition_cost - a.current_value) as accumulated_depreciation,
+                ROUND((a.current_value / a.acquisition_cost) * 100, 2) as remaining_value_percentage
             FROM assets a
-            JOIN depreciation_calculations dc ON a.id = dc.asset_id
-            WHERE a.company_id = ?
-            ORDER BY dc.calculation_date DESC
+            WHERE a.company_id = ? AND a.status = 'active'
+            ORDER BY a.current_value DESC
         ", [$this->user['company_id']]);
     }
 
     private function getDepreciationReports() {
         return $this->db->query("
             SELECT
-                dr.*,
-                dr.report_type,
-                dr.report_period,
-                dr.generated_date,
-                dr.total_depreciation,
-                dr.total_assets,
-                dr.average_depreciation
-            FROM depreciation_reports dr
-            WHERE dr.company_id = ?
-            ORDER BY dr.generated_date DESC
+                YEAR(depreciation_date) as year,
+                MONTH(depreciation_date) as month,
+                SUM(depreciation_amount) as total_depreciation,
+                COUNT(DISTINCT asset_id) as assets_depreciated
+            FROM depreciation_entries
+            WHERE company_id = ?
+            GROUP BY YEAR(depreciation_date), MONTH(depreciation_date)
+            ORDER BY year DESC, month DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getDepreciationAnalytics() {
+    private function getDepreciationMetrics() {
         return $this->db->querySingle("
             SELECT
-                COUNT(a.id) as total_depreciable_assets,
-                SUM(a.purchase_value) as total_purchase_value,
-                SUM(a.accumulated_depreciation) as total_accumulated_depreciation,
-                SUM(a.current_value) as total_current_value,
-                AVG(a.purchase_value) as avg_purchase_value,
-                AVG(a.accumulated_depreciation) as avg_accumulated_depreciation,
-                ROUND((SUM(a.accumulated_depreciation) / NULLIF(SUM(a.purchase_value), 0)) * 100, 2) as overall_depreciation_percentage
-            FROM assets a
-            WHERE a.company_id = ? AND a.depreciation_method IS NOT NULL
+                SUM(acquisition_cost) as total_acquisition_cost,
+                SUM(current_value) as total_current_value,
+                SUM(acquisition_cost - current_value) as total_accumulated_depreciation,
+                AVG((acquisition_cost - current_value) / acquisition_cost * 100) as avg_depreciation_percentage
+            FROM assets
+            WHERE company_id = ? AND status = 'active'
         ", [$this->user['company_id']]);
     }
 
-    private function getDepreciationTemplates() {
-        return $this->db->query("
-            SELECT * FROM depreciation_templates
-            WHERE company_id = ? AND is_active = true
-            ORDER BY template_name ASC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getTaxImplications() {
+    private function getLocationHistory() {
         return $this->db->query("
             SELECT
+                lh.*,
+                lh.asset_id,
+                lh.from_location_id,
+                lh.to_location_id,
+                lh.move_date,
+                lh.reason,
+                fl.location_name as from_location,
+                tl.location_name as to_location,
                 a.asset_name,
-                a.asset_tag,
-                ti.tax_year,
-                ti.depreciation_deduction,
-                ti.section_179_deduction,
-                ti.bonus_depreciation,
-                ti.total_tax_benefit,
-                ti.effective_tax_rate
-            FROM assets a
-            JOIN tax_implications ti ON a.id = ti.asset_id
+                a.asset_tag
+            FROM location_history lh
+            JOIN assets a ON lh.asset_id = a.id
+            LEFT JOIN asset_locations fl ON lh.from_location_id = fl.id
+            LEFT JOIN asset_locations tl ON lh.to_location_id = tl.id
             WHERE a.company_id = ?
-            ORDER BY ti.tax_year DESC
+            ORDER BY lh.move_date DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getLifecycleStages() {
+    private function getAssetMovements() {
         return $this->db->query("
             SELECT
+                am.*,
+                am.asset_id,
+                am.movement_type,
+                am.from_location,
+                am.to_location,
+                am.movement_date,
+                am.authorized_by,
                 a.asset_name,
-                a.asset_tag,
-                als.stage_name,
-                als.stage_order,
-                als.entry_date,
-                als.exit_date,
-                als.stage_duration_days,
-                als.stage_cost,
-                als.stage_status
-            FROM assets a
-            JOIN asset_lifecycle_stages als ON a.id = als.asset_id
+                a.asset_tag
+            FROM asset_movements am
+            JOIN assets a ON am.asset_id = a.id
             WHERE a.company_id = ?
-            ORDER BY a.asset_name, als.stage_order
+            ORDER BY am.movement_date DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getLifecycleTransitions() {
+    private function getGeofencingData() {
         return $this->db->query("
             SELECT
+                gf.*,
+                gf.asset_id,
+                gf.geofence_name,
+                gf.latitude,
+                gf.longitude,
+                gf.radius,
+                gf.alert_type,
                 a.asset_name,
-                a.asset_tag,
-                alt.from_stage,
-                alt.to_stage,
-                alt.transition_date,
-                alt.transition_reason,
-                alt.approved_by,
-                alt.transition_cost,
-                alt.notes
-            FROM assets a
-            JOIN asset_lifecycle_transitions alt ON a.id = alt.asset_id
+                a.asset_tag
+            FROM geofencing gf
+            JOIN assets a ON gf.asset_id = a.id
             WHERE a.company_id = ?
-            ORDER BY alt.transition_date DESC
+            ORDER BY gf.geofence_name ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getAssetDisposal() {
-        return $this->db->query("
-            SELECT
-                a.asset_name,
-                a.asset_tag,
-                ad.disposal_date,
-                ad.disposal_method,
-                ad.disposal_reason,
-                ad.disposal_value,
-                ad.buyer_name,
-                ad.disposal_costs,
-                ad.net_proceeds
-            FROM assets a
-            JOIN asset_disposal ad ON a.id = ad.asset_id
-            WHERE a.company_id = ?
-            ORDER BY ad.disposal_date DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getAssetRetirement() {
-        return $this->db->query("
-            SELECT
-                a.asset_name,
-                a.asset_tag,
-                ar.retirement_date,
-                ar.retirement_reason,
-                ar.retirement_value,
-                ar.disposal_method,
-                ar.environmental_impact,
-                ar.recycling_info,
-                ar.final_disposition
-            FROM assets a
-            JOIN asset_retirement ar ON a.id = ar.asset_id
-            WHERE a.company_id = ?
-            ORDER BY ar.retirement_date DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getLifecycleAnalytics() {
+    private function getTrackingMetrics() {
         return $this->db->querySingle("
             SELECT
-                COUNT(DISTINCT a.id) as total_assets,
-                AVG(TIMESTAMPDIFF(DAY, a.purchase_date, COALESCE(ar.retirement_date, CURDATE()))) as avg_lifecycle_days,
-                COUNT(ar.id) as retired_assets,
-                COUNT(ad.id) as disposed_assets,
-                SUM(ad.net_proceeds) as total_disposal_proceeds,
-                AVG(ad.net_proceeds) as avg_disposal_proceeds,
-                COUNT(CASE WHEN als.stage_name = 'Active' THEN 1 END) as active_assets,
-                COUNT(CASE WHEN als.stage_name = 'Maintenance' THEN 1 END) as maintenance_assets
-            FROM assets a
-            LEFT JOIN asset_retirement ar ON a.id = ar.asset_id
-            LEFT JOIN asset_disposal ad ON a.id = ad.asset_id
-            LEFT JOIN asset_lifecycle_stages als ON a.id = als.asset_id AND als.exit_date IS NULL
-            WHERE a.company_id = ?
-        ", [$this->user['company_id']]);
-    }
-
-    private function getLifecycleReports() {
-        return $this->db->query("
-            SELECT
-                lr.*,
-                lr.report_type,
-                lr.report_period,
-                lr.generated_date,
-                lr.total_assets,
-                lr.avg_lifecycle,
-                lr.retirement_rate
-            FROM lifecycle_reports lr
-            WHERE lr.company_id = ?
-            ORDER BY lr.generated_date DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getLifecycleTemplates() {
-        return $this->db->query("
-            SELECT * FROM lifecycle_templates
-            WHERE company_id = ? AND is_active = true
-            ORDER BY template_name ASC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getUpgradePlanning() {
-        return $this->db->query("
-            SELECT
-                a.asset_name,
-                a.asset_tag,
-                up.upgrade_type,
-                up.planned_date,
-                up.estimated_cost,
-                up.expected_benefits,
-                up.risk_assessment,
-                up.approval_status,
-                TIMESTAMPDIFF(DAY, CURDATE(), up.planned_date) as days_until_upgrade
-            FROM assets a
-            JOIN upgrade_planning up ON a.id = up.asset_id
-            WHERE a.company_id = ?
-            ORDER BY up.planned_date ASC
+                COUNT(DISTINCT asset_id) as tracked_assets,
+                COUNT(*) as total_movements,
+                AVG(DATEDIFF(CURDATE(), last_location_update)) as avg_days_since_update,
+                COUNT(CASE WHEN geofence_alerts > 0 THEN 1 END) as assets_with_alerts
+            FROM asset_tracking
+            WHERE company_id = ?
         ", [$this->user['company_id']]);
     }
 
     private function getComplianceRequirements() {
         return $this->db->query("
             SELECT
-                a.asset_name,
-                a.asset_tag,
-                cr.requirement_type,
+                cr.*,
+                cr.requirement_name,
                 cr.description,
                 cr.frequency,
-                cr.last_compliance_check,
-                cr.next_compliance_check,
-                cr.compliance_status,
-                TIMESTAMPDIFF(DAY, CURDATE(), cr.next_compliance_check) as days_until_next
-            FROM assets a
-            JOIN compliance_requirements cr ON a.id = cr.asset_id
-            WHERE a.company_id = ?
-            ORDER BY cr.next_compliance_check ASC
+                cr.next_due_date,
+                cr.status,
+                COUNT(ca.id) as compliance_actions
+            FROM compliance_requirements cr
+            LEFT JOIN compliance_actions ca ON cr.id = ca.requirement_id
+            WHERE cr.company_id = ?
+            GROUP BY cr.id
+            ORDER BY cr.next_due_date ASC
         ", [$this->user['company_id']]);
     }
 
     private function getInsurancePolicies() {
         return $this->db->query("
             SELECT
-                a.asset_name,
-                a.asset_tag,
+                ip.*,
                 ip.policy_number,
-                ip.insurance_provider,
-                ip.policy_type,
+                ip.provider,
                 ip.coverage_amount,
                 ip.premium_amount,
-                ip.start_date,
                 ip.expiry_date,
-                ip.deductible_amount,
-                TIMESTAMPDIFF(DAY, CURDATE(), ip.expiry_date) as days_until_expiry
-            FROM assets a
-            JOIN insurance_policies ip ON a.id = ip.asset_id
-            WHERE a.company_id = ?
+                ip.policy_type,
+                COUNT(a.id) as covered_assets
+            FROM insurance_policies ip
+            LEFT JOIN asset_insurance ai ON ip.id = ai.policy_id
+            LEFT JOIN assets a ON ai.asset_id = a.id
+            WHERE ip.company_id = ?
+            GROUP BY ip.id
             ORDER BY ip.expiry_date ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getComplianceAudits() {
+    private function getAuditTrail() {
         return $this->db->query("
             SELECT
+                at.*,
+                at.asset_id,
+                at.action_type,
+                at.action_date,
+                at.user_id,
+                at.details,
                 a.asset_name,
                 a.asset_tag,
-                ca.audit_date,
-                ca.audit_type,
-                ca.auditor_name,
-                ca.audit_result,
-                ca.findings,
-                ca.corrective_actions,
-                ca.next_audit_date
-            FROM assets a
-            JOIN compliance_audits ca ON a.id = ca.asset_id
+                u.first_name,
+                u.last_name
+            FROM asset_audit_trail at
+            JOIN assets a ON at.asset_id = a.id
+            JOIN users u ON at.user_id = u.id
             WHERE a.company_id = ?
-            ORDER BY ca.audit_date DESC
+            ORDER BY at.action_date DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getRegulatoryCompliance() {
+    private function getRegulatoryReports() {
         return $this->db->query("
             SELECT
-                a.asset_name,
-                a.asset_tag,
-                rc.regulation_name,
-                rc.compliance_status,
-                rc.last_review_date,
-                rc.next_review_date,
-                rc.compliance_officer,
-                rc.documentation_location,
-                TIMESTAMPDIFF(DAY, CURDATE(), rc.next_review_date) as days_until_next
-            FROM assets a
-            JOIN regulatory_compliance rc ON a.id = rc.asset_id
-            WHERE a.company_id = ?
-            ORDER BY rc.next_review_date ASC
+                rr.*,
+                rr.report_name,
+                rr.report_type,
+                rr.due_date,
+                rr.submission_date,
+                rr.status,
+                rr.regulatory_body
+            FROM regulatory_reports rr
+            WHERE rr.company_id = ?
+            ORDER BY rr.due_date ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getSafetyCompliance() {
+    private function getComplianceAlerts() {
         return $this->db->query("
             SELECT
-                a.asset_name,
-                a.asset_tag,
-                sc.safety_standard,
-                sc.last_inspection_date,
-                sc.next_inspection_date,
-                sc.inspection_result,
-                sc.safety_rating,
-                sc.corrective_actions,
-                TIMESTAMPDIFF(DAY, CURDATE(), sc.next_inspection_date) as days_until_next
-            FROM assets a
-            JOIN safety_compliance sc ON a.id = sc.asset_id
-            WHERE a.company_id = ?
-            ORDER BY sc.next_inspection_date ASC
+                ca.*,
+                ca.alert_type,
+                ca.severity,
+                ca.message,
+                ca.created_at,
+                ca.status,
+                cr.requirement_name
+            FROM compliance_alerts ca
+            LEFT JOIN compliance_requirements cr ON ca.requirement_id = cr.id
+            WHERE ca.company_id = ? AND ca.status = 'active'
+            ORDER BY ca.severity DESC, ca.created_at DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getEnvironmentalCompliance() {
-        return $this->db->query("
-            SELECT
-                a.asset_name,
-                a.asset_tag,
-                ec.environmental_standard,
-                ec.last_assessment_date,
-                ec.next_assessment_date,
-                ec.environmental_impact,
-                ec.emissions_data,
-                ec.waste_management,
-                ec.sustainability_rating
-            FROM assets a
-            JOIN environmental_compliance ec ON a.id = ec.asset_id
-            WHERE a.company_id = ?
-            ORDER BY ec.next_assessment_date ASC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getComplianceReports() {
-        return $this->db->query("
-            SELECT
-                crp.*,
-                crp.report_type,
-                crp.report_period,
-                crp.generated_date,
-                crp.compliance_score,
-                crp.non_compliant_assets,
-                crp.corrective_actions
-            FROM compliance_reports crp
-            WHERE crp.company_id = ?
-            ORDER BY crp.generated_date DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getComplianceAnalytics() {
+    private function getComplianceMetrics() {
         return $this->db->querySingle("
             SELECT
-                COUNT(DISTINCT a.id) as total_assets,
-                COUNT(CASE WHEN cr.compliance_status = 'compliant' THEN 1 END) as compliant_assets,
-                ROUND((COUNT(CASE WHEN cr.compliance_status = 'compliant' THEN 1 END) / NULLIF(COUNT(DISTINCT a.id), 0)) * 100, 2) as compliance_rate,
-                COUNT(CASE WHEN ip.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 90 DAY) THEN 1 END) as expiring_insurance,
-                COUNT(CASE WHEN sc.safety_rating < 80 THEN 1 END) as low_safety_rating,
-                AVG(sc.safety_rating) as avg_safety_rating,
-                COUNT(CASE WHEN ec.sustainability_rating < 70 THEN 1 END) as low_sustainability_rating
-            FROM assets a
-            LEFT JOIN compliance_requirements cr ON a.id = cr.asset_id
-            LEFT JOIN insurance_policies ip ON a.id = ip.asset_id
-            LEFT JOIN safety_compliance sc ON a.id = sc.asset_id
-            LEFT JOIN environmental_compliance ec ON a.id = ec.asset_id
-            WHERE a.company_id = ?
+                COUNT(CASE WHEN status = 'compliant' THEN 1 END) as compliant_requirements,
+                COUNT(CASE WHEN status = 'non_compliant' THEN 1 END) as non_compliant_requirements,
+                COUNT(CASE WHEN expiry_date <= CURDATE() THEN 1 END) as expired_policies,
+                COUNT(CASE WHEN next_due_date <= CURDATE() THEN 1 END) as overdue_reports
+            FROM compliance_requirements cr
+            LEFT JOIN insurance_policies ip ON cr.company_id = ip.company_id
+            LEFT JOIN regulatory_reports rr ON cr.company_id = rr.company_id
+            WHERE cr.company_id = ?
         ", [$this->user['company_id']]);
     }
 
-    private function getAssetUtilization() {
+    private function getAssetReports() {
+        return [
+            'asset_inventory' => $this->getAssetInventoryReport(),
+            'asset_utilization' => $this->getAssetUtilizationReport(),
+            'maintenance_summary' => $this->getMaintenanceSummaryReport(),
+            'depreciation_summary' => $this->getDepreciationSummaryReport(),
+            'compliance_status' => $this->getComplianceStatusReport()
+        ];
+    }
+
+    private function getAssetInventoryReport() {
+        return $this->db->query("
+            SELECT
+                ac.category_name,
+                COUNT(a.id) as asset_count,
+                SUM(a.acquisition_cost) as total_acquisition_cost,
+                SUM(a.current_value) as total_current_value,
+                AVG(a.acquisition_cost) as avg_cost_per_asset
+            FROM assets a
+            LEFT JOIN asset_categories ac ON a.category_id = ac.id
+            WHERE a.company_id = ?
+            GROUP BY ac.category_name
+            ORDER BY total_acquisition_cost DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getAssetUtilizationReport() {
         return $this->db->query("
             SELECT
                 a.asset_name,
                 a.asset_tag,
-                au.utilization_date,
-                au.utilization_percentage,
-                au.operating_hours,
-                au.downtime_hours,
-                au.efficiency_rating,
-                au.productivity_score
+                a.utilization_rate,
+                a.total_usage_hours,
+                a.downtime_hours,
+                ROUND((a.total_usage_hours / (a.total_usage_hours + a.downtime_hours)) * 100, 2) as availability_percentage
             FROM assets a
-            JOIN asset_utilization au ON a.id = au.asset_id
-            WHERE a.company_id = ?
-            ORDER BY au.utilization_date DESC
+            WHERE a.company_id = ? AND a.status = 'active'
+            ORDER BY a.utilization_rate DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getAssetPerformance() {
+    private function getMaintenanceSummaryReport() {
+        return $this->db->query("
+            SELECT
+                a.asset_name,
+                COUNT(mr.id) as maintenance_count,
+                SUM(mr.cost) as total_maintenance_cost,
+                AVG(mr.cost) as avg_maintenance_cost,
+                MAX(mr.maintenance_date) as last_maintenance_date
+            FROM assets a
+            LEFT JOIN maintenance_records mr ON a.id = mr.asset_id
+            WHERE a.company_id = ?
+            GROUP BY a.id, a.asset_name
+            ORDER BY total_maintenance_cost DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getDepreciationSummaryReport() {
+        return $this->db->query("
+            SELECT
+                a.asset_name,
+                a.acquisition_cost,
+                a.current_value,
+                (a.acquisition_cost - a.current_value) as accumulated_depreciation,
+                ROUND(((a.acquisition_cost - a.current_value) / a.acquisition_cost) * 100, 2) as depreciation_percentage
+            FROM assets a
+            WHERE a.company_id = ? AND a.status = 'active'
+            ORDER BY depreciation_percentage DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getComplianceStatusReport() {
+        return $this->db->query("
+            SELECT
+                cr.requirement_name,
+                cr.status,
+                cr.next_due_date,
+                DATEDIFF(cr.next_due_date, CURDATE()) as days_until_due,
+                COUNT(ca.id) as actions_taken
+            FROM compliance_requirements cr
+            LEFT JOIN compliance_actions ca ON cr.id = ca.requirement_id
+            WHERE cr.company_id = ?
+            GROUP BY cr.id, cr.requirement_name, cr.status, cr.next_due_date
+            ORDER BY cr.next_due_date ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getUtilizationReports() {
         return $this->db->query("
             SELECT
                 a.asset_name,
                 a.asset_tag,
-                ap.metric_name,
-                ap.metric_value,
-                ap.target_value,
-                ap.performance_date,
-                ROUND(((ap.metric_value - ap.target_value) / NULLIF(ap.target_value, 0)) * 100, 2) as performance_percentage
+                a.utilization_rate,
+                a.last_used_date,
+                a.total_usage_hours,
+                ROUND(a.utilization_rate, 2) as utilization_percentage
             FROM assets a
-            JOIN asset_performance ap ON a.id = ap.asset_id
-            WHERE a.company_id = ?
-            ORDER BY ap.performance_date DESC
+            WHERE a.company_id = ? AND a.status = 'active'
+            ORDER BY a.utilization_rate DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getLifecycleCosts() {
+    private function getCostAnalysis() {
+        return $this->db->query("
+            SELECT
+                a.asset_name,
+                a.acquisition_cost,
+                SUM(mr.cost) as maintenance_cost,
+                SUM(mr.cost) / a.acquisition_cost * 100 as maintenance_cost_percentage,
+                a.current_value
+            FROM assets a
+            LEFT JOIN maintenance_records mr ON a.id = mr.asset_id
+            WHERE a.company_id = ?
+            GROUP BY a.id, a.asset_name, a.acquisition_cost, a.current_value
+            ORDER BY maintenance_cost_percentage DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getPerformanceMetrics() {
+        return $this->db->querySingle("
+            SELECT
+                AVG(utilization_rate) as avg_utilization,
+                AVG(availability_percentage) as avg_availability,
+                SUM(acquisition_cost) / COUNT(*) as avg_cost_per_asset,
+                COUNT(CASE WHEN status = 'active' THEN 1 END) / COUNT(*) * 100 as active_asset_percentage
+            FROM assets
+            WHERE company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getPredictiveAnalytics() {
         return $this->db->query("
             SELECT
                 a.asset_name,
                 a.asset_tag,
-                lc.cost_category,
-                lc.cost_amount,
-                lc.cost_date,
-                lc.accumulated_cost,
-                lc.cost_projection
+                pa.prediction_type,
+                pa.risk_level,
+                pa.predicted_date,
+                pa.confidence_score,
+                pa.recommendation
             FROM assets a
-            JOIN lifecycle_costs lc ON a.id = lc.asset_id
-            WHERE a.company_id = ?
-            ORDER BY lc.cost_date DESC
+            JOIN predictive_analytics pa ON a.id = pa.asset_id
+            WHERE a.company_id = ? AND pa.prediction_type = 'failure'
+            ORDER BY pa.risk_level DESC, pa.predicted_date ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getAssetDepreciation() {
+    private function getCustomReports() {
         return $this->db->query("
             SELECT
-                DATE_FORMAT(d.depreciation_date, '%Y-%m') as month,
-                COUNT(DISTINCT d.asset_id) as assets_depreciated,
-                SUM(d.depreciation_amount) as total_depreciation,
-                AVG(d.depreciation_amount) as avg_depreciation,
-                SUM(a.purchase_value) as total_asset_value,
-                ROUND((SUM(d.depreciation_amount) / NULLIF(SUM(a.purchase_value), 0)) * 100, 2) as depreciation_rate
-            FROM depreciation d
-            JOIN assets a ON d.asset_id = a
+                cr.*,
+                cr.report_name,
+                cr.description,
+                cr.created_by,
+                cr.created_at,
+                cr.last_run,
+                u.first_name,
+                u.last_name
+            FROM custom_reports cr
+            JOIN users u ON cr.created_by = u.id
+            WHERE cr.company_id = ? AND cr.module = 'assets'
+            ORDER BY cr.created_at DESC
+        ", [$this->user['company_id']]);
+    }
+
+    // ============================================================================
+    // API ENDPOINTS
+    // ============================================================================
+
+    public function createAsset() {
+        $this->requirePermission('assets.create');
+
+        $data = $this->validateRequest([
+            'asset_tag' => 'required|string',
+            'asset_name' => 'required|string',
+            'category_id' => 'required|integer',
+            'description' => 'string',
+            'acquisition_date' => 'required|date',
+            'acquisition_cost' => 'required|numeric',
+            'location_id' => 'integer',
+            'assigned_to' => 'integer',
+            'useful_life_years' => 'integer',
+            'depreciation_method' => 'string'
+        ]);
+
+        try {
+            $this->db->beginTransaction();
+
+            // Create asset
+            $assetId = $this->db->insert('assets', [
+                'company_id' => $this->user['company_id'],
+                'asset_tag' => $data['asset_tag'],
+                'asset_name' => $data['asset_name'],
+                'category_id' => $data['category_id'],
+                'description' => $data['description'] ?? '',
+                'acquisition_date' => $data['acquisition_date'],
+                'acquisition_cost' => $data['acquisition_cost'],
+                'current_value' => $data['acquisition_cost'],
+                'location_id' => $data['location_id'] ?? null,
+                'assigned_to' => $data['assigned_to'] ?? null,
+                'useful_life_years' => $data['useful_life_years'] ?? 5,
+                'depreciation_method' => $data['depreciation_method'] ?? 'straight_line',
+                'status' => 'active',
+                'created_by' => $this->user['id']
+            ]);
+
+            // Create initial depreciation schedule
+            $this->createDepreciationSchedule($assetId, $data);
+
+            // Log audit trail
+            $this->logAssetAction($assetId, 'created', 'Asset created');
+
+            $this->db->commit();
+
+            $this->jsonResponse([
+                'success' => true,
+                'asset_id' => $assetId,
+                'message' => 'Asset created successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->db->rollback();
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function createDepreciationSchedule($assetId, $data) {
+        $usefulLife = $data['useful_life_years'] ?? 5;
+        $annualDepreciation = $data['acquisition_cost'] / $usefulLife;
+        $monthlyDepreciation = $annualDepreciation / 12;
+
+        for ($year = 1; $year <= $usefulLife; $year++) {
+            for ($month = 1; $month <= 12; $month++) {
+                $depreciationDate = date('Y-m-d', strtotime("+{$year} years -{$month} months", strtotime($data['acquisition_date'])));
+
+                $this->db->insert('depreciation_entries', [
+                    'company_id' => $this->user['company_id'],
+                    'asset_id' => $assetId,
+                    'depreciation_date' => $depreciationDate,
+                    'depreciation_amount' => $monthlyDepreciation,
+                    'accumulated_depreciation' => $monthlyDepreciation * (($year - 1) * 12 + $month),
+                    'book_value' => $data['acquisition_cost'] - ($monthlyDepreciation * (($year - 1) * 12 + $month))
+                ]);
+            }
+        }
+    }
+
+    private function logAssetAction($assetId, $action, $details) {
+        $this->db->insert('asset_audit_trail', [
+            'company_id' => $this->user['company_id'],
+            'asset_id' => $assetId,
+            'action_type' => $action,
+            'action_date' => date('Y-m-d H:i:s'),
+            'user_id' => $this->user['id'],
+            'details' => $details
+        ]);
+    }
+
+    public function updateAsset() {
+        $this->requirePermission('assets.edit');
+
+        $data = $this->validateRequest([
+            'asset_id' => 'required|integer',
+            'asset_name' => 'string',
+            'category_id' => 'integer',
+            'description' => 'string',
+            'location_id' => 'integer',
+            'assigned_to' => 'integer',
+            'status' => 'string'
+        ]);
+
+        try {
+            $this->db->update('assets', [
+                'asset_name' => $data['asset_name'] ?? null,
+                'category_id' => $data['category_id'] ?? null,
+                'description' => $data['description'] ?? null,
+                'location_id' => $data['location_id'] ?? null,
+                'assigned_to' => $data['assigned_to'] ?? null,
+                'status' => $data['status'] ?? null,
+                'updated_by' => $this->user['id'],
+                'updated_at' => date('Y-m-d H:i:s')
+            ], 'id = ? AND company_id = ?', [
+                $data['asset_id'],
+                $this->user['company_id']
+            ]);
+
+            // Log audit trail
+            $this->logAssetAction($data['asset_id'], 'updated', 'Asset updated');
+
+            $this->jsonResponse([
+                'success' => true,
+                'message' => 'Asset updated successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function scheduleMaintenance() {
+        $this->requirePermission('assets.maintenance.schedule');
+
+        $data = $this->validateRequest([
+            'asset_id' => 'required|integer',
+            'maintenance_type' => 'required|string',
+            'scheduled_date' => 'required|date',
+            'description' => 'required|string',
+            'priority' => 'required|string',
+            'estimated_cost' => 'numeric'
+        ]);
+
+        try {
+            $scheduleId = $this->db->insert('maintenance_schedule', [
+                'company_id' => $this->user['company_id'],
+                'asset_id' => $data['asset_id'],
+                'maintenance_type' => $data['maintenance_type'],
+                'scheduled_date' => $data['scheduled_date'],
+                'description' => $data['description'],
+                'priority' => $data['priority'],
+                'estimated_cost' => $data['estimated_cost'] ?? 0,
+                'status' => 'scheduled',
+                'created_by' => $this->user['id']
+            ]);
+
+            // Log audit trail
+            $this->logAssetAction($data['asset_id'], 'maintenance_scheduled', 'Maintenance scheduled');
+
+            $this->jsonResponse([
+                'success' => true,
+                'schedule_id' => $scheduleId,
+                'message' => 'Maintenance scheduled successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function recordMaintenance() {
+        $this->requirePermission('assets.maintenance.record');
+
+        $data = $this->validateRequest([
+            'asset_id' => 'required|integer',
+            'maintenance_date' => 'required|date',
+            'maintenance_type' => 'required|string',
+            'description' => 'required|string',
+            'cost' => 'numeric',
+            'technician' => 'string',
+            'parts_used' => 'string',
+            'downtime_hours' => 'numeric'
+        ]);
+
+        try {
+            $this->db->beginTransaction();
+
+            // Record maintenance
+            $recordId = $this->db->insert('maintenance_records', [
+                'company_id' => $this->user['company_id'],
+                'asset_id' => $data['asset_id'],
+                'maintenance_date' => $data['maintenance_date'],
+                'maintenance_type' => $data['maintenance_type'],
+                'description' => $data['description'],
+                'cost' => $data['cost'] ?? 0,
+                'technician' => $data['technician'] ?? '',
+                'parts_used' => $data['parts_used'] ?? '',
+                'downtime_hours' => $data['downtime_hours'] ?? 0,
+                'recorded_by' => $this->user['id']
+            ]);
+
+            // Update asset status if needed
+            if ($data['maintenance_type'] === 'repair') {
+                $this->db->update('assets', [
+                    'status' => 'active',
+                    'last_maintenance_date' => $data['maintenance_date']
+                ], 'id = ?', [$data['asset_id']]);
+            }
+
+            // Log audit trail
+            $this->logAssetAction($data['asset_id'], 'maintenance_completed', 'Maintenance completed');
+
+            $this->db->commit();
+
+            $this->jsonResponse([
+                'success' => true,
+                'record_id' => $recordId,
+                'message' => 'Maintenance recorded successfully'
+            ]);
+
+        } catch (Exception $e) {
+            $this->db->rollback();
+            $this->jsonResponse([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function generateAssetReport() {
+        $this->requirePermission('assets.reports.generate');
+
+        $data = $this->validateRequest([
+            'report_type' => 'required|string',
+            'start_date' => 'date',
+            'end_date' => 'date',
+            'format' => 'required|string'
+        ]);
+
+        try {
+            $reportData = [];
+
+            switch ($data['report_type']) {
+                case 'inventory':
+                    $reportData = $this->getAssetInventoryReport();
+                    break;
+                case 'utilization':
+                    $reportData = $this->getAssetUtilizationReport();
+                    break;
+                case 'maintenance':
+                    $reportData = $this->getMaintenanceSummaryReport();
+                    break;
+                case 'depreciation':
+                    $reportData = $this->getDepreciationSummaryReport();
+                    break;

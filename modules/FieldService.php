@@ -1,7 +1,7 @@
 <?php
 /**
  * TPT Free ERP - Field Service Management Module
- * Complete service call management, technician scheduling, and customer service system
+ * Complete field service operations, technician management, and mobile workforce solutions
  */
 
 class FieldService extends BaseController {
@@ -21,15 +21,13 @@ class FieldService extends BaseController {
         $this->requirePermission('field_service.view');
 
         $data = [
-            'title' => 'Field Service Management',
+            'title' => 'Field Service Management Dashboard',
             'service_overview' => $this->getServiceOverview(),
-            'service_calls' => $this->getServiceCalls(),
-            'technician_status' => $this->getTechnicianStatus(),
-            'service_schedule' => $this->getServiceSchedule(),
-            'customer_satisfaction' => $this->getCustomerSatisfaction(),
-            'service_analytics' => $this->getServiceAnalytics(),
-            'upcoming_appointments' => $this->getUpcomingAppointments(),
-            'service_alerts' => $this->getServiceAlerts()
+            'service_metrics' => $this->getServiceMetrics(),
+            'pending_service_calls' => $this->getPendingServiceCalls(),
+            'technician_schedule' => $this->getTechnicianSchedule(),
+            'service_alerts' => $this->getServiceAlerts(),
+            'performance_metrics' => $this->getPerformanceMetrics()
         ];
 
         $this->render('modules/field_service/dashboard', $data);
@@ -39,56 +37,54 @@ class FieldService extends BaseController {
      * Service call management
      */
     public function serviceCalls() {
-        $this->requirePermission('field_service.calls.view');
-
-        $filters = [
-            'status' => $_GET['status'] ?? null,
-            'priority' => $_GET['priority'] ?? null,
-            'technician' => $_GET['technician'] ?? null,
-            'customer' => $_GET['customer'] ?? null,
-            'date_from' => $_GET['date_from'] ?? null,
-            'date_to' => $_GET['date_to'] ?? null,
-            'search' => $_GET['search'] ?? null
-        ];
-
-        $service_calls = $this->getServiceCalls($filters);
+        $this->requirePermission('field_service.service_calls.view');
 
         $data = [
             'title' => 'Service Call Management',
-            'service_calls' => $service_calls,
-            'filters' => $filters,
-            'service_status' => $this->getServiceStatus(),
-            'service_priorities' => $this->getServicePriorities(),
-            'service_types' => $this->getServiceTypes(),
-            'technicians' => $this->getTechnicians(),
-            'customers' => $this->getCustomers(),
-            'service_templates' => $this->getServiceTemplates(),
-            'bulk_actions' => $this->getBulkActions(),
-            'service_analytics' => $this->getServiceAnalytics()
+            'service_calls' => $this->getServiceCalls(),
+            'service_call_statuses' => $this->getServiceCallStatuses(),
+            'service_call_priorities' => $this->getServiceCallPriorities(),
+            'service_call_types' => $this->getServiceCallTypes(),
+            'service_call_filters' => $this->getServiceCallFilters()
         ];
 
         $this->render('modules/field_service/service_calls', $data);
     }
 
     /**
-     * Technician scheduling
+     * Technician management
      */
-    public function technicianScheduling() {
+    public function technicians() {
+        $this->requirePermission('field_service.technicians.view');
+
+        $data = [
+            'title' => 'Technician Management',
+            'technicians' => $this->getTechnicians(),
+            'technician_skills' => $this->getTechnicianSkills(),
+            'technician_schedule' => $this->getTechnicianSchedule(),
+            'technician_performance' => $this->getTechnicianPerformance(),
+            'technician_locations' => $this->getTechnicianLocations()
+        ];
+
+        $this->render('modules/field_service/technicians', $data);
+    }
+
+    /**
+     * Scheduling and dispatch
+     */
+    public function scheduling() {
         $this->requirePermission('field_service.scheduling.view');
 
         $data = [
-            'title' => 'Technician Scheduling',
-            'technician_schedule' => $this->getTechnicianSchedule(),
-            'technician_availability' => $this->getTechnicianAvailability(),
-            'workload_distribution' => $this->getWorkloadDistribution(),
-            'skill_matrix' => $this->getSkillMatrix(),
+            'title' => 'Scheduling & Dispatch',
+            'dispatch_board' => $this->getDispatchBoard(),
+            'appointment_schedule' => $this->getAppointmentSchedule(),
+            'resource_allocation' => $this->getResourceAllocation(),
             'route_optimization' => $this->getRouteOptimization(),
-            'schedule_conflicts' => $this->getScheduleConflicts(),
-            'scheduling_analytics' => $this->getSchedulingAnalytics(),
-            'scheduling_templates' => $this->getSchedulingTemplates()
+            'scheduling_rules' => $this->getSchedulingRules()
         ];
 
-        $this->render('modules/field_service/technician_scheduling', $data);
+        $this->render('modules/field_service/scheduling', $data);
     }
 
     /**
@@ -99,14 +95,11 @@ class FieldService extends BaseController {
 
         $data = [
             'title' => 'Mobile Technician App',
-            'app_features' => $this->getAppFeatures(),
-            'app_users' => $this->getAppUsers(),
-            'app_usage' => $this->getAppUsage(),
-            'app_performance' => $this->getAppPerformance(),
+            'mobile_features' => $this->getMobileFeatures(),
+            'app_configuration' => $this->getAppConfiguration(),
             'offline_capabilities' => $this->getOfflineCapabilities(),
-            'app_notifications' => $this->getAppNotifications(),
-            'app_analytics' => $this->getAppAnalytics(),
-            'app_settings' => $this->getAppSettings()
+            'mobile_sync' => $this->getMobileSync(),
+            'app_analytics' => $this->getAppAnalytics()
         ];
 
         $this->render('modules/field_service/mobile_app', $data);
@@ -120,101 +113,86 @@ class FieldService extends BaseController {
 
         $data = [
             'title' => 'Customer Communication',
-            'communication_history' => $this->getCommunicationHistory(),
+            'customer_notifications' => $this->getCustomerNotifications(),
             'communication_templates' => $this->getCommunicationTemplates(),
-            'customer_feedback' => $this->getCustomerFeedback(),
-            'appointment_reminders' => $this->getAppointmentReminders(),
-            'service_updates' => $this->getServiceUpdates(),
-            'communication_analytics' => $this->getCommunicationAnalytics(),
-            'notification_settings' => $this->getNotificationSettings(),
-            'communication_channels' => $this->getCommunicationChannels()
+            'feedback_system' => $this->getFeedbackSystem(),
+            'customer_portal' => $this->getCustomerPortal(),
+            'communication_analytics' => $this->getCommunicationAnalytics()
         ];
 
         $this->render('modules/field_service/customer_communication', $data);
     }
 
     /**
-     * Service history tracking
+     * Service history and analytics
      */
     public function serviceHistory() {
         $this->requirePermission('field_service.history.view');
 
         $data = [
-            'title' => 'Service History Tracking',
+            'title' => 'Service History & Analytics',
             'service_history' => $this->getServiceHistory(),
-            'equipment_history' => $this->getEquipmentHistory(),
-            'maintenance_history' => $this->getMaintenanceHistory(),
-            'parts_usage' => $this->getPartsUsage(),
-            'service_trends' => $this->getServiceTrends(),
+            'service_analytics' => $this->getServiceAnalytics(),
             'customer_history' => $this->getCustomerHistory(),
-            'history_analytics' => $this->getHistoryAnalytics(),
-            'history_reports' => $this->getHistoryReports()
+            'equipment_history' => $this->getEquipmentHistory(),
+            'performance_trends' => $this->getPerformanceTrends()
         ];
 
         $this->render('modules/field_service/service_history', $data);
     }
 
     /**
-     * Parts management
+     * Parts and inventory management
      */
     public function partsManagement() {
         $this->requirePermission('field_service.parts.view');
 
         $data = [
-            'title' => 'Parts Management',
+            'title' => 'Parts & Inventory Management',
+            'parts_catalog' => $this->getPartsCatalog(),
             'parts_inventory' => $this->getPartsInventory(),
             'parts_orders' => $this->getPartsOrders(),
             'parts_usage' => $this->getPartsUsage(),
-            'parts_suppliers' => $this->getPartsSuppliers(),
-            'parts_tracking' => $this->getPartsTracking(),
-            'parts_analytics' => $this->getPartsAnalytics(),
-            'parts_templates' => $this->getPartsTemplates(),
-            'parts_settings' => $this->getPartsSettings()
+            'parts_analytics' => $this->getPartsAnalytics()
         ];
 
         $this->render('modules/field_service/parts_management', $data);
     }
 
     /**
-     * Service contracts
+     * Work order management
      */
-    public function serviceContracts() {
-        $this->requirePermission('field_service.contracts.view');
+    public function workOrders() {
+        $this->requirePermission('field_service.work_orders.view');
 
         $data = [
-            'title' => 'Service Contracts',
-            'service_contracts' => $this->getServiceContracts(),
-            'contract_templates' => $this->getContractTemplates(),
-            'contract_terms' => $this->getContractTerms(),
-            'contract_billing' => $this->getContractBilling(),
-            'contract_compliance' => $this->getContractCompliance(),
-            'contract_renewals' => $this->getContractRenewals(),
-            'contract_analytics' => $this->getContractAnalytics(),
-            'contract_reports' => $this->getContractReports()
+            'title' => 'Work Order Management',
+            'work_orders' => $this->getWorkOrders(),
+            'work_order_templates' => $this->getWorkOrderTemplates(),
+            'work_order_status' => $this->getWorkOrderStatus(),
+            'work_order_priorities' => $this->getWorkOrderPriorities(),
+            'work_order_analytics' => $this->getWorkOrderAnalytics()
         ];
 
-        $this->render('modules/field_service/service_contracts', $data);
+        $this->render('modules/field_service/work_orders', $data);
     }
 
     /**
-     * Field service analytics
+     * Reporting and analytics
      */
-    public function analytics() {
-        $this->requirePermission('field_service.analytics.view');
+    public function reports() {
+        $this->requirePermission('field_service.reports.view');
 
         $data = [
-            'title' => 'Field Service Analytics',
-            'service_performance' => $this->getServicePerformance(),
-            'technician_productivity' => $this->getTechnicianProductivity(),
-            'customer_satisfaction' => $this->getCustomerSatisfaction(),
-            'service_efficiency' => $this->getServiceEfficiency(),
-            'cost_analysis' => $this->getCostAnalysis(),
-            'predictive_maintenance' => $this->getPredictiveMaintenance(),
-            'geographic_analytics' => $this->getGeographicAnalytics(),
-            'benchmarking' => $this->getBenchmarking()
+            'title' => 'Field Service Reports & Analytics',
+            'service_reports' => $this->getServiceReports(),
+            'technician_reports' => $this->getTechnicianReports(),
+            'customer_reports' => $this->getCustomerReports(),
+            'performance_reports' => $this->getPerformanceReports(),
+            'custom_reports' => $this->getCustomReports()
         ];
 
-        $this->render('modules/field_service/analytics', $data);
+        $this->render('modules/field_service/reports', $data);
     }
 
     // ============================================================================
@@ -224,185 +202,132 @@ class FieldService extends BaseController {
     private function getServiceOverview() {
         return $this->db->querySingle("
             SELECT
-                COUNT(DISTINCT sc.id) as total_service_calls,
-                COUNT(CASE WHEN sc.status = 'open' THEN 1 END) as open_service_calls,
-                COUNT(CASE WHEN sc.status = 'in_progress' THEN 1 END) as in_progress_calls,
-                COUNT(CASE WHEN sc.status = 'completed' THEN 1 END) as completed_calls,
-                COUNT(CASE WHEN sc.priority = 'high' THEN 1 END) as high_priority_calls,
-                COUNT(DISTINCT sc.customer_id) as unique_customers,
-                COUNT(DISTINCT sc.technician_id) as active_technicians,
-                AVG(sc.estimated_duration) as avg_service_duration,
-                SUM(sc.labor_cost + sc.parts_cost) as total_service_cost
-            FROM service_calls sc
-            WHERE sc.company_id = ?
+                COUNT(*) as total_service_calls,
+                COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_calls,
+                COUNT(CASE WHEN status = 'in_progress' THEN 1 END) as in_progress_calls,
+                COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_calls,
+                COUNT(CASE WHEN priority = 'critical' THEN 1 END) as critical_calls,
+                COUNT(CASE WHEN scheduled_date < CURDATE() AND status != 'completed' THEN 1 END) as overdue_calls,
+                COUNT(DISTINCT technician_id) as active_technicians,
+                AVG(customer_satisfaction_rating) as avg_satisfaction
+            FROM service_calls
+            WHERE company_id = ?
         ", [$this->user['company_id']]);
     }
 
-    private function getServiceCalls($filters = []) {
-        $where = ["sc.company_id = ?"];
-        $params = [$this->user['company_id']];
+    private function getServiceMetrics() {
+        return [
+            'first_time_resolution_rate' => $this->calculateFirstTimeResolutionRate(),
+            'average_response_time' => $this->calculateAverageResponseTime(),
+            'average_resolution_time' => $this->calculateAverageResolutionTime(),
+            'customer_satisfaction_score' => $this->calculateCustomerSatisfactionScore(),
+            'technician_utilization_rate' => $this->calculateTechnicianUtilizationRate(),
+            'service_call_completion_rate' => $this->calculateServiceCallCompletionRate()
+        ];
+    }
 
-        if (isset($filters['status'])) {
-            $where[] = "sc.status = ?";
-            $params[] = $filters['status'];
-        }
+    private function calculateFirstTimeResolutionRate() {
+        $result = $this->db->querySingle("
+            SELECT
+                COUNT(CASE WHEN resolution_type = 'first_visit' THEN 1 END) as first_time_resolutions,
+                COUNT(*) as total_resolutions
+            FROM service_calls
+            WHERE company_id = ? AND status = 'completed' AND resolution_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        ", [$this->user['company_id']]);
 
-        if (isset($filters['priority'])) {
-            $where[] = "sc.priority = ?";
-            $params[] = $filters['priority'];
-        }
+        return $result['total_resolutions'] > 0 ? ($result['first_time_resolutions'] / $result['total_resolutions']) * 100 : 0;
+    }
 
-        if (isset($filters['technician'])) {
-            $where[] = "sc.technician_id = ?";
-            $params[] = $filters['technician'];
-        }
+    private function calculateAverageResponseTime() {
+        $result = $this->db->querySingle("
+            SELECT AVG(TIMESTAMPDIFF(HOUR, created_at, first_response_at)) as avg_response_hours
+            FROM service_calls
+            WHERE company_id = ? AND first_response_at IS NOT NULL AND created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        ", [$this->user['company_id']]);
 
-        if (isset($filters['customer'])) {
-            $where[] = "sc.customer_id = ?";
-            $params[] = $filters['customer'];
-        }
+        return $result['avg_response_hours'] ?? 0;
+    }
 
-        if (isset($filters['date_from'])) {
-            $where[] = "sc.scheduled_date >= ?";
-            $params[] = $filters['date_from'] . ' 00:00:00';
-        }
+    private function calculateAverageResolutionTime() {
+        $result = $this->db->querySingle("
+            SELECT AVG(TIMESTAMPDIFF(HOUR, created_at, resolution_date)) as avg_resolution_hours
+            FROM service_calls
+            WHERE company_id = ? AND resolution_date IS NOT NULL AND created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        ", [$this->user['company_id']]);
 
-        if (isset($filters['date_to'])) {
-            $where[] = "sc.scheduled_date <= ?";
-            $params[] = $filters['date_to'] . ' 23:59:59';
-        }
+        return $result['avg_resolution_hours'] ?? 0;
+    }
 
-        if (isset($filters['search'])) {
-            $where[] = "(sc.service_number LIKE ? OR c.customer_name LIKE ? OR sc.description LIKE ?)";
-            $search_term = '%' . $filters['search'] . '%';
-            $params[] = $search_term;
-            $params[] = $search_term;
-            $params[] = $search_term;
-        }
+    private function calculateCustomerSatisfactionScore() {
+        $result = $this->db->querySingle("
+            SELECT AVG(customer_satisfaction_rating) as avg_satisfaction
+            FROM service_calls
+            WHERE company_id = ? AND customer_satisfaction_rating IS NOT NULL AND created_at >= DATE_SUB(CURDATE(), INTERVAL 90 DAY)
+        ", [$this->user['company_id']]);
 
-        $whereClause = implode(' AND ', $where);
+        return $result['avg_satisfaction'] ?? 0;
+    }
 
+    private function calculateTechnicianUtilizationRate() {
+        $result = $this->db->querySingle("
+            SELECT
+                COUNT(DISTINCT CASE WHEN status = 'assigned' THEN technician_id END) as active_technicians,
+                COUNT(DISTINCT technician_id) as total_technicians
+            FROM service_calls sc
+            JOIN technicians t ON sc.technician_id = t.id
+            WHERE sc.company_id = ? AND sc.scheduled_date >= CURDATE()
+        ", [$this->user['company_id']]);
+
+        return $result['total_technicians'] > 0 ? ($result['active_technicians'] / $result['total_technicians']) * 100 : 0;
+    }
+
+    private function calculateServiceCallCompletionRate() {
+        $result = $this->db->querySingle("
+            SELECT
+                COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_calls,
+                COUNT(*) as total_calls
+            FROM service_calls
+            WHERE company_id = ? AND created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        ", [$this->user['company_id']]);
+
+        return $result['total_calls'] > 0 ? ($result['completed_calls'] / $result['total_calls']) * 100 : 0;
+    }
+
+    private function getPendingServiceCalls() {
         return $this->db->query("
             SELECT
                 sc.*,
-                c.customer_name,
-                c.customer_phone,
-                c.customer_email,
-                u.first_name as technician_first,
-                u.last_name as technician_last,
-                sc.scheduled_date,
-                sc.actual_start_time,
-                sc.actual_end_time,
-                TIMESTAMPDIFF(DAY, CURDATE(), sc.scheduled_date) as days_until_scheduled,
-                sc.estimated_duration,
-                sc.actual_duration,
-                sc.labor_cost,
-                sc.parts_cost,
-                sc.total_cost
-            FROM service_calls sc
-            LEFT JOIN customers c ON sc.customer_id = c.id
-            LEFT JOIN users u ON sc.technician_id = u.id
-            WHERE $whereClause
-            ORDER BY sc.priority DESC, sc.scheduled_date ASC
-        ", $params);
-    }
-
-    private function getTechnicianStatus() {
-        return $this->db->query("
-            SELECT
-                u.first_name,
-                u.last_name,
-                u.id as technician_id,
-                COUNT(sc.id) as assigned_calls,
-                COUNT(CASE WHEN sc.status = 'in_progress' THEN 1 END) as active_calls,
-                COUNT(CASE WHEN sc.status = 'completed' THEN 1 END) as completed_calls,
-                SUM(sc.estimated_duration) as total_estimated_hours,
-                SUM(sc.actual_duration) as total_actual_hours,
-                AVG(sc.customer_rating) as avg_customer_rating,
-                t.availability_status
-            FROM users u
-            LEFT JOIN service_calls sc ON u.id = sc.technician_id
-            LEFT JOIN technician_status t ON u.id = t.technician_id
-            WHERE u.company_id = ? AND u.role = 'technician'
-            GROUP BY u.id, u.first_name, u.last_name, t.availability_status
-            ORDER BY assigned_calls DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getServiceSchedule() {
-        return $this->db->query("
-            SELECT
-                sc.service_number,
-                c.customer_name,
-                u.first_name as technician_first,
-                u.last_name as technician_last,
-                sc.scheduled_date,
-                sc.scheduled_time,
-                sc.estimated_duration,
+                sc.service_call_number,
+                sc.problem_description,
                 sc.priority,
                 sc.status,
-                sc.service_location,
-                TIMESTAMPDIFF(DAY, CURDATE(), sc.scheduled_date) as days_until_service
+                sc.scheduled_date,
+                sc.customer_name,
+                sc.customer_address,
+                t.first_name as technician_first_name,
+                t.last_name as technician_last_name,
+                DATEDIFF(sc.scheduled_date, CURDATE()) as days_until_due
             FROM service_calls sc
-            JOIN customers c ON sc.customer_id = c.id
-            LEFT JOIN users u ON sc.technician_id = u.id
-            WHERE sc.company_id = ? AND sc.status IN ('scheduled', 'confirmed')
-            ORDER BY sc.scheduled_date ASC, sc.scheduled_time ASC
+            LEFT JOIN technicians t ON sc.technician_id = t.id
+            WHERE sc.company_id = ? AND sc.status IN ('pending', 'scheduled')
+            ORDER BY sc.priority DESC, sc.scheduled_date ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getCustomerSatisfaction() {
-        return $this->db->querySingle("
-            SELECT
-                COUNT(sc.id) as total_completed_services,
-                AVG(sc.customer_rating) as avg_customer_rating,
-                COUNT(CASE WHEN sc.customer_rating >= 4 THEN 1 END) as satisfied_customers,
-                COUNT(CASE WHEN sc.customer_rating < 3 THEN 1 END) as dissatisfied_customers,
-                ROUND((COUNT(CASE WHEN sc.customer_rating >= 4 THEN 1 END) / NULLIF(COUNT(sc.id), 0)) * 100, 2) as satisfaction_rate,
-                AVG(sc.response_time) as avg_response_time,
-                AVG(sc.resolution_time) as avg_resolution_time
-            FROM service_calls sc
-            WHERE sc.company_id = ? AND sc.status = 'completed'
-        ", [$this->user['company_id']]);
-    }
-
-    private function getServiceAnalytics() {
-        return $this->db->querySingle("
-            SELECT
-                COUNT(sc.id) as total_service_calls,
-                ROUND((COUNT(CASE WHEN sc.status = 'completed' THEN 1 END) / NULLIF(COUNT(sc.id), 0)) * 100, 2) as completion_rate,
-                AVG(sc.actual_duration) as avg_service_duration,
-                AVG(sc.total_cost) as avg_service_cost,
-                SUM(sc.total_cost) as total_service_cost,
-                COUNT(DISTINCT sc.customer_id) as unique_customers,
-                COUNT(DISTINCT sc.technician_id) as active_technicians,
-                AVG(sc.customer_rating) as avg_customer_rating
-            FROM service_calls sc
-            WHERE sc.company_id = ?
-        ", [$this->user['company_id']]);
-    }
-
-    private function getUpcomingAppointments() {
+    private function getTechnicianSchedule() {
         return $this->db->query("
             SELECT
-                sc.service_number,
-                c.customer_name,
-                c.customer_phone,
-                u.first_name as technician_first,
-                u.last_name as technician_last,
-                sc.scheduled_date,
-                sc.scheduled_time,
-                sc.service_type,
-                sc.priority,
-                sc.service_location,
-                TIMESTAMPDIFF(HOUR, NOW(), CONCAT(sc.scheduled_date, ' ', sc.scheduled_time)) as hours_until_service
-            FROM service_calls sc
-            JOIN customers c ON sc.customer_id = c.id
-            LEFT JOIN users u ON sc.technician_id = u.id
-            WHERE sc.company_id = ? AND sc.status IN ('scheduled', 'confirmed')
-                AND CONCAT(sc.scheduled_date, ' ', sc.scheduled_time) >= NOW()
-                AND CONCAT(sc.scheduled_date, ' ', sc.scheduled_time) <= DATE_ADD(NOW(), INTERVAL 7 DAY)
-            ORDER BY sc.scheduled_date ASC, sc.scheduled_time ASC
+                t.first_name,
+                t.last_name,
+                COUNT(sc.id) as assigned_calls,
+                COUNT(CASE WHEN sc.status = 'completed' THEN 1 END) as completed_calls,
+                SUM(sc.estimated_duration) as total_estimated_hours,
+                GROUP_CONCAT(DISTINCT sc.scheduled_date ORDER BY sc.scheduled_date) as scheduled_dates
+            FROM technicians t
+            LEFT JOIN service_calls sc ON t.id = sc.technician_id AND sc.scheduled_date >= CURDATE()
+            WHERE t.company_id = ?
+            GROUP BY t.id, t.first_name, t.last_name
+            ORDER BY assigned_calls DESC
         ", [$this->user['company_id']]);
     }
 
@@ -413,23 +338,63 @@ class FieldService extends BaseController {
                 sa.alert_type,
                 sa.severity,
                 sa.message,
-                sa.service_call_id,
-                sa.technician_id,
-                sa.customer_id,
                 sa.created_at,
-                TIMESTAMPDIFF(MINUTE, sa.created_at, NOW()) as minutes_since_alert
+                sa.status,
+                sc.service_call_number,
+                t.first_name as technician_name
             FROM service_alerts sa
+            LEFT JOIN service_calls sc ON sa.service_call_id = sc.id
+            LEFT JOIN technicians t ON sa.technician_id = t.id
             WHERE sa.company_id = ? AND sa.status = 'active'
             ORDER BY sa.severity DESC, sa.created_at DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getServiceStatus() {
+    private function getPerformanceMetrics() {
+        return $this->db->query("
+            SELECT
+                DATE_FORMAT(created_at, '%Y-%m') as month,
+                COUNT(*) as total_calls,
+                COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_calls,
+                AVG(customer_satisfaction_rating) as avg_satisfaction,
+                AVG(TIMESTAMPDIFF(HOUR, created_at, resolution_date)) as avg_resolution_time
+            FROM service_calls
+            WHERE company_id = ? AND created_at >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+            GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+            ORDER BY month DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getServiceCalls() {
+        return $this->db->query("
+            SELECT
+                sc.*,
+                sc.service_call_number,
+                sc.problem_description,
+                sc.priority,
+                sc.status,
+                sc.scheduled_date,
+                sc.customer_name,
+                sc.customer_address,
+                sc.customer_phone,
+                sc.customer_email,
+                t.first_name as technician_first_name,
+                t.last_name as technician_last_name,
+                eq.equipment_name,
+                eq.serial_number
+            FROM service_calls sc
+            LEFT JOIN technicians t ON sc.technician_id = t.id
+            LEFT JOIN equipment eq ON sc.equipment_id = eq.id
+            WHERE sc.company_id = ?
+            ORDER BY sc.created_at DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getServiceCallStatuses() {
         return [
-            'open' => 'Open',
-            'assigned' => 'Assigned',
+            'pending' => 'Pending',
             'scheduled' => 'Scheduled',
-            'confirmed' => 'Confirmed',
+            'assigned' => 'Assigned',
             'in_progress' => 'In Progress',
             'on_hold' => 'On Hold',
             'completed' => 'Completed',
@@ -437,427 +402,464 @@ class FieldService extends BaseController {
         ];
     }
 
-    private function getServicePriorities() {
+    private function getServiceCallPriorities() {
         return [
             'low' => 'Low',
             'medium' => 'Medium',
             'high' => 'High',
-            'urgent' => 'Urgent',
-            'emergency' => 'Emergency'
+            'critical' => 'Critical'
         ];
     }
 
-    private function getServiceTypes() {
-        return $this->db->query("
-            SELECT * FROM service_types
-            WHERE company_id = ? AND is_active = true
-            ORDER BY service_name ASC
-        ", [$this->user['company_id']]);
+    private function getServiceCallTypes() {
+        return [
+            'repair' => 'Equipment Repair',
+            'maintenance' => 'Preventive Maintenance',
+            'installation' => 'Equipment Installation',
+            'inspection' => 'Safety Inspection',
+            'training' => 'Customer Training',
+            'warranty' => 'Warranty Service',
+            'emergency' => 'Emergency Service'
+        ];
+    }
+
+    private function getServiceCallFilters() {
+        return [
+            'statuses' => $this->getServiceCallStatuses(),
+            'priorities' => $this->getServiceCallPriorities(),
+            'types' => $this->getServiceCallTypes(),
+            'date_ranges' => [
+                'today' => 'Today',
+                'week' => 'This Week',
+                'month' => 'This Month',
+                'overdue' => 'Overdue'
+            ]
+        ];
     }
 
     private function getTechnicians() {
         return $this->db->query("
             SELECT
-                u.id,
-                u.first_name,
-                u.last_name,
-                t.skill_level,
-                t.certifications,
-                t.availability_status,
-                COUNT(sc.id) as active_assignments,
-                AVG(sc.customer_rating) as avg_rating
-            FROM users u
-            JOIN technicians t ON u.id = t.user_id
-            LEFT JOIN service_calls sc ON u.id = sc.technician_id AND sc.status IN ('assigned', 'scheduled', 'confirmed', 'in_progress')
-            WHERE u.company_id = ?
-            GROUP BY u.id, u.first_name, u.last_name, t.skill_level, t.certifications, t.availability_status
-            ORDER BY active_assignments ASC, avg_rating DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getCustomers() {
-        return $this->db->query("
-            SELECT
-                c.*,
+                t.*,
+                t.first_name,
+                t.last_name,
+                t.email,
+                t.phone,
+                t.specialization,
+                t.employment_status,
                 COUNT(sc.id) as total_service_calls,
-                MAX(sc.service_date) as last_service_date,
-                AVG(sc.customer_rating) as avg_rating,
-                SUM(sc.total_cost) as total_service_cost
-            FROM customers c
-            LEFT JOIN service_calls sc ON c.id = sc.customer_id
-            WHERE c.company_id = ?
-            GROUP BY c.id
-            ORDER BY total_service_calls DESC
+                COUNT(CASE WHEN sc.status = 'completed' THEN 1 END) as completed_calls,
+                AVG(sc.customer_satisfaction_rating) as avg_satisfaction,
+                t.last_location_update
+            FROM technicians t
+            LEFT JOIN service_calls sc ON t.id = sc.technician_id
+            WHERE t.company_id = ?
+            GROUP BY t.id
+            ORDER BY t.last_name ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getServiceTemplates() {
-        return $this->db->query("
-            SELECT * FROM service_templates
-            WHERE company_id = ? AND is_active = true
-            ORDER BY template_name ASC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getBulkActions() {
-        return [
-            'assign_technician' => 'Assign Technician',
-            'update_priority' => 'Update Priority',
-            'reschedule_service' => 'Reschedule Service',
-            'update_status' => 'Update Status',
-            'send_notification' => 'Send Notification',
-            'export_service_calls' => 'Export Service Calls',
-            'bulk_schedule' => 'Bulk Schedule',
-            'generate_invoice' => 'Generate Invoice'
-        ];
-    }
-
-    private function getTechnicianSchedule() {
+    private function getTechnicianSkills() {
         return $this->db->query("
             SELECT
-                u.first_name,
-                u.last_name,
-                sc.service_number,
-                sc.scheduled_date,
-                sc.scheduled_time,
-                sc.estimated_duration,
-                sc.service_location,
-                sc.priority,
-                c.customer_name
-            FROM users u
-            JOIN service_calls sc ON u.id = sc.technician_id
-            JOIN customers c ON sc.customer_id = c.id
-            WHERE u.company_id = ? AND sc.status IN ('scheduled', 'confirmed', 'in_progress')
-            ORDER BY u.last_name, sc.scheduled_date, sc.scheduled_time
-        ", [$this->user['company_id']]);
-    }
-
-    private function getTechnicianAvailability() {
-        return $this->db->query("
-            SELECT
-                u.first_name,
-                u.last_name,
-                ta.available_date,
-                ta.start_time,
-                ta.end_time,
-                ta.is_available,
-                ta.working_hours,
-                ta.break_hours,
-                ta.travel_time
-            FROM users u
-            JOIN technician_availability ta ON u.id = ta.technician_id
-            WHERE u.company_id = ?
-            ORDER BY ta.available_date ASC, u.last_name ASC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getWorkloadDistribution() {
-        return $this->db->query("
-            SELECT
-                u.first_name,
-                u.last_name,
-                COUNT(sc.id) as assigned_services,
-                SUM(sc.estimated_duration) as total_estimated_hours,
-                SUM(sc.actual_duration) as total_actual_hours,
-                AVG(sc.customer_rating) as avg_customer_rating,
-                ROUND((SUM(sc.actual_duration) / NULLIF(SUM(sc.estimated_duration), 0)) * 100, 2) as efficiency_percentage
-            FROM users u
-            LEFT JOIN service_calls sc ON u.id = sc.technician_id
-            WHERE u.company_id = ? AND u.role = 'technician'
-            GROUP BY u.id, u.first_name, u.last_name
-            ORDER BY assigned_services DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getSkillMatrix() {
-        return $this->db->query("
-            SELECT
-                u.first_name,
-                u.last_name,
-                s.skill_name,
+                ts.*,
+                ts.skill_name,
                 ts.proficiency_level,
-                ts.certification_date,
-                ts.expiry_date,
-                ts.training_hours,
-                COUNT(sc.id) as services_with_skill
-            FROM users u
-            JOIN technician_skills ts ON u.id = ts.technician_id
-            JOIN skills s ON ts.skill_id = s.id
-            LEFT JOIN service_calls sc ON u.id = sc.technician_id AND sc.service_type IN (
-                SELECT st.id FROM service_types st WHERE st.required_skills LIKE CONCAT('%', s.skill_name, '%')
-            )
-            WHERE u.company_id = ?
-            GROUP BY u.id, u.first_name, u.last_name, s.id, s.skill_name, ts.proficiency_level, ts.certification_date, ts.expiry_date, ts.training_hours
-            ORDER BY s.skill_name, ts.proficiency_level DESC
+                COUNT(t.id) as technicians_with_skill
+            FROM technician_skills ts
+            LEFT JOIN technicians t ON ts.technician_id = t.id
+            WHERE ts.company_id = ?
+            GROUP BY ts.skill_name, ts.proficiency_level
+            ORDER BY ts.skill_name ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getTechnicianPerformance() {
+        return $this->db->query("
+            SELECT
+                t.first_name,
+                t.last_name,
+                COUNT(sc.id) as total_calls,
+                COUNT(CASE WHEN sc.status = 'completed' THEN 1 END) as completed_calls,
+                ROUND((COUNT(CASE WHEN sc.status = 'completed' THEN 1 END) / COUNT(sc.id)) * 100, 2) as completion_rate,
+                AVG(sc.customer_satisfaction_rating) as avg_satisfaction,
+                AVG(TIMESTAMPDIFF(HOUR, sc.created_at, sc.resolution_date)) as avg_resolution_time
+            FROM technicians t
+            LEFT JOIN service_calls sc ON t.id = sc.technician_id
+            WHERE t.company_id = ? AND sc.created_at >= DATE_SUB(CURDATE(), INTERVAL 90 DAY)
+            GROUP BY t.id, t.first_name, t.last_name
+            ORDER BY completion_rate DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getTechnicianLocations() {
+        return $this->db->query("
+            SELECT
+                t.first_name,
+                t.last_name,
+                t.current_latitude,
+                t.current_longitude,
+                t.last_location_update,
+                TIMESTAMPDIFF(MINUTE, t.last_location_update, NOW()) as minutes_since_update,
+                COUNT(sc.id) as active_assignments
+            FROM technicians t
+            LEFT JOIN service_calls sc ON t.id = sc.technician_id AND sc.status IN ('assigned', 'in_progress')
+            WHERE t.company_id = ? AND t.location_tracking_enabled = true
+            GROUP BY t.id, t.first_name, t.last_name, t.current_latitude, t.current_longitude, t.last_location_update
+            ORDER BY t.last_name ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getDispatchBoard() {
+        return $this->db->query("
+            SELECT
+                sc.service_call_number,
+                sc.customer_name,
+                sc.customer_address,
+                sc.priority,
+                sc.scheduled_date,
+                sc.estimated_duration,
+                t.first_name as technician_first_name,
+                t.last_name as technician_last_name,
+                t.current_latitude,
+                t.current_longitude,
+                sc.status
+            FROM service_calls sc
+            LEFT JOIN technicians t ON sc.technician_id = t.id
+            WHERE sc.company_id = ? AND sc.status IN ('pending', 'scheduled', 'assigned', 'in_progress')
+            ORDER BY sc.priority DESC, sc.scheduled_date ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getAppointmentSchedule() {
+        return $this->db->query("
+            SELECT
+                sc.scheduled_date,
+                sc.service_call_number,
+                sc.customer_name,
+                sc.customer_address,
+                sc.estimated_duration,
+                t.first_name as technician_first_name,
+                t.last_name as technician_last_name,
+                sc.priority,
+                sc.status
+            FROM service_calls sc
+            LEFT JOIN technicians t ON sc.technician_id = t.id
+            WHERE sc.company_id = ? AND sc.scheduled_date >= CURDATE()
+            ORDER BY sc.scheduled_date ASC, sc.priority DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getResourceAllocation() {
+        return $this->db->query("
+            SELECT
+                t.first_name,
+                t.last_name,
+                COUNT(sc.id) as assigned_calls,
+                SUM(sc.estimated_duration) as total_estimated_hours,
+                t.max_daily_hours,
+                ROUND((SUM(sc.estimated_duration) / t.max_daily_hours) * 100, 2) as utilization_percentage
+            FROM technicians t
+            LEFT JOIN service_calls sc ON t.id = sc.technician_id AND sc.scheduled_date = CURDATE()
+            WHERE t.company_id = ?
+            GROUP BY t.id, t.first_name, t.last_name, t.max_daily_hours
+            ORDER BY utilization_percentage DESC
         ", [$this->user['company_id']]);
     }
 
     private function getRouteOptimization() {
         return $this->db->query("
             SELECT
-                ro.*,
-                u.first_name,
-                u.last_name,
-                ro.route_date,
-                ro.total_stops,
-                ro.total_distance,
-                ro.estimated_travel_time,
-                ro.actual_travel_time,
-                ro.fuel_cost,
-                ro.optimization_savings
-            FROM route_optimization ro
-            JOIN users u ON ro.technician_id = u.id
-            WHERE ro.company_id = ?
-            ORDER BY ro.route_date DESC
+                t.first_name,
+                t.last_name,
+                COUNT(sc.id) as daily_calls,
+                GROUP_CONCAT(sc.customer_address ORDER BY sc.scheduled_date) as route_addresses,
+                SUM(sc.estimated_duration) as total_duration,
+                t.base_location_address
+            FROM technicians t
+            LEFT JOIN service_calls sc ON t.id = sc.technician_id AND DATE(sc.scheduled_date) = CURDATE()
+            WHERE t.company_id = ?
+            GROUP BY t.id, t.first_name, t.last_name, t.base_location_address
+            ORDER BY t.last_name ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getScheduleConflicts() {
-        return $this->db->query("
-            SELECT
-                u.first_name,
-                u.last_name,
-                sc1.service_number as service_1,
-                sc2.service_number as service_2,
-                sc1.scheduled_date,
-                sc1.scheduled_time as time_1,
-                sc2.scheduled_time as time_2,
-                TIMESTAMPDIFF(MINUTE, sc1.scheduled_time, sc2.scheduled_time) as time_overlap,
-                sc1.service_location as location_1,
-                sc2.service_location as location_2
-            FROM users u
-            JOIN service_calls sc1 ON u.id = sc1.technician_id
-            JOIN service_calls sc2 ON u.id = sc2.technician_id
-            WHERE u.company_id = ? AND sc1.id < sc2.id
-                AND sc1.scheduled_date = sc2.scheduled_date
-                AND sc1.status IN ('scheduled', 'confirmed', 'in_progress')
-                AND sc2.status IN ('scheduled', 'confirmed', 'in_progress')
-                AND (
-                    (sc1.scheduled_time <= sc2.scheduled_time AND ADDTIME(sc1.scheduled_time, SEC_TO_TIME(sc1.estimated_duration * 60)) > sc2.scheduled_time) OR
-                    (sc2.scheduled_time <= sc1.scheduled_time AND ADDTIME(sc2.scheduled_time, SEC_TO_TIME(sc2.estimated_duration * 60)) > sc1.scheduled_time)
-                )
-            ORDER BY sc1.scheduled_date DESC, u.last_name ASC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getSchedulingAnalytics() {
-        return $this->db->querySingle("
-            SELECT
-                COUNT(DISTINCT u.id) as total_technicians,
-                COUNT(sc.id) as total_scheduled_services,
-                AVG(sc.estimated_duration) as avg_service_duration,
-                COUNT(CASE WHEN sc.status = 'completed' THEN 1 END) as completed_services,
-                ROUND((COUNT(CASE WHEN sc.status = 'completed' THEN 1 END) / NULLIF(COUNT(sc.id), 0)) * 100, 2) as on_time_completion_rate,
-                AVG(TIMESTAMPDIFF(MINUTE, sc.scheduled_time, sc.actual_start_time)) as avg_delay_minutes,
-                COUNT(CASE WHEN TIMESTAMPDIFF(MINUTE, sc.scheduled_time, sc.actual_start_time) > 15 THEN 1 END) as late_starts
-            FROM users u
-            LEFT JOIN service_calls sc ON u.id = sc.technician_id
-            WHERE u.company_id = ?
-        ", [$this->user['company_id']]);
-    }
-
-    private function getSchedulingTemplates() {
-        return $this->db->query("
-            SELECT * FROM scheduling_templates
-            WHERE company_id = ? AND is_active = true
-            ORDER BY template_name ASC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getAppFeatures() {
+    private function getSchedulingRules() {
         return [
-            'service_management' => 'Service Call Management',
-            'time_tracking' => 'Time Tracking',
-            'parts_inventory' => 'Parts Inventory',
-            'customer_communication' => 'Customer Communication',
-            'route_optimization' => 'Route Optimization',
-            'offline_mode' => 'Offline Mode',
-            'photo_documentation' => 'Photo Documentation',
-            'signature_capture' => 'Signature Capture',
-            'gps_tracking' => 'GPS Tracking',
-            'push_notifications' => 'Push Notifications'
+            'max_daily_hours' => 8,
+            'max_consecutive_days' => 5,
+            'min_break_between_calls' => 30, // minutes
+            'max_travel_time' => 120, // minutes
+            'skill_matching_required' => true,
+            'geographic_zones' => true
         ];
     }
 
-    private function getAppUsers() {
-        return $this->db->query("
-            SELECT
-                u.first_name,
-                u.last_name,
-                mau.device_type,
-                mau.app_version,
-                mau.last_login,
-                mau.login_count,
-                mau.offline_usage_hours,
-                mau.data_sync_status
-            FROM users u
-            JOIN mobile_app_users mau ON u.id = mau.user_id
-            WHERE u.company_id = ?
-            ORDER BY mau.last_login DESC
-        ", [$this->user['company_id']]);
+    private function getMobileFeatures() {
+        return [
+            'offline_mode' => true,
+            'gps_tracking' => true,
+            'photo_capture' => true,
+            'signature_capture' => true,
+            'parts_tracking' => true,
+            'time_tracking' => true,
+            'customer_communication' => true,
+            'work_order_updates' => true
+        ];
     }
 
-    private function getAppUsage() {
-        return $this->db->query("
-            SELECT
-                DATE_FORMAT(au.session_date, '%Y-%m') as month,
-                COUNT(au.id) as total_sessions,
-                COUNT(DISTINCT au.user_id) as active_users,
-                AVG(au.session_duration) as avg_session_duration,
-                SUM(au.data_transferred) as total_data_transferred,
-                COUNT(CASE WHEN au.offline_mode = true THEN 1 END) as offline_sessions,
-                AVG(au.battery_usage) as avg_battery_usage
-            FROM app_usage au
-            JOIN users u ON au.user_id = u.id
-            WHERE u.company_id = ? AND au.session_date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
-            GROUP BY DATE_FORMAT(au.session_date, '%Y-%m')
-            ORDER BY month DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getAppPerformance() {
+    private function getAppConfiguration() {
         return $this->db->querySingle("
             SELECT
-                COUNT(DISTINCT mau.user_id) as total_app_users,
-                AVG(ap.load_time) as avg_app_load_time,
-                COUNT(CASE WHEN ap.crash_count > 0 THEN 1 END) as users_with_crashes,
-                AVG(ap.crash_count) as avg_crashes_per_user,
-                AVG(ap.memory_usage) as avg_memory_usage,
-                COUNT(CASE WHEN ap.offline_sync_errors > 0 THEN 1 END) as sync_error_users,
-                AVG(ap.battery_impact) as avg_battery_impact
-            FROM mobile_app_users mau
-            LEFT JOIN app_performance ap ON mau.user_id = ap.user_id
-            JOIN users u ON mau.user_id = u.id
-            WHERE u.company_id = ?
-        ", [$this->user['company_id']]);
-    }
-
-    private function getOfflineCapabilities() {
-        return $this->db->query("
-            SELECT
-                u.first_name,
-                u.last_name,
-                oc.offline_sessions,
-                oc.offline_duration_hours,
-                oc.data_stored_mb,
-                oc.sync_success_rate,
-                oc.last_sync_date,
-                TIMESTAMPDIFF(DAY, oc.last_sync_date, CURDATE()) as days_since_sync
-            FROM users u
-            JOIN offline_capabilities oc ON u.id = oc.user_id
-            WHERE u.company_id = ?
-            ORDER BY oc.offline_duration_hours DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getAppNotifications() {
-        return $this->db->query("
-            SELECT
-                an.*,
-                u.first_name,
-                u.last_name,
-                an.notification_type,
-                an.message,
-                an.sent_at,
-                an.delivered_at,
-                an.opened_at,
-                TIMESTAMPDIFF(MINUTE, an.sent_at, an.delivered_at) as delivery_time_minutes
-            FROM app_notifications an
-            JOIN users u ON an.user_id = u.id
-            WHERE an.company_id = ?
-            ORDER BY an.sent_at DESC
-        ", [$this->user['company_id']]);
-    }
-
-    private function getAppAnalytics() {
-        return $this->db->querySingle("
-            SELECT
-                COUNT(an.id) as total_notifications,
-                COUNT(CASE WHEN an.delivered_at IS NOT NULL THEN 1 END) as delivered_notifications,
-                COUNT(CASE WHEN an.opened_at IS NOT NULL THEN 1 END) as opened_notifications,
-                ROUND((COUNT(CASE WHEN an.opened_at IS NOT NULL THEN 1 END) / NULLIF(COUNT(CASE WHEN an.delivered_at IS NOT NULL THEN 1 END), 0)) * 100, 2) as open_rate,
-                AVG(TIMESTAMPDIFF(MINUTE, an.sent_at, an.delivered_at)) as avg_delivery_time,
-                COUNT(DISTINCT an.user_id) as active_notification_users
-            FROM app_notifications an
-            JOIN users u ON an.user_id = u.id
-            WHERE u.company_id = ?
-        ", [$this->user['company_id']]);
-    }
-
-    private function getAppSettings() {
-        return $this->db->querySingle("
-            SELECT * FROM app_settings
+                offline_sync_enabled,
+                gps_tracking_enabled,
+                photo_capture_enabled,
+                auto_check_in_enabled,
+                customer_signature_required,
+                parts_tracking_enabled,
+                time_tracking_enabled
+            FROM mobile_app_config
             WHERE company_id = ?
         ", [$this->user['company_id']]);
     }
 
-    private function getCommunicationHistory() {
+    private function getOfflineCapabilities() {
+        return [
+            'max_offline_days' => 7,
+            'auto_sync_frequency' => 15, // minutes
+            'conflict_resolution' => 'manual',
+            'data_compression' => true,
+            'low_bandwidth_mode' => true
+        ];
+    }
+
+    private function getMobileSync() {
         return $this->db->query("
             SELECT
-                ch.*,
-                c.customer_name,
-                u.first_name as technician_first,
-                u.last_name as technician_last,
-                ch.communication_type,
-                ch.subject,
-                ch.message,
-                ch.sent_at,
-                ch.delivered_at,
-                ch.read_at
-            FROM communication_history ch
-            JOIN customers c ON ch.customer_id = c.id
-            LEFT JOIN users u ON ch.technician_id = u.id
-            WHERE ch.company_id = ?
-            ORDER BY ch.sent_at DESC
+                device_id,
+                last_sync_time,
+                sync_status,
+                pending_uploads,
+                device_type,
+                app_version
+            FROM mobile_sync_status
+            WHERE company_id = ?
+            ORDER BY last_sync_time DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getAppAnalytics() {
+        return $this->db->query("
+            SELECT
+                DATE_FORMAT(created_at, '%Y-%m') as month,
+                COUNT(DISTINCT device_id) as active_devices,
+                AVG(session_duration) as avg_session_duration,
+                COUNT(CASE WHEN sync_status = 'success' THEN 1 END) as successful_syncs,
+                COUNT(CASE WHEN sync_status = 'failed' THEN 1 END) as failed_syncs
+            FROM mobile_app_analytics
+            WHERE company_id = ? AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+            GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+            ORDER BY month DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getCustomerNotifications() {
+        return $this->db->query("
+            SELECT
+                cn.*,
+                cn.notification_type,
+                cn.sent_at,
+                cn.delivery_status,
+                sc.service_call_number,
+                sc.customer_name
+            FROM customer_notifications cn
+            LEFT JOIN service_calls sc ON cn.service_call_id = sc.id
+            WHERE cn.company_id = ?
+            ORDER BY cn.sent_at DESC
         ", [$this->user['company_id']]);
     }
 
     private function getCommunicationTemplates() {
         return $this->db->query("
-            SELECT * FROM communication_templates
-            WHERE company_id = ? AND is_active = true
-            ORDER BY template_name ASC
+            SELECT
+                ct.*,
+                ct.template_name,
+                ct.template_type,
+                ct.subject,
+                ct.is_active,
+                COUNT(cn.id) as usage_count
+            FROM communication_templates ct
+            LEFT JOIN customer_notifications cn ON ct.id = cn.template_id
+            WHERE ct.company_id = ?
+            GROUP BY ct.id
+            ORDER BY ct.template_name ASC
         ", [$this->user['company_id']]);
     }
 
-    private function getCustomerFeedback() {
+    private function getFeedbackSystem() {
         return $this->db->query("
             SELECT
                 cf.*,
-                sc.service_number,
-                c.customer_name,
                 cf.rating,
                 cf.feedback_text,
-                cf.feedback_date,
-                cf.response_text,
-                cf.response_date
+                cf.created_at,
+                sc.service_call_number,
+                sc.customer_name,
+                t.first_name as technician_name
             FROM customer_feedback cf
-            JOIN service_calls sc ON cf.service_call_id = sc.id
-            JOIN customers c ON cf.customer_id = c.id
+            LEFT JOIN service_calls sc ON cf.service_call_id = sc.id
+            LEFT JOIN technicians t ON sc.technician_id = t.id
             WHERE cf.company_id = ?
-            ORDER BY cf.feedback_date DESC
+            ORDER BY cf.created_at DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getAppointmentReminders() {
+    private function getCustomerPortal() {
+        return [
+            'portal_enabled' => true,
+            'features' => [
+                'service_history' => true,
+                'schedule_appointment' => true,
+                'view_invoices' => true,
+                'submit_feedback' => true,
+                'track_technician' => true,
+                'emergency_contact' => true
+            ],
+            'customization' => $this->getPortalCustomization()
+        ];
+    }
+
+    private function getPortalCustomization() {
+        return $this->db->querySingle("
+            SELECT
+                portal_title,
+                primary_color,
+                logo_url,
+                welcome_message,
+                contact_information
+            FROM customer_portal_config
+            WHERE company_id = ?
+        ", [$this->user['company_id']]);
+    }
+
+    private function getCommunicationAnalytics() {
         return $this->db->query("
             SELECT
-                ar.*,
-                sc.service_number,
-                c.customer_name,
-                c.customer_phone,
-                c.customer_email,
-                ar.reminder_type,
-                ar.scheduled_time,
-                ar.sent_at,
-                ar.delivery_status
-            FROM appointment_reminders ar
-            JOIN service_calls sc ON ar.service_call_id = sc.id
-            JOIN customers c ON sc.customer_id = c.id
-            WHERE ar.company_id = ?
-            ORDER BY ar.scheduled_time DESC
+                DATE_FORMAT(sent_at, '%Y-%m') as month,
+                COUNT(*) as total_notifications,
+                COUNT(CASE WHEN delivery_status = 'delivered' THEN 1 END) as delivered,
+                COUNT(CASE WHEN delivery_status = 'opened' THEN 1 END) as opened,
+                ROUND((COUNT(CASE WHEN delivery_status = 'opened' THEN 1 END) / COUNT(*)) * 100, 2) as open_rate
+            FROM customer_notifications
+            WHERE company_id = ? AND sent_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+            GROUP BY DATE_FORMAT(sent_at, '%Y-%m')
+            ORDER BY month DESC
         ", [$this->user['company_id']]);
     }
 
-    private function getServiceUpdates() {
-        return $this->db->
+    private function getServiceHistory() {
+        return $this->db->query("
+            SELECT
+                sc.service_call_number,
+                sc.customer_name,
+                sc.problem_description,
+                sc.resolution_description,
+                sc.created_at,
+                sc.resolution_date,
+                sc.customer_satisfaction_rating,
+                t.first_name as technician_name,
+                TIMESTAMPDIFF(HOUR, sc.created_at, sc.resolution_date) as resolution_time_hours
+            FROM service_calls sc
+            LEFT JOIN technicians t ON sc.technician_id = t.id
+            WHERE sc.company_id = ? AND sc.status = 'completed'
+            ORDER BY sc.resolution_date DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getServiceAnalytics() {
+        return $this->db->query("
+            SELECT
+                DATE_FORMAT(created_at, '%Y-%m') as month,
+                COUNT(*) as total_calls,
+                COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_calls,
+                AVG(customer_satisfaction_rating) as avg_satisfaction,
+                AVG(TIMESTAMPDIFF(HOUR, created_at, resolution_date)) as avg_resolution_time,
+                COUNT(DISTINCT customer_id) as unique_customers
+            FROM service_calls
+            WHERE company_id = ? AND created_at >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+            GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+            ORDER BY month DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getCustomerHistory() {
+        return $this->db->query("
+            SELECT
+                customer_name,
+                COUNT(*) as total_calls,
+                COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_calls,
+                AVG(customer_satisfaction_rating) as avg_satisfaction,
+                MAX(created_at) as last_service_date,
+                SUM(total_cost) as total_spent
+            FROM service_calls
+            WHERE company_id = ?
+            GROUP BY customer_name
+            ORDER BY total_calls DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getEquipmentHistory() {
+        return $this->db->query("
+            SELECT
+                eq.equipment_name,
+                eq.serial_number,
+                COUNT(sc.id) as service_count,
+                MAX(sc.created_at) as last_service_date,
+                AVG(sc.total_cost) as avg_service_cost,
+                SUM(sc.total_cost) as total_service_cost
+            FROM equipment eq
+            LEFT JOIN service_calls sc ON eq.id = sc.equipment_id
+            WHERE eq.company_id = ?
+            GROUP BY eq.id, eq.equipment_name, eq.serial_number
+            ORDER BY service_count DESC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getPerformanceTrends() {
+        return $this->db->query("
+            SELECT
+                DATE_FORMAT(created_at, '%Y-%m') as month,
+                AVG(TIMESTAMPDIFF(HOUR, created_at, resolution_date)) as avg_resolution_time,
+                AVG(customer_satisfaction_rating) as avg_satisfaction,
+                COUNT(CASE WHEN resolution_type = 'first_visit' THEN 1 END) / COUNT(*) * 100 as first_time_resolution_rate,
+                COUNT(*) as call_volume
+            FROM service_calls
+            WHERE company_id = ? AND created_at >= DATE_SUB(CURDATE(), INTERVAL 24 MONTH)
+            GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+            ORDER BY month ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getPartsCatalog() {
+        return $this->db->query("
+            SELECT
+                pc.*,
+                pc.part_number,
+                pc.part_name,
+                pc.description,
+                pc.unit_cost,
+                pc.compatible_equipment,
+                COUNT(pi.id) as inventory_count
+            FROM parts_catalog pc
+            LEFT JOIN parts_inventory pi ON pc.id = pi.part_id
+            WHERE pc.company_id = ?
+            GROUP BY pc.id
+            ORDER BY pc.part_name ASC
+        ", [$this->user['company_id']]);
+    }
+
+    private function getPartsInventory() {
+        return $this->db->query("
+            SELECT
+                pi.*,
+                pi.quantity

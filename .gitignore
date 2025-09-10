@@ -46,3 +46,19 @@ storage/
 # Backups
 backups/*.sql
 *.tar.gz
+
+# WordPress Plugin
+wordpress-plugin/
+
+# Landing Page Plugin
+landing-page-plugin/
+wordpress-plugin.zip
+FEATURE_UPDATE_PLAN.md
+MARKETING_MATERIALS.md
+POST_LAUNCH_MONITORING.md
+PRE_LAUNCH_CHECKLIST.md
+refactor.md
+SECURITY_MAINTENANCE_PLAN.md
+todo copy.md
+todo.md
+landing-page-plugin.zip

@@ -841,7 +841,7 @@ class UserExperience extends BaseController {
                 'name' => 'Bug Report',
                 'description' => 'Report bugs and technical issues',
                 'priority' => 'High',
-                'response_time' => '24 hours'
+                'response_time' => 'we will get back to you as soon as we can'
             ],
             'feature' => [
                 'name' => 'Feature Request',

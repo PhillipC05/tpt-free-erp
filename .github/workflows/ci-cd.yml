@@ -301,7 +301,52 @@ jobs:
         name: application-build
         path: build/
 
-    - name: Deploy to staging server
+    - name: Deploy to Digital Ocean (if configured)
+      if: env.STAGING_PROVIDER == 'digitalocean'
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.DO_STAGING_HOST }}
+        username: ${{ secrets.DO_STAGING_USER }}
+        key: ${{ secrets.DO_STAGING_SSH_KEY }}
+        source: "build/*"
+        target: "/var/www/staging.tpt-erp.com"
+        strip_components: 1
+
+    - name: Deploy to AWS EC2 (if configured)
+      if: env.STAGING_PROVIDER == 'aws'
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.AWS_STAGING_HOST }}
+        username: ${{ secrets.AWS_STAGING_USER }}
+        key: ${{ secrets.AWS_STAGING_SSH_KEY }}
+        source: "build/*"
+        target: "/var/www/staging.tpt-erp.com"
+        strip_components: 1
+
+    - name: Deploy to Google Cloud VM (if configured)
+      if: env.STAGING_PROVIDER == 'gcp'
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.GCP_STAGING_HOST }}
+        username: ${{ secrets.GCP_STAGING_USER }}
+        key: ${{ secrets.GCP_STAGING_SSH_KEY }}
+        source: "build/*"
+        target: "/var/www/staging.tpt-erp.com"
+        strip_components: 1
+
+    - name: Deploy to Azure VM (if configured)
+      if: env.STAGING_PROVIDER == 'azure'
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.AZURE_STAGING_HOST }}
+        username: ${{ secrets.AZURE_STAGING_USER }}
+        key: ${{ secrets.AZURE_STAGING_SSH_KEY }}
+        source: "build/*"
+        target: "/var/www/staging.tpt-erp.com"
+        strip_components: 1
+
+    - name: Deploy to generic server (fallback)
+      if: env.STAGING_PROVIDER == '' || env.STAGING_PROVIDER == 'generic'
       uses: appleboy/scp-action@master
       with:
         host: ${{ secrets.STAGING_HOST }}
@@ -341,7 +386,52 @@ jobs:
         name: application-build
         path: build/
 
-    - name: Deploy to production server
+    - name: Deploy to Digital Ocean (if configured)
+      if: env.PRODUCTION_PROVIDER == 'digitalocean'
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.DO_PRODUCTION_HOST }}
+        username: ${{ secrets.DO_PRODUCTION_USER }}
+        key: ${{ secrets.DO_PRODUCTION_SSH_KEY }}
+        source: "build/*"
+        target: "/var/www/tpt-erp.com"
+        strip_components: 1
+
+    - name: Deploy to AWS EC2 (if configured)
+      if: env.PRODUCTION_PROVIDER == 'aws'
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.AWS_PRODUCTION_HOST }}
+        username: ${{ secrets.AWS_PRODUCTION_USER }}
+        key: ${{ secrets.AWS_PRODUCTION_SSH_KEY }}
+        source: "build/*"
+        target: "/var/www/tpt-erp.com"
+        strip_components: 1
+
+    - name: Deploy to Google Cloud VM (if configured)
+      if: env.PRODUCTION_PROVIDER == 'gcp'
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.GCP_PRODUCTION_HOST }}
+        username: ${{ secrets.GCP_PRODUCTION_USER }}
+        key: ${{ secrets.GCP_PRODUCTION_SSH_KEY }}
+        source: "build/*"
+        target: "/var/www/tpt-erp.com"
+        strip_components: 1
+
+    - name: Deploy to Azure VM (if configured)
+      if: env.PRODUCTION_PROVIDER == 'azure'
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.AZURE_PRODUCTION_HOST }}
+        username: ${{ secrets.AZURE_PRODUCTION_USER }}
+        key: ${{ secrets.AZURE_PRODUCTION_SSH_KEY }}
+        source: "build/*"
+        target: "/var/www/tpt-erp.com"
+        strip_components: 1
+
+    - name: Deploy to generic server (fallback)
+      if: env.PRODUCTION_PROVIDER == '' || env.PRODUCTION_PROVIDER == 'generic'
       uses: appleboy/scp-action@master
       with:
         host: ${{ secrets.PRODUCTION_HOST }}

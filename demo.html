@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TPT Free ERP - Complete Business Management Solution</title>
+    <meta name="description" content="Transform your business with TPT Free ERP - a comprehensive, open-source enterprise resource planning system with 20+ integrated modules.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 120px 0 100px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.05"/><circle cx="10" cy="50" r="0.5" fill="white" opacity="0.05"/><circle cx="90" cy="30" r="0.5" fill="white" opacity="0.05"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .hero-content {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 2.5rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #ff6b6b;
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-primary:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .features-section {
+            padding: 100px 0;
+            background: #f8f9fa;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #2d3748;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.1rem;
+            color: #718096;
+            margin-bottom: 4rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #2d3748;
+        }
+
+        .feature-description {
+            color: #718096;
+            line-height: 1.6;
+        }
+
+        .modules-section {
+            padding: 100px 0;
+            background: white;
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .module-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+        }
+
+        .module-card:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        .module-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: #667eea;
+        }
+
+        .module-card:hover .module-icon {
+            color: white;
+        }
+
+        .module-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .stats-section {
+            padding: 100px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .demo-section {
+            padding: 100px 0;
+            background: #f8f9fa;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            margin-top: 3rem;
+        }
+
+        .demo-content h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #2d3748;
+        }
+
+        .demo-content p {
+            font-size: 1.1rem;
+            color: #718096;
+            margin-bottom: 2rem;
+            line-height: 1.7;
+        }
+
+        .demo-image {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .demo-placeholder {
+            height: 300px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .footer {
+            background: #2d3748;
+            color: white;
+            padding: 60px 0 30px;
+            text-align: center;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section ul li a {
+            color: #a0aec0;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section ul li a:hover {
+            color: #667eea;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #4a5568;
+            padding-top: 2rem;
+            color: #a0aec0;
+        }
+
+        .animate-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .animate-in.animate-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .demo-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .features-grid,
+            .modules-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav style="position: fixed; top: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); z-index: 1000; padding: 1rem 0; border-bottom: 1px solid rgba(0,0,0,0.1);">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-size: 1.5rem; font-weight: 700; color: #667eea;">TPT Free ERP</div>
+            <div style="display: flex; gap: 2rem; align-items: center;">
+                <a href="#features" style="color: #4a5568; text-decoration: none; font-weight: 500;">Features</a>
+                <a href="#modules" style="color: #4a5568; text-decoration: none; font-weight: 500;">Modules</a>
+                <a href="#demo" style="color: #4a5568; text-decoration: none; font-weight: 500;">Demo</a>
+                <a href="https://github.com/PhillipC05/tpt-free-erp" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.9rem;">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">Complete Business Management Solution</h1>
+                <p class="hero-subtitle">
+                    Transform your business operations with TPT Free ERP - a comprehensive, open-source enterprise resource planning system featuring 20+ integrated modules, advanced analytics, and modern web technologies.
+                </p>
+                <div class="cta-buttons">
+                    <a href="https://github.com/PhillipC05/tpt-free-erp" class="btn btn-primary">
+                        <i class="fab fa-github"></i> View on GitHub
+                    </a>
+                    <a href="#demo" class="btn btn-secondary">
+                        <i class="fas fa-play"></i> Live Demo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features-section">
+        <div class="container">
+            <h2 class="section-title">Powerful Features</h2>
+            <p class="section-subtitle">
+                Everything you need to manage and grow your business efficiently
+            </p>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="feature-title">Enterprise Security</h3>
+                    <p class="feature-description">
+                        Advanced security features including multi-factor authentication, behavioral biometrics, threat detection, and GDPR compliance.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3 class="feature-title">Progressive Web App</h3>
+                    <p class="feature-description">
+                        Full PWA support with offline capabilities, push notifications, and native app-like experience across all devices.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-plug"></i>
+                    </div>
+                    <h3 class="feature-title">API Integration</h3>
+                    <p class="feature-description">
+                        RESTful API with comprehensive documentation, webhook support, and integrations with popular services like Zapier, Make, and n8n.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="feature-title">Advanced Analytics</h3>
+                    <p class="feature-description">
+                        Real-time dashboards, custom reports, BI tool integration, and predictive analytics powered by AI and machine learning.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-cloud"></i>
+                    </div>
+                    <h3 class="feature-title">Cloud-Native</h3>
+                    <p class="feature-description">
+                        Built for the cloud with Docker support, auto-scaling, load balancing, and seamless deployment across multiple environments.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3 class="feature-title">Open Source</h3>
+                    <p class="feature-description">
+                        Fully open-source with MIT license, active community, comprehensive documentation, and extensive customization options.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modules Section -->
+    <section id="modules" class="modules-section">
+        <div class="container">
+            <h2 class="section-title">20+ Integrated Modules</h2>
+            <p class="section-subtitle">
+                Comprehensive business management covering all aspects of your operations
+            </p>
+
+            <div class="modules-grid">
+                <div class="module-card">
+                    <div class="module-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="module-name">Human Resources</div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <div class="module-name">Inventory</div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="module-name">Sales</div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <div class="module-name">Manufacturing</div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <div class="module-name">Procurement</div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <div class="module-name">Project Management</div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="module-name">Quality Management</div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <div class="module-name">Asset Management</div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">
+                        <i class="fas fa-wrench"></i>
+                    </div>
+                    <div class="module-name">Field Service</div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div class="module-name">Learning Management</div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">
+                        <i class="fas fa-microchip"></i>
+                    </div>
+                    <div class="module-name">IoT Integration</div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="module-name">Advanced Analytics</div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <div class="module-name">E-commerce</div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="module-name">Forms & Surveys</div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div class="module-name">Reporting</div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="module-name">Website & Social</div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="module-name">AI Automation</div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="module-name">Security Features</div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <div class="module-name">Collaboration</div>
+                </div>
+
+                <div class="module-card">
+                    <div class="module-icon">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                    <div class="module-name">White Label</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <h2 class="section-title">Trusted by Businesses Worldwide</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-number">20+</span>
+                    <div class="stat-label">Integrated Modules</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">100%</span>
+                    <div class="stat-label">Open Source</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">50k+</span>
+                    <div class="stat-label">Lines of Code</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">24/7</span>
+                    <div class="stat-label">Community Support</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section id="demo" class="demo-section">
+        <div class="container">
+            <div class="demo-grid">
+                <div class="demo-content">
+                    <h3>Experience the Power of TPT Free ERP</h3>
+                    <p>
+                        See how our comprehensive ERP system can transform your business operations.
+                        From inventory management to advanced analytics, experience the full suite of
+                        enterprise-grade features designed to scale with your business.
+                    </p>
+                    <div class="cta-buttons" style="justify-content: flex-start;">
+                        <a href="https://github.com/PhillipC05/tpt-free-erp" class="btn btn-primary">
+                            <i class="fas fa-download"></i> Download Now
+                        </a>
+                        <a href="https://github.com/PhillipC05/tpt-free-erp/blob/main/docs/MIGRATION_GUIDE.md" class="btn btn-secondary">
+                            <i class="fas fa-book"></i> Documentation
+                        </a>
+                    </div>
+                </div>
+                <div class="demo-image">
+                    <div class="demo-placeholder">
+                        <i class="fas fa-desktop" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <div>Interactive Demo</div>
+                        <div style="font-size: 0.9rem; opacity: 0.8; margin-top: 0.5rem;">
+                            Launch the live demo to explore all features
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>TPT Free ERP</h4>
+                    <p style="color: #a0aec0; margin-top: 1rem; line-height: 1.6;">
+                        A comprehensive, open-source enterprise resource planning system
+                        designed to help businesses of all sizes manage their operations efficiently.
+                    </p>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="https://github.com/PhillipC05/tpt-free-erp">GitHub Repository</a></li>
+                        <li><a href="https://github.com/PhillipC05/tpt-free-erp/blob/main/docs/MIGRATION_GUIDE.md">Documentation</a></li>
+                        <li><a href="https://github.com/PhillipC05/tpt-free-erp/issues">Report Issues</a></li>
+                        <li><a href="https://github.com/PhillipC05/tpt-free-erp/discussions">Community</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Modules</h4>
+                    <ul>
+                        <li><a href="#modules">HR & Payroll</a></li>
+                        <li><a href="#modules">Inventory</a></li>
+                        <li><a href="#modules">Sales & CRM</a></li>
+                        <li><a href="#modules">Manufacturing</a></li>
+                        <li><a href="#modules">Project Management</a></li>
+                        <li><a href="#modules">Analytics</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Connect</h4>
+                    <ul>
+                        <li><a href="https://github.com/PhillipC05">GitHub</a></li>
+                        <li><a href="mailto:contact@tpt-free-erp.com">Email</a></li>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#demo">Demo</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2025 TPT Free ERP. Licensed under MIT. Built with ❤️ for the open-source community.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Smooth scrolling for navigation links
+            $('a[href^="#"]').on('click', function(event) {
+                var target = $(this.getAttribute('href'));
+                if (target.length) {
+                    event.preventDefault();
+                    $('html, body').stop().animate({
+                        scrollTop: target.offset().top - 80
+                    }, 1000);
+                }
+            });
+
+            // Animate stats numbers
+            $('.stat-number').each(function() {
+                const $this = $(this);
+                const finalNumber = $this.text().replace(/[^\d]/g, '');
+                const suffix = $this.text().replace(/[\d]/g, '');
+
+                if (/^\d+$/.test(finalNumber)) {
+                    const target = parseInt(finalNumber);
+                    let current = 0;
+                    const increment = target / 50;
+
+                    const timer = setInterval(function() {
+                        current += increment;
+                        if (current >= target) {
+                            current = target;
+                            clearInterval(timer);
+                        }
+                        $this.text(Math.floor(current) + suffix);
+                    }, 40);
+                }
+            });
+
+            // Scroll animations
+            if ('IntersectionObserver' in window) {
+                const observer = new IntersectionObserver(function(entries) {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('animate-visible');
+                        }
+                    });
+                }, { threshold: 0.1 });
+
+                document.querySelectorAll('.feature-card, .module-card, .stat-item, .demo-content').forEach(el => {
+                    el.classList.add('animate-in');
+                    observer.observe(el);
+                });
+            }
+
+            // Add hover effects to module cards
+            $('.module-card').hover(
+                function() {
+                    $(this).find('.module-icon').addClass('fa-bounce');
+                },
+                function() {
+                    $(this).find('.module-icon').removeClass('fa-bounce');
+                }
+            );
+        });
+
+        // Add scroll effect to navigation
+        window.addEventListener('scroll', function() {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 100) {
+                nav.style.background = 'rgba(255, 255, 255, 0.98)';
+                nav.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+            } else {
+                nav.style.background = 'rgba(255, 255, 255, 0.95)';
+                nav.style.boxShadow = 'none';
+            }
+        });
+    </script>
+
+    <!-- Demo notification -->
+    <div style="position: fixed; top: 20px; left: 20px; background: #667eea; color: white; padding: 10px 15px; border-radius: 8px; z-index: 10000; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+        📋 Demo Preview - This is how your landing page will look!
+    </div>
+</body>
+</html>

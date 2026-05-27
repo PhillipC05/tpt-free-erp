@@ -209,7 +209,7 @@ class SessionManager
         $_SESSION['user_agent'] = $_SERVER['HTTP_USER_AGENT'] ?? '';
 
         // Update session in database
-        $this->updateSessionUser($session_id(), $userId);
+        $this->updateSessionUser(session_id(), $userId);
 
         return true;
     }

@@ -502,25 +502,41 @@ class BehavioralBiometrics
      */
     public function getBehavioralAnalytics(int $userId = null): array
     {
-        $conditions = $userId ? "WHERE user_id = {$userId}" : "";
+        $whereClause = "";
+        $params = [];
+
+        if ($userId !== null) {
+            $whereClause = " WHERE user_id = :user_id";
+            $params[':user_id'] = $userId;
+        }
+
+        $totalBehaviorRecords = $this->db->queryValue(
+            "SELECT COUNT(*) FROM behavioral_data" . $whereClause,
+            $params
+        );
+
+        $highRiskDetectionSql = "SELECT COUNT(*) FROM behavioral_analysis" . $whereClause;
+        if ($userId !== null) {
+            $highRiskDetectionSql .= " AND risk_score > 0.7";
+        } else {
+            $highRiskDetectionSql = "SELECT COUNT(*) FROM behavioral_analysis WHERE risk_score > 0.7";
+        }
 
         return [
             'total_users_tracked' => $this->db->queryValue(
                 "SELECT COUNT(DISTINCT user_id) FROM behavioral_settings WHERE settings->>'enabled' = 'true'"
             ),
-            'total_behavior_records' => $this->db->queryValue(
-                "SELECT COUNT(*) FROM behavioral_data {$conditions}"
-            ),
-            'high_risk_detections' => $this->db->queryValue(
-                "SELECT COUNT(*) FROM behavioral_analysis {$conditions} AND risk_score > 0.7"
-            ),
+            'total_behavior_records' => $totalBehaviorRecords,
+            'high_risk_detections' => $this->db->queryValue($highRiskDetectionSql, $params),
             'average_risk_score' => $this->db->queryValue(
-                "SELECT AVG(risk_score) FROM behavioral_analysis {$conditions}"
+                "SELECT AVG(risk_score) FROM behavioral_analysis" . $whereClause,
+                $params
             ),
             'most_common_anomalies' => $this->db->query(
                 "SELECT jsonb_array_elements_text(anomalies) as anomaly, COUNT(*) as count
-                 FROM behavioral_analysis {$conditions}
-                 GROUP BY anomaly ORDER BY count DESC LIMIT 10"
+                 FROM behavioral_analysis" . $whereClause . "
+                 GROUP BY anomaly ORDER BY count DESC LIMIT 10",
+                $params
             )
         ];
     }

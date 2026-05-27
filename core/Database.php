@@ -61,12 +61,10 @@ class Database
         switch ($driver) {
             case 'pgsql':
                 return sprintf(
-                    'pgsql:host=%s;port=%s;dbname=%s;user=%s;password=%s',
+                    'pgsql:host=%s;port=%s;dbname=%s',
                     $config['host'] ?? 'localhost',
                     $config['port'] ?? '5432',
-                    $config['database'] ?? '',
-                    $config['username'] ?? '',
-                    $config['password'] ?? ''
+                    $config['database'] ?? ''
                 );
             case 'mysql':
                 return sprintf(
@@ -242,17 +240,23 @@ class Database
         if (!empty($orderBy)) {
             $orderParts = [];
             foreach ($orderBy as $column => $direction) {
+                $direction = strtoupper($direction);
+                if (!in_array($direction, ['ASC', 'DESC'])) {
+                    $direction = 'ASC';
+                }
                 $orderParts[] = "{$column} {$direction}";
             }
             $sql .= ' ORDER BY ' . implode(', ', $orderParts);
         }
 
         if ($limit !== null) {
-            $sql .= " LIMIT {$limit}";
+            $sql .= " LIMIT :limit_val";
+            $values[':limit_val'] = $limit;
         }
 
         if ($offset !== null) {
-            $sql .= " OFFSET {$offset}";
+            $sql .= " OFFSET :offset_val";
+            $values[':offset_val'] = $offset;
         }
 
         return $this->query($sql, $values);
@@ -315,7 +319,7 @@ class Database
     /**
      * Get PDO instance (for advanced usage)
      */
-    public function getPdo(): \PDO
+    public function getPdo(): ?\PDO
     {
         return $this->pdo;
     }
@@ -330,10 +334,15 @@ class Database
 
     /**
      * Quote identifier (table/column name)
+     *
+     * Uses PDO::quote for values. For identifiers, we manually escape backticks/double-quotes
+     * to prevent SQL injection in column/table names.
      */
     public function quoteIdentifier(string $identifier): string
     {
-        return $this->pdo->quote($identifier);
+        // Remove any backtick or double-quote characters to prevent injection
+        $clean = str_replace(['`', '"', "'", ';'], '', $identifier);
+        return '`' . $clean . '`';
     }
 
     /**

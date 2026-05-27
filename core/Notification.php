@@ -323,11 +323,17 @@ class Notification
         ];
 
         // Get count by type
-        $typeStats = $this->db->query(
-            "SELECT type, COUNT(*) as count FROM notifications " .
-            ($userId ? "WHERE user_id = {$userId} " : "") .
-            "GROUP BY type"
-        );
+        $sql = "SELECT type, COUNT(*) as count FROM notifications";
+        $params = [];
+
+        if ($userId !== null) {
+            $sql .= " WHERE user_id = :user_id";
+            $params[':user_id'] = $userId;
+        }
+
+        $sql .= " GROUP BY type";
+
+        $typeStats = $this->db->query($sql, $params);
 
         foreach ($typeStats as $stat) {
             $stats['by_type'][$stat['type']] = (int) $stat['count'];

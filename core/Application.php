@@ -93,8 +93,23 @@ class Application
      */
     private function handleCors(): void
     {
+        $allowedOrigins = getenv('CORS_ALLOWED_ORIGINS');
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+        // Determine if the origin is allowed
+        if ($allowedOrigins) {
+            $origins = explode(',', $allowedOrigins);
+            $allowedOrigin = in_array($origin, array_map('trim', $origins)) ? $origin : ($origins[0] ?? '');
+        } else {
+            // Fallback to single origin or wildcard (not recommended for production)
+            $allowedOrigin = getenv('CORS_ORIGIN') ?: '';
+            if (empty($allowedOrigin)) {
+                $allowedOrigin = $origin ?: '';
+            }
+        }
+
         $this->response->setCorsHeaders(
-            origin: getenv('CORS_ORIGIN') ?: '*',
+            origin: $allowedOrigin,
             methods: 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
             headers: 'Content-Type, Authorization, X-Requested-With, X-API-Key',
             credentials: true

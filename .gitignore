@@ -1,64 +1,27 @@
-# Environment files
-.env
-.env.local
-.env.production
-
-# Logs
-logs/
 *.log
-npm-debug.log*
-
-# Dependencies
-node_modules/
-vendor/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-
-# OS
 .DS_Store
+.env
+.env.backup
+.env.production
+.phpactor.json
+.phpunit.result.cache
+/.codex
+/.cursor/
+/.idea
+/.nova
+/.phpunit.cache
+/.vscode
+/.zed
+/auth.json
+/node_modules
+/public/build
+/public/fonts-manifest.dev.json
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
+_ide_helper.php
+Homestead.json
+Homestead.yaml
 Thumbs.db
-
-# Temporary files
-*.tmp
-*.bak
-.cache/
-
-# Database
-*.sqlite
-*.db
-
-# SSL certificates
-*.pem
-*.key
-
-# Uploads
-uploads/
-storage/
-
-# Build artifacts
-/build/
-/dist/
-/public/build/
-
-# Backups
-backups/*.sql
-*.tar.gz
-
-# WordPress Plugin
-wordpress-plugin/
-
-# Landing Page Plugin
-landing-page-plugin/
-wordpress-plugin.zip
-FEATURE_UPDATE_PLAN.md
-MARKETING_MATERIALS.md
-POST_LAUNCH_MONITORING.md
-PRE_LAUNCH_CHECKLIST.md
-refactor.md
-SECURITY_MAINTENANCE_PLAN.md
-todo copy.md
-todo.md
-landing-page-plugin.zip

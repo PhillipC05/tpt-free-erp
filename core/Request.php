@@ -77,11 +77,15 @@ class Request
      */
     private function authenticateUser(): void
     {
-        // Check for Bearer token
-        $authHeader = $this->getHeader('Authorization');
-        if ($authHeader && preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
-            $token = $matches[1];
-            $this->user = $this->validateToken($token);
+        $legacyJwtEnabled = filter_var(getenv('LEGACY_JWT_ENABLED') ?: 'false', FILTER_VALIDATE_BOOL);
+
+        // Check for Bearer token (legacy JWT only)
+        if ($legacyJwtEnabled) {
+            $authHeader = $this->getHeader('Authorization');
+            if ($authHeader && preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
+                $token = $matches[1];
+                $this->user = $this->validateToken($token);
+            }
         }
 
         // Check for session-based auth
@@ -91,15 +95,26 @@ class Request
     }
 
     /**
-     * Validate JWT token (placeholder - implement based on your JWT library)
+     * Validate JWT token
      */
     private function validateToken(string $token): ?array
     {
+        $jwtSecret = getenv('JWT_SECRET');
+        if (empty($jwtSecret)) {
+            error_log('CRITICAL: JWT_SECRET environment variable is not configured');
+            return null;
+        }
+
+        if (!class_exists(\Firebase\JWT\JWT::class)) {
+            error_log('CRITICAL: firebase/php-jwt is not installed or JWT class is unavailable');
+            return null;
+        }
+
         try {
-            // Use firebase/php-jwt from composer.json
-            $decoded = \Firebase\JWT\JWT::decode($token, getenv('JWT_SECRET') ?: 'your-secret-key', ['HS256']);
+            $decoded = \Firebase\JWT\JWT::decode($token, $jwtSecret, ['HS256']);
             return (array) $decoded;
         } catch (\Exception $e) {
+            error_log('JWT validation failed: ' . $e->getMessage());
             return null;
         }
     }

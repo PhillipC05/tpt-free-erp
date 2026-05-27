@@ -1,16 +1,20 @@
 <?php
 
-/**
- * TPT Open ERP - Public Entry Point
- *
- * This file serves as the main entry point for all HTTP requests.
- * It initializes the application and handles routing.
- */
+use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
 
-require_once __DIR__ . '/../vendor/autoload.php';
+define('LARAVEL_START', microtime(true));
 
-require_once __DIR__ . '/../config/bootstrap.php';
+// Determine if the application is in maintenance mode...
+if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
+    require $maintenance;
+}
 
-$app = new TPT\ERP\Core\Application();
+// Register the Composer autoloader...
+require __DIR__.'/../vendor/autoload.php';
 
-$app->run();
+// Bootstrap Laravel and handle the request...
+/** @var Application $app */
+$app = require_once __DIR__.'/../bootstrap/app.php';
+
+$app->handleRequest(Request::capture());

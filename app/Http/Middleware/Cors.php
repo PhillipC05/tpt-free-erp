@@ -6,8 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class Cors implements
-    \Illuminate\Contracts\Http\Kernel
+class Cors
 {
     public function handle(Request $request, Closure $next): Response
     {

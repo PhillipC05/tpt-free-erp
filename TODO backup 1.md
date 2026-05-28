@@ -19,8 +19,6 @@
 - [x] Base controllers — `app/Http/Controllers/Api/BaseApiController.php`, `AuthController.php`
 - [x] User model — `app/Models/User.php`
 - [x] Starter models — `app/Models/Finance/Account.php`, `Finance/Transaction.php`, `Inventory/Product.php`
-- [x] All Eloquent models created — Finance, Inventory, HR, Sales, Procurement, Manufacturing, Projects, Quality, Assets, FieldService, Lms (see Models section below)
-- [x] Missing tables migration — `database/migrations/2026_05_28_000000_create_missing_erp_tables.php` (Budget, TaxRate, Supplier, Payroll, CrmPipeline, Requisition+items, ProductionSchedule)
 
 ### Auth & Middleware
 - [x] Configure Laravel Sanctum (replace custom JWT in `core/Request.php`)
@@ -56,48 +54,48 @@
 - [ ] `Lms/CourseController.php`
 
 ### Eloquent Models (create in `app/Models/`)
-- [x] `Finance/Budget.php`, `Finance/TaxRate.php`, `Finance/JournalEntry.php`
-- [x] `Inventory/Warehouse.php`, `Inventory/StockMovement.php`, `Inventory/Supplier.php`
-- [x] `HR/Employee.php`, `HR/Department.php`, `HR/LeaveRequest.php`, `HR/Payroll.php`
-- [x] `Sales/Customer.php`, `Sales/Order.php`, `Sales/Invoice.php`, `Sales/CrmPipeline.php`
-- [x] `Procurement/Vendor.php`, `Procurement/PurchaseOrder.php`, `Procurement/Requisition.php`
-- [x] `Manufacturing/Bom.php`, `Manufacturing/WorkOrder.php`, `Manufacturing/ProductionSchedule.php`
-- [x] `Projects/Project.php`, `Projects/Task.php`, `Projects/TimeEntry.php`
-- [x] `Quality/QualityCheck.php`, `Quality/NonConformance.php`
-- [x] `Assets/Asset.php`, `Assets/MaintenanceRecord.php`
-- [x] `FieldService/ServiceTicket.php`
-- [x] `Lms/Course.php`, `Lms/Enrollment.php`
+- [ ] `Finance/Budget.php`, `Finance/TaxRate.php`, `Finance/JournalEntry.php`
+- [ ] `Inventory/Warehouse.php`, `Inventory/StockMovement.php`, `Inventory/Supplier.php`
+- [ ] `HR/Employee.php`, `HR/Department.php`, `HR/LeaveRequest.php`, `HR/Payroll.php`
+- [ ] `Sales/Customer.php`, `Sales/Order.php`, `Sales/Invoice.php`, `Sales/CrmPipeline.php`
+- [ ] `Procurement/Vendor.php`, `Procurement/PurchaseOrder.php`, `Procurement/Requisition.php`
+- [ ] `Manufacturing/Bom.php`, `Manufacturing/WorkOrder.php`, `Manufacturing/ProductionSchedule.php`
+- [ ] `Projects/Project.php`, `Projects/Task.php`, `Projects/TimeEntry.php`
+- [ ] `Quality/QualityCheck.php`, `Quality/NonConformance.php`
+- [ ] `Assets/Asset.php`, `Assets/MaintenanceRecord.php`
+- [ ] `FieldService/ServiceTicket.php`
+- [ ] `Lms/Course.php`, `Lms/Enrollment.php`
 
 ### Form Request Validators (create in `app/Http/Requests/`)
-- [x] Auth requests (login, register, TOTP, magic link, password reset)
-- [x] Finance requests (account, transaction, report)
-- [x] Inventory requests (product, warehouse, stock movement)
-- [x] HR requests (employee, department, leave, payroll)
-- [x] Sales requests (customer, order, invoice, CRM pipeline)
-- [x] Procurement, Manufacturing, Projects requests (vendor, PO, BOM, work order, project, task)
+- [ ] Auth requests (login, register, TOTP)
+- [ ] Finance requests
+- [ ] Inventory requests
+- [ ] HR requests
+- [ ] Sales requests
+- [ ] Procurement, Manufacturing, Projects requests
 
 ### Database Migrations (add to `database/migrations/`)
-- [x] `create_error_logs_table` — in `2026_05_26_133000_create_erp_tables.php`
-- [x] `create_security_events_table` — in `2026_05_26_133000_create_erp_tables.php`
-- [x] `create_behavioral_data_table` — in `2026_05_26_133000_create_erp_tables.php`
-- [x] `create_email_queue_table` — in `2026_05_26_133000_create_erp_tables.php`
+- [ ] `create_error_logs_table`
+- [ ] `create_security_events_table`
+- [ ] `create_behavioral_data_table`
+- [ ] `create_email_queue_table`
 - [ ] `create_magic_link_tokens_table`
-- [x] `create_user_auth_methods_table` — in `2026_05_26_133000_create_erp_tables.php`
-- [x] `create_gdpr_requests_table` — in `2026_05_26_133000_create_erp_tables.php`
-- [x] `create_notifications_table` — in `2026_05_26_133000_create_erp_tables.php`
-- [x] `create_user_consents_table` — in `2026_05_26_133000_create_erp_tables.php`
-- [x] `create_auth_backup_codes_table` — in `2026_05_26_133000_create_erp_tables.php`
-- [x] `create_audit_log_table` — in `2026_05_26_133000_create_erp_tables.php`
-- [x] `create_user_sessions_table` — in `2026_05_26_133000_create_erp_tables.php`
+- [ ] `create_user_auth_methods_table`
+- [ ] `create_gdpr_requests_table`
+- [ ] `create_notifications_table`
+- [ ] `create_user_consents_table`
+- [ ] `create_auth_backup_codes_table`
+- [ ] `create_audit_log_table`
+- [ ] `create_user_sessions_table`
 - [ ] `create_user_devices_table`
 - [ ] `create_legal_holds_table`
 - [ ] `create_user_disputes_table`
 - [ ] `create_user_objections_table`
 - [ ] `create_data_processing_log_table`
-- [x] `create_password_history_table` — in `2026_05_26_133000_create_erp_tables.php`
+- [ ] `create_password_history_table`
 - [ ] `create_team_behavioral_settings_table`
 - [ ] `create_company_behavioral_settings_table`
-- [x] `create_behavioral_analysis_table` — in `2026_05_26_133000_create_erp_tables.php`
+- [ ] `create_behavioral_analysis_table`
 
 ### Database Seeding
 - [ ] Configure `database/seeders/DatabaseSeeder.php`

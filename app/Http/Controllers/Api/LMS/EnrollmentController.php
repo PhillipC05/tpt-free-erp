@@ -48,18 +48,18 @@ class EnrollmentController extends BaseApiController
         $query = Enrollment::query()->with(['course', 'employee']);
 
         if ($request->has('course_id')) {
-            $query->where('course_id', $request->get('course_id'));
+            $query->where('course_id', $request->query('course_id'));
         }
 
         if ($request->has('employee_id')) {
-            $query->where('employee_id', $request->get('employee_id'));
+            $query->where('employee_id', $request->query('employee_id'));
         }
 
         if ($request->has('status')) {
-            $query->where('status', $request->get('status'));
+            $query->where('status', $request->query('status'));
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->orderBy('enrollment_date', 'desc')->paginate(min($perPage, 100));
 
         return $this->respond([
@@ -112,7 +112,7 @@ class EnrollmentController extends BaseApiController
         $record->update([
             'status' => 'completed',
             'completion_date' => now()->toDateString(),
-            'score' => $request->get('score'),
+            'score' => $request->query('score'),
         ]);
 
         return $this->respondSuccess('Enrollment completed', $record->fresh());

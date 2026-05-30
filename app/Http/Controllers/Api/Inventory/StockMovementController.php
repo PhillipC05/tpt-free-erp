@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\BaseApiController;
 use App\Models\Inventory\StockMovement;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class StockMovementController extends BaseApiController
 {
@@ -34,7 +35,7 @@ class StockMovementController extends BaseApiController
         if ($error) return $error;
 
         $data = $request->all();
-        $data['created_by'] = $data['created_by'] ?? auth()->id();
+        $data['created_by'] = $data['created_by'] ?? Auth::id();
 
         $movement = StockMovement::create($data);
         return $this->respondCreated($movement, 'Stock movement recorded successfully');
@@ -45,26 +46,26 @@ class StockMovementController extends BaseApiController
         $query = StockMovement::query()->with(['product', 'warehouse']);
 
         if ($request->has('product_id')) {
-            $query->where('product_id', $request->get('product_id'));
+            $query->where('product_id', $request->query('product_id'));
         }
 
         if ($request->has('warehouse_id')) {
-            $query->where('warehouse_id', $request->get('warehouse_id'));
+            $query->where('warehouse_id', $request->query('warehouse_id'));
         }
 
         if ($request->has('type')) {
-            $query->where('type', $request->get('type'));
+            $query->where('type', $request->query('type'));
         }
 
         if ($request->has('start_date')) {
-            $query->where('movement_date', '>=', $request->get('start_date'));
+            $query->where('movement_date', '>=', $request->query('start_date'));
         }
 
         if ($request->has('end_date')) {
-            $query->where('movement_date', '<=', $request->get('end_date'));
+            $query->where('movement_date', '<=', $request->query('end_date'));
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->orderBy('movement_date', 'desc')->paginate(min($perPage, 100));
 
         return $this->respond([
@@ -81,7 +82,7 @@ class StockMovementController extends BaseApiController
 
     public function byProduct(Request $request, int $productId): JsonResponse
     {
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = StockMovement::where('product_id', $productId)
             ->with('warehouse')
             ->orderBy('movement_date', 'desc')

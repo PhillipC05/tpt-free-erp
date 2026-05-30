@@ -69,22 +69,22 @@ class TicketController extends BaseApiController
         $query = ServiceTicket::query()->with(['customer', 'assignedTo']);
 
         if ($request->has('status')) {
-            $query->where('status', $request->get('status'));
+            $query->where('status', $request->query('status'));
         }
 
         if ($request->has('priority')) {
-            $query->where('priority', $request->get('priority'));
+            $query->where('priority', $request->query('priority'));
         }
 
         if ($request->has('assigned_to')) {
-            $query->where('assigned_to', $request->get('assigned_to'));
+            $query->where('assigned_to', $request->query('assigned_to'));
         }
 
         if ($request->has('customer_id')) {
-            $query->where('customer_id', $request->get('customer_id'));
+            $query->where('customer_id', $request->query('customer_id'));
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->orderBy('created_at', 'desc')->paginate(min($perPage, 100));
 
         return $this->respond([
@@ -109,8 +109,8 @@ class TicketController extends BaseApiController
         ]);
         if ($error) return $error;
 
-        $updates = ['status' => $request->get('status')];
-        if (in_array($request->get('status'), ['resolved', 'closed'])) {
+        $updates = ['status' => $request->query('status')];
+        if (in_array($request->query('status'), ['resolved', 'closed'])) {
             $updates['resolved_at'] = now();
         }
 
@@ -133,7 +133,7 @@ class TicketController extends BaseApiController
         if ($error) return $error;
 
         $record->update([
-            'assigned_to' => $request->get('assigned_to'),
+            'assigned_to' => $request->query('assigned_to'),
             'status' => 'assigned',
         ]);
 

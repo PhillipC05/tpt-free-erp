@@ -18,7 +18,7 @@ class ReportController extends BaseApiController
 
     public function trialBalance(Request $request): JsonResponse
     {
-        $date = $request->get('date', now()->toDateString());
+        $date = $request->query('date', now()->toDateString());
         $accounts = Account::where('is_active', true)->get();
         $result = [];
 
@@ -64,8 +64,8 @@ class ReportController extends BaseApiController
 
     public function incomeStatement(Request $request): JsonResponse
     {
-        $startDate = $request->get('start_date', now()->startOfYear()->toDateString());
-        $endDate = $request->get('end_date', now()->toDateString());
+        $startDate = $request->query('start_date', now()->startOfYear()->toDateString());
+        $endDate = $request->query('end_date', now()->toDateString());
 
         $revenueAccounts = Account::where('type', 'revenue')->where('is_active', true)->get();
         $expenseAccounts = Account::where('type', 'expense')->where('is_active', true)->get();
@@ -113,7 +113,7 @@ class ReportController extends BaseApiController
 
     public function balanceSheet(Request $request): JsonResponse
     {
-        $date = $request->get('date', now()->toDateString());
+        $date = $request->query('date', now()->toDateString());
 
         $assetAccounts = Account::where('type', 'asset')->where('is_active', true)->get();
         $liabilityAccounts = Account::where('type', 'liability')->where('is_active', true)->get();

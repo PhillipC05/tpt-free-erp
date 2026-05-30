@@ -89,7 +89,7 @@ class ServiceTicketController extends BaseApiController
         if ($error) return $error;
 
         $ticket->update([
-            'assigned_to' => $request->get('assigned_to'),
+            'assigned_to' => $request->query('assigned_to'),
             'status' => 'assigned',
         ]);
 
@@ -113,7 +113,7 @@ class ServiceTicketController extends BaseApiController
         $ticket->update([
             'status' => 'resolved',
             'resolved_at' => now(),
-            'resolution_notes' => $request->get('resolution_notes'),
+            'resolution_notes' => $request->query('resolution_notes'),
         ]);
 
         return $this->respondSuccess('Ticket resolved', $ticket->fresh());
@@ -137,22 +137,22 @@ class ServiceTicketController extends BaseApiController
         $query = ServiceTicket::query()->with(['customer', 'assignedTo']);
 
         if ($request->has('status')) {
-            $query->where('status', $request->get('status'));
+            $query->where('status', $request->query('status'));
         }
 
         if ($request->has('priority')) {
-            $query->where('priority', $request->get('priority'));
+            $query->where('priority', $request->query('priority'));
         }
 
         if ($request->has('assigned_to')) {
-            $query->where('assigned_to', $request->get('assigned_to'));
+            $query->where('assigned_to', $request->query('assigned_to'));
         }
 
         if ($request->has('customer_id')) {
-            $query->where('customer_id', $request->get('customer_id'));
+            $query->where('customer_id', $request->query('customer_id'));
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->orderBy('created_at', 'desc')->paginate(min($perPage, 100));
 
         return $this->respond([

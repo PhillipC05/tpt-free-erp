@@ -103,6 +103,8 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->group(function 
         Route::apiResource('journal-entries', JournalEntryController::class);
         Route::get('accounts/{account}/transactions', [TransactionController::class, 'byAccount']);
         Route::get('accounts/{account}/balance', [AccountController::class, 'balance']);
+        Route::post('transactions/{transaction}/approve', [TransactionController::class, 'approve']);
+        Route::post('transactions/{transaction}/void', [TransactionController::class, 'void']);
         Route::get('reports/balance-sheet', [ReportController::class, 'balanceSheet']);
         Route::get('reports/income-statement', [ReportController::class, 'incomeStatement']);
         Route::get('reports/cash-flow', [ReportController::class, 'cashFlow']);

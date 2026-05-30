@@ -43,18 +43,18 @@ class MaintenanceController extends BaseApiController
         $query = MaintenanceRecord::query()->with(['asset']);
 
         if ($request->has('asset_id')) {
-            $query->where('asset_id', $request->get('asset_id'));
+            $query->where('asset_id', $request->query('asset_id'));
         }
 
         if ($request->has('type')) {
-            $query->where('type', $request->get('type'));
+            $query->where('type', $request->query('type'));
         }
 
         if ($request->has('status')) {
-            $query->where('status', $request->get('status'));
+            $query->where('status', $request->query('status'));
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->orderBy('scheduled_date', 'desc')->paginate(min($perPage, 100));
 
         return $this->respond([

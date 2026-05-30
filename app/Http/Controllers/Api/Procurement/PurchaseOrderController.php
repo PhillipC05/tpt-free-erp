@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\BaseApiController;
 use App\Models\Procurement\PurchaseOrder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PurchaseOrderController extends BaseApiController
 {
@@ -46,7 +47,7 @@ class PurchaseOrderController extends BaseApiController
 
         $data = $request->all();
         $data['status'] = $data['status'] ?? 'draft';
-        $data['created_by'] = $data['created_by'] ?? auth()->id();
+        $data['created_by'] = $data['created_by'] ?? Auth::id();
 
         $po = PurchaseOrder::create($data);
         return $this->respondCreated($po, 'Purchase order created successfully');
@@ -102,7 +103,7 @@ class PurchaseOrderController extends BaseApiController
 
         $po->update([
             'status' => 'confirmed',
-            'approved_by' => auth()->id(),
+            'approved_by' => Auth::id(),
             'approved_at' => now(),
         ]);
 
@@ -140,22 +141,22 @@ class PurchaseOrderController extends BaseApiController
         $query = PurchaseOrder::query()->with(['vendor', 'items.product']);
 
         if ($request->has('vendor_id')) {
-            $query->where('vendor_id', $request->get('vendor_id'));
+            $query->where('vendor_id', $request->query('vendor_id'));
         }
 
         if ($request->has('status')) {
-            $query->where('status', $request->get('status'));
+            $query->where('status', $request->query('status'));
         }
 
         if ($request->has('start_date')) {
-            $query->where('order_date', '>=', $request->get('start_date'));
+            $query->where('order_date', '>=', $request->query('start_date'));
         }
 
         if ($request->has('end_date')) {
-            $query->where('order_date', '<=', $request->get('end_date'));
+            $query->where('order_date', '<=', $request->query('end_date'));
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->orderBy('order_date', 'desc')->paginate(min($perPage, 100));
 
         return $this->respond([

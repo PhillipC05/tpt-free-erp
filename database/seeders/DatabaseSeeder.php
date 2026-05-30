@@ -3,23 +3,39 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $this->call([
+            RoleSeeder::class,
+            CurrencySeeder::class,
+            TaxRateSeeder::class,
         ]);
+
+        // Create default admin user
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@tpt-erp.local'],
+            [
+                'name' => 'System Administrator',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // Assign admin role
+        $adminRole = \Illuminate\Support\Facades\DB::table('roles')->where('name', 'admin')->first();
+        if ($adminRole) {
+            \Illuminate\Support\Facades\DB::table('user_roles')->insertOrIgnore([
+                'user_id' => $admin->id,
+                'role_id' => $adminRole->id,
+                'assigned_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
     }
 }

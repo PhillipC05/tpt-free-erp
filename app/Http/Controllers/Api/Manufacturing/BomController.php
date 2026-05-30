@@ -74,14 +74,14 @@ class BomController extends BaseApiController
         $query = Bom::query()->with(['product']);
 
         if ($request->has('product_id')) {
-            $query->where('product_id', $request->get('product_id'));
+            $query->where('product_id', $request->query('product_id'));
         }
 
         if ($request->has('is_active')) {
             $query->where('is_active', $request->boolean('is_active'));
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->paginate(min($perPage, 100));
 
         return $this->respond([

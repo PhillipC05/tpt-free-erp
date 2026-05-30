@@ -28,22 +28,22 @@ class AttendanceController extends BaseApiController
         $query = Attendance::query()->with(['employee']);
 
         if ($request->has('employee_id')) {
-            $query->where('employee_id', $request->get('employee_id'));
+            $query->where('employee_id', $request->query('employee_id'));
         }
 
         if ($request->has('date')) {
-            $query->whereDate('date', $request->get('date'));
+            $query->whereDate('date', $request->query('date'));
         }
 
         if ($request->has('start_date')) {
-            $query->where('date', '>=', $request->get('start_date'));
+            $query->where('date', '>=', $request->query('start_date'));
         }
 
         if ($request->has('end_date')) {
-            $query->where('date', '<=', $request->get('end_date'));
+            $query->where('date', '<=', $request->query('end_date'));
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->orderBy('date', 'desc')->paginate(min($perPage, 100));
 
         return $this->respond([

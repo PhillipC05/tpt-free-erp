@@ -124,18 +124,18 @@ class WorkOrderController extends BaseApiController
         $query = WorkOrder::query()->with(['product', 'bom', 'assignedTo']);
 
         if ($request->has('product_id')) {
-            $query->where('product_id', $request->get('product_id'));
+            $query->where('product_id', $request->query('product_id'));
         }
 
         if ($request->has('status')) {
-            $query->where('status', $request->get('status'));
+            $query->where('status', $request->query('status'));
         }
 
         if ($request->has('assigned_to')) {
-            $query->where('assigned_to', $request->get('assigned_to'));
+            $query->where('assigned_to', $request->query('assigned_to'));
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->orderBy('start_date', 'desc')->paginate(min($perPage, 100));
 
         return $this->respond([

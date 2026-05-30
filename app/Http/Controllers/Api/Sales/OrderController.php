@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\BaseApiController;
 use App\Models\Sales\Order;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class OrderController extends BaseApiController
 {
@@ -45,7 +46,7 @@ class OrderController extends BaseApiController
 
         $data = $request->all();
         $data['status'] = $data['status'] ?? 'draft';
-        $data['created_by'] = $data['created_by'] ?? auth()->id();
+        $data['created_by'] = $data['created_by'] ?? Auth::id();
 
         $order = Order::create($data);
         return $this->respondCreated($order, 'Order created successfully');
@@ -109,22 +110,22 @@ class OrderController extends BaseApiController
         $query = Order::query()->with(['customer', 'items.product']);
 
         if ($request->has('customer_id')) {
-            $query->where('customer_id', $request->get('customer_id'));
+            $query->where('customer_id', $request->query('customer_id'));
         }
 
         if ($request->has('status')) {
-            $query->where('status', $request->get('status'));
+            $query->where('status', $request->query('status'));
         }
 
         if ($request->has('start_date')) {
-            $query->where('order_date', '>=', $request->get('start_date'));
+            $query->where('order_date', '>=', $request->query('start_date'));
         }
 
         if ($request->has('end_date')) {
-            $query->where('order_date', '<=', $request->get('end_date'));
+            $query->where('order_date', '<=', $request->query('end_date'));
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->orderBy('order_date', 'desc')->paginate(min($perPage, 100));
 
         return $this->respond([

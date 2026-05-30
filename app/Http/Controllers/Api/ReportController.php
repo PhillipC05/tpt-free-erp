@@ -40,8 +40,8 @@ class ReportController extends BaseApiController
 
     public function cashFlow(Request $request): JsonResponse
     {
-        $startDate = $request->get('start_date', now()->startOfMonth()->toDateString());
-        $endDate = $request->get('end_date', now()->toDateString());
+        $startDate = $request->query('start_date', now()->startOfMonth()->toDateString());
+        $endDate = $request->query('end_date', now()->toDateString());
 
         $inflows = (float) Transaction::where('type', 'debit')
             ->where('status', 'posted')
@@ -68,8 +68,8 @@ class ReportController extends BaseApiController
 
     public function attendance(Request $request): JsonResponse
     {
-        $startDate = $request->get('start_date', now()->startOfMonth()->toDateString());
-        $endDate = $request->get('end_date', now()->toDateString());
+        $startDate = $request->query('start_date', now()->startOfMonth()->toDateString());
+        $endDate = $request->query('end_date', now()->toDateString());
 
         $query = Attendance::whereBetween('date', [$startDate, $endDate]);
 
@@ -91,7 +91,7 @@ class ReportController extends BaseApiController
 
     public function payroll(Request $request): JsonResponse
     {
-        $month = $request->get('month', now()->format('Y-m'));
+        $month = $request->query('month', now()->format('Y-m'));
 
         $employeeCount = Employee::where('status', 'active')->count();
 
@@ -111,8 +111,8 @@ class ReportController extends BaseApiController
 
     public function sales(Request $request): JsonResponse
     {
-        $startDate = $request->get('start_date', now()->startOfMonth()->toDateString());
-        $endDate = $request->get('end_date', now()->toDateString());
+        $startDate = $request->query('start_date', now()->startOfMonth()->toDateString());
+        $endDate = $request->query('end_date', now()->toDateString());
 
         $totalOrders = Order::whereBetween('created_at', [$startDate, $endDate])->count();
         $totalRevenue = (float) Invoice::whereBetween('invoice_date', [$startDate, $endDate])
@@ -131,8 +131,8 @@ class ReportController extends BaseApiController
 
     public function customer(Request $request): JsonResponse
     {
-        $startDate = $request->get('start_date', now()->startOfYear()->toDateString());
-        $endDate = $request->get('end_date', now()->toDateString());
+        $startDate = $request->query('start_date', now()->startOfYear()->toDateString());
+        $endDate = $request->query('end_date', now()->toDateString());
 
         return $this->respond([
             'success' => true,
@@ -148,8 +148,8 @@ class ReportController extends BaseApiController
 
     public function purchases(Request $request): JsonResponse
     {
-        $startDate = $request->get('start_date', now()->startOfMonth()->toDateString());
-        $endDate = $request->get('end_date', now()->toDateString());
+        $startDate = $request->query('start_date', now()->startOfMonth()->toDateString());
+        $endDate = $request->query('end_date', now()->toDateString());
 
         $totalPOs = PurchaseOrder::whereBetween('order_date', [$startDate, $endDate])->count();
         $totalValue = (float) PurchaseOrder::whereBetween('order_date', [$startDate, $endDate])

@@ -83,18 +83,18 @@ class QualityCheckController extends BaseApiController
         $query = QualityCheck::query()->with(['product', 'inspector']);
 
         if ($request->has('product_id')) {
-            $query->where('product_id', $request->get('product_id'));
+            $query->where('product_id', $request->query('product_id'));
         }
 
         if ($request->has('type')) {
-            $query->where('type', $request->get('type'));
+            $query->where('type', $request->query('type'));
         }
 
         if ($request->has('result')) {
-            $query->where('result', $request->get('result'));
+            $query->where('result', $request->query('result'));
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->orderBy('created_at', 'desc')->paginate(min($perPage, 100));
 
         return $this->respond([

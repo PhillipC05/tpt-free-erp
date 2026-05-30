@@ -19,14 +19,14 @@ class UserController extends BaseApiController
         $query = User::query();
 
         if ($request->has('search')) {
-            $search = $request->get('search');
+            $search = $request->query('search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $users = $query->orderBy('name')->paginate(min($perPage, 100));
 
         return $this->respond([

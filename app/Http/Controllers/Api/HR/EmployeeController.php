@@ -97,19 +97,19 @@ class EmployeeController extends BaseApiController
         $query = Employee::query()->with(['department', 'manager']);
 
         if ($request->has('department_id')) {
-            $query->where('department_id', $request->get('department_id'));
+            $query->where('department_id', $request->query('department_id'));
         }
 
         if ($request->has('status')) {
-            $query->where('status', $request->get('status'));
+            $query->where('status', $request->query('status'));
         }
 
         if ($request->has('employment_type')) {
-            $query->where('employment_type', $request->get('employment_type'));
+            $query->where('employment_type', $request->query('employment_type'));
         }
 
         if ($request->has('search')) {
-            $search = $request->get('search');
+            $search = $request->query('search');
             $query->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
                   ->orWhere('last_name', 'like', "%{$search}%")
@@ -118,7 +118,7 @@ class EmployeeController extends BaseApiController
             });
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->paginate(min($perPage, 100));
 
         return $this->respond([

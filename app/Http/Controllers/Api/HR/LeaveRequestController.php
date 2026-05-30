@@ -41,18 +41,18 @@ class LeaveRequestController extends BaseApiController
         $query = LeaveRequest::query()->with(['employee']);
 
         if ($request->has('employee_id')) {
-            $query->where('employee_id', $request->get('employee_id'));
+            $query->where('employee_id', $request->query('employee_id'));
         }
 
         if ($request->has('status')) {
-            $query->where('status', $request->get('status'));
+            $query->where('status', $request->query('status'));
         }
 
         if ($request->has('leave_type')) {
-            $query->where('leave_type', $request->get('leave_type'));
+            $query->where('leave_type', $request->query('leave_type'));
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->orderBy('created_at', 'desc')->paginate(min($perPage, 100));
 
         return $this->respond([

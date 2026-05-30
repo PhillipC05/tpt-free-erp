@@ -43,18 +43,18 @@ class NonConformanceController extends BaseApiController
         $query = NonConformance::query()->with(['assignedTo']);
 
         if ($request->has('severity')) {
-            $query->where('severity', $request->get('severity'));
+            $query->where('severity', $request->query('severity'));
         }
 
         if ($request->has('status')) {
-            $query->where('status', $request->get('status'));
+            $query->where('status', $request->query('status'));
         }
 
         if ($request->has('check_id')) {
-            $query->where('check_id', $request->get('check_id'));
+            $query->where('check_id', $request->query('check_id'));
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->orderBy('created_at', 'desc')->paginate(min($perPage, 100));
 
         return $this->respond([
@@ -79,8 +79,8 @@ class NonConformanceController extends BaseApiController
         ]);
         if ($error) return $error;
 
-        $updates = ['status' => $request->get('status')];
-        if ($request->get('status') === 'resolved') {
+        $updates = ['status' => $request->query('status')];
+        if ($request->query('status') === 'resolved') {
             $updates['resolved_at'] = now();
         }
 

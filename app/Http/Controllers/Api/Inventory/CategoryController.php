@@ -25,16 +25,16 @@ class CategoryController extends BaseApiController
         $query = Category::query();
 
         if ($request->has('parent_id')) {
-            $query->where('parent_id', $request->get('parent_id'));
+            $query->where('parent_id', $request->query('parent_id'));
         } elseif ($request->boolean('root_only')) {
             $query->whereNull('parent_id');
         }
 
         if ($request->has('search')) {
-            $query->where('name', 'like', '%' . $request->get('search') . '%');
+            $query->where('name', 'like', '%' . $request->query('search') . '%');
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->orderBy('name')->paginate(min($perPage, 100));
 
         return $this->respond([

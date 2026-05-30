@@ -4,6 +4,7 @@ namespace App\Services\Finance;
 
 use App\Models\Finance\Account;
 use App\Models\Finance\Transaction;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class TransactionService
@@ -11,7 +12,7 @@ class TransactionService
     public function createTransaction(array $data): Transaction
     {
         return DB::transaction(function () use ($data) {
-            $data['created_by'] = $data['created_by'] ?? auth()->id();
+            $data['created_by'] = $data['created_by'] ?? Auth::id();
             $data['status'] = $data['status'] ?? 'pending';
 
             $transaction = Transaction::create($data);

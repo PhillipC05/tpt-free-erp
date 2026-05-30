@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\BaseApiController;
 use App\Models\Finance\Transaction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TransactionController extends BaseApiController
 {
@@ -42,7 +43,7 @@ class TransactionController extends BaseApiController
         if ($error) return $error;
 
         $data = $request->all();
-        $data['created_by'] = $data['created_by'] ?? auth()->id();
+        $data['created_by'] = $data['created_by'] ?? Auth::id();
 
         $transaction = Transaction::create($data);
         return $this->respondCreated($transaction, 'Transaction created successfully');
@@ -88,7 +89,7 @@ class TransactionController extends BaseApiController
 
         $transaction->update([
             'status' => 'posted',
-            'approved_by' => auth()->id(),
+            'approved_by' => Auth::id(),
             'approved_at' => now(),
         ]);
 
@@ -110,7 +111,7 @@ class TransactionController extends BaseApiController
 
     public function byAccount(Request $request, int $accountId): JsonResponse
     {
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = Transaction::where('account_id', $accountId)
             ->orderBy('transaction_date', 'desc')
             ->paginate(min($perPage, 100));

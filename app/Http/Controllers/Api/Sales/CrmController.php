@@ -84,18 +84,18 @@ class CrmController extends BaseApiController
         $query = CrmPipeline::query()->with(['customer', 'assignedTo']);
 
         if ($request->has('stage')) {
-            $query->where('stage', $request->get('stage'));
+            $query->where('stage', $request->query('stage'));
         }
 
         if ($request->has('status')) {
-            $query->where('status', $request->get('status'));
+            $query->where('status', $request->query('status'));
         }
 
         if ($request->has('assigned_to')) {
-            $query->where('assigned_to', $request->get('assigned_to'));
+            $query->where('assigned_to', $request->query('assigned_to'));
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->orderBy('created_at', 'desc')->paginate(min($perPage, 100));
 
         return $this->respond([

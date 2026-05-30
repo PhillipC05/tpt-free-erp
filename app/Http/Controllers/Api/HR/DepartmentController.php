@@ -69,7 +69,7 @@ class DepartmentController extends BaseApiController
             $query->where('is_active', $request->boolean('is_active'));
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->paginate(min($perPage, 100));
 
         return $this->respond([

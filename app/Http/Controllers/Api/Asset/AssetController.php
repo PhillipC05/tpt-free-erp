@@ -72,19 +72,19 @@ class AssetController extends BaseApiController
         $query = Asset::query()->with(['assignedTo', 'location']);
 
         if ($request->has('type')) {
-            $query->where('type', $request->get('type'));
+            $query->where('type', $request->query('type'));
         }
 
         if ($request->has('status')) {
-            $query->where('status', $request->get('status'));
+            $query->where('status', $request->query('status'));
         }
 
         if ($request->has('assigned_to')) {
-            $query->where('assigned_to', $request->get('assigned_to'));
+            $query->where('assigned_to', $request->query('assigned_to'));
         }
 
         if ($request->has('search')) {
-            $search = $request->get('search');
+            $search = $request->query('search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('asset_code', 'like', "%{$search}%")
@@ -92,7 +92,7 @@ class AssetController extends BaseApiController
             });
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->orderBy('purchase_date', 'desc')->paginate(min($perPage, 100));
 
         return $this->respond([

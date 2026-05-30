@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\BaseApiController;
 use App\Models\HR\LeaveRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class LeaveController extends BaseApiController
 {
@@ -57,7 +58,7 @@ class LeaveController extends BaseApiController
 
         $leave->update([
             'status' => 'approved',
-            'approved_by' => $request->get('approved_by', auth()->id()),
+            'approved_by' => $request->query('approved_by', Auth::id()),
             'approved_at' => now(),
         ]);
 
@@ -80,7 +81,7 @@ class LeaveController extends BaseApiController
 
         $leave->update([
             'status' => 'rejected',
-            'rejection_reason' => $request->get('rejection_reason'),
+            'rejection_reason' => $request->query('rejection_reason'),
         ]);
 
         return $this->respondSuccess('Leave request rejected', $leave->fresh());
@@ -104,26 +105,26 @@ class LeaveController extends BaseApiController
         $query = LeaveRequest::query()->with(['employee', 'approver']);
 
         if ($request->has('employee_id')) {
-            $query->where('employee_id', $request->get('employee_id'));
+            $query->where('employee_id', $request->query('employee_id'));
         }
 
         if ($request->has('status')) {
-            $query->where('status', $request->get('status'));
+            $query->where('status', $request->query('status'));
         }
 
         if ($request->has('leave_type')) {
-            $query->where('leave_type', $request->get('leave_type'));
+            $query->where('leave_type', $request->query('leave_type'));
         }
 
         if ($request->has('start_date')) {
-            $query->where('start_date', '>=', $request->get('start_date'));
+            $query->where('start_date', '>=', $request->query('start_date'));
         }
 
         if ($request->has('end_date')) {
-            $query->where('end_date', '<=', $request->get('end_date'));
+            $query->where('end_date', '<=', $request->query('end_date'));
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->orderBy('created_at', 'desc')->paginate(min($perPage, 100));
 
         return $this->respond([
@@ -140,7 +141,7 @@ class LeaveController extends BaseApiController
 
     public function myLeaves(Request $request): JsonResponse
     {
-        $employeeId = $request->get('employee_id');
+        $employeeId = $request->query('employee_id');
         if (!$employeeId) {
             return $this->respondError('Employee ID is required', 400);
         }
@@ -148,10 +149,10 @@ class LeaveController extends BaseApiController
         $query = LeaveRequest::where('employee_id', $employeeId);
 
         if ($request->has('status')) {
-            $query->where('status', $request->get('status'));
+            $query->where('status', $request->query('status'));
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->orderBy('start_date', 'desc')->paginate(min($perPage, 100));
 
         return $this->respond([

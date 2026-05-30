@@ -14,7 +14,7 @@ class NotificationController extends BaseApiController
 
     public function index(Request $request): JsonResponse
     {
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $notifications = auth()->user()
             ->notifications()
             ->paginate(min($perPage, 100));
@@ -33,7 +33,7 @@ class NotificationController extends BaseApiController
 
     public function unread(Request $request): JsonResponse
     {
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $notifications = auth()->user()
             ->unreadNotifications()
             ->paginate(min($perPage, 100));
@@ -87,6 +87,6 @@ class NotificationController extends BaseApiController
         ]);
         if ($error) return $error;
 
-        return $this->respondSuccess('Preferences updated', $request->get('preferences'));
+        return $this->respondSuccess('Preferences updated', $request->query('preferences'));
     }
 }

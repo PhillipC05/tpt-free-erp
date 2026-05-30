@@ -88,7 +88,7 @@ class TaskController extends BaseApiController
         ];
 
         if ($request->has('actual_hours')) {
-            $data['actual_hours'] = $request->get('actual_hours');
+            $data['actual_hours'] = $request->query('actual_hours');
         }
 
         $task->update($data);
@@ -100,22 +100,22 @@ class TaskController extends BaseApiController
         $query = Task::query()->with(['project', 'assignee', 'parent']);
 
         if ($request->has('project_id')) {
-            $query->where('project_id', $request->get('project_id'));
+            $query->where('project_id', $request->query('project_id'));
         }
 
         if ($request->has('assigned_to')) {
-            $query->where('assigned_to', $request->get('assigned_to'));
+            $query->where('assigned_to', $request->query('assigned_to'));
         }
 
         if ($request->has('status')) {
-            $query->where('status', $request->get('status'));
+            $query->where('status', $request->query('status'));
         }
 
         if ($request->has('priority')) {
-            $query->where('priority', $request->get('priority'));
+            $query->where('priority', $request->query('priority'));
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->orderBy('sort_order')->orderBy('created_at', 'desc')->paginate(min($perPage, 100));
 
         return $this->respond([

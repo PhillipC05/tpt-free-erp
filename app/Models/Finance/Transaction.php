@@ -2,11 +2,13 @@
 
 namespace App\Models\Finance;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Transaction extends Model
 {
+    use HasFactory;
     protected $table = 'finance_transactions';
 
     protected $fillable = [

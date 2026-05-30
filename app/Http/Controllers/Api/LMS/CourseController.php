@@ -67,7 +67,7 @@ class CourseController extends BaseApiController
         $query = Course::query();
 
         if ($request->has('type')) {
-            $query->where('type', $request->get('type'));
+            $query->where('type', $request->query('type'));
         }
 
         if ($request->has('is_active')) {
@@ -75,14 +75,14 @@ class CourseController extends BaseApiController
         }
 
         if ($request->has('search')) {
-            $search = $request->get('search');
+            $search = $request->query('search');
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
                   ->orWhere('code', 'like', "%{$search}%");
             });
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->paginate(min($perPage, 100));
 
         return $this->respond([

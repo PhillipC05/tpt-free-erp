@@ -91,7 +91,7 @@ class ProductController extends BaseApiController
         $query = Product::query()->with('category');
 
         if ($request->has('category_id')) {
-            $query->where('category_id', $request->get('category_id'));
+            $query->where('category_id', $request->query('category_id'));
         }
 
         if ($request->has('is_active')) {
@@ -99,7 +99,7 @@ class ProductController extends BaseApiController
         }
 
         if ($request->has('search')) {
-            $search = $request->get('search');
+            $search = $request->query('search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('sku', 'like', "%{$search}%")
@@ -107,7 +107,7 @@ class ProductController extends BaseApiController
             });
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->paginate(min($perPage, 100));
 
         return $this->respond([

@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\BaseApiController;
 use App\Models\HR\Payroll;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PayrollController extends BaseApiController
 {
@@ -103,7 +104,7 @@ class PayrollController extends BaseApiController
 
         $payroll->update([
             'status' => 'processed',
-            'processed_by' => auth()->id(),
+            'processed_by' => Auth::id(),
         ]);
 
         return $this->respondSuccess('Payroll processed', $payroll->fresh());
@@ -120,7 +121,7 @@ class PayrollController extends BaseApiController
 
         $payroll->update([
             'status' => 'approved',
-            'approved_by' => auth()->id(),
+            'approved_by' => Auth::id(),
             'approved_at' => now(),
         ]);
 
@@ -148,22 +149,22 @@ class PayrollController extends BaseApiController
         $query = Payroll::query()->with(['employee', 'processedBy', 'approvedBy']);
 
         if ($request->has('employee_id')) {
-            $query->where('employee_id', $request->get('employee_id'));
+            $query->where('employee_id', $request->query('employee_id'));
         }
 
         if ($request->has('status')) {
-            $query->where('status', $request->get('status'));
+            $query->where('status', $request->query('status'));
         }
 
         if ($request->has('period_start')) {
-            $query->where('period_start', '>=', $request->get('period_start'));
+            $query->where('period_start', '>=', $request->query('period_start'));
         }
 
         if ($request->has('period_end')) {
-            $query->where('period_end', '<=', $request->get('period_end'));
+            $query->where('period_end', '<=', $request->query('period_end'));
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->orderBy('created_at', 'desc')->paginate(min($perPage, 100));
 
         return $this->respond([
@@ -183,11 +184,11 @@ class PayrollController extends BaseApiController
         $query = Payroll::query();
 
         if ($request->has('period_start')) {
-            $query->where('period_start', '>=', $request->get('period_start'));
+            $query->where('period_start', '>=', $request->query('period_start'));
         }
 
         if ($request->has('period_end')) {
-            $query->where('period_end', '<=', $request->get('period_end'));
+            $query->where('period_end', '<=', $request->query('period_end'));
         }
 
         $payrolls = $query->whereIn('status', ['processed', 'approved', 'paid'])->get();

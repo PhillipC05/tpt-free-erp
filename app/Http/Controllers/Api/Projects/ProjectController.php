@@ -84,18 +84,18 @@ class ProjectController extends BaseApiController
         $query = Project::query()->with('manager');
 
         if ($request->has('status')) {
-            $query->where('status', $request->get('status'));
+            $query->where('status', $request->query('status'));
         }
 
         if ($request->has('priority')) {
-            $query->where('priority', $request->get('priority'));
+            $query->where('priority', $request->query('priority'));
         }
 
         if ($request->has('project_manager_id')) {
-            $query->where('project_manager_id', $request->get('project_manager_id'));
+            $query->where('project_manager_id', $request->query('project_manager_id'));
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->orderBy('start_date', 'desc')->paginate(min($perPage, 100));
 
         return $this->respond([

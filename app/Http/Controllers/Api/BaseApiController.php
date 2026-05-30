@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Validator;
 
 abstract class BaseApiController extends Controller
 {
-    protected Model $model;
+    protected ?Model $model;
     protected array $defaultIncludes = [];
     protected array $validationRules = [];
     protected array $validationMessages = [];
@@ -20,7 +20,7 @@ abstract class BaseApiController extends Controller
         $this->model = $model;
     }
 
-    protected function respond($data, int $status = 200, array $headers = []): JsonResponse
+    protected function respond(mixed $data, int $status = 200, array $headers = []): JsonResponse
     {
         return response()->json($data, $status, $headers);
     }
@@ -45,7 +45,11 @@ abstract class BaseApiController extends Controller
 
     protected function respondCreated(mixed $data = null, string $message = 'Created successfully'): JsonResponse
     {
-        return $this->respondSuccess($message, $data);
+        $response = ['success' => true, 'message' => $message];
+        if ($data !== null) {
+            $response['data'] = $data;
+        }
+        return $this->respond($response, 201);
     }
 
     protected function respondNotFound(string $message = 'Resource not found'): JsonResponse
@@ -77,7 +81,7 @@ abstract class BaseApiController extends Controller
         $query = $this->model->query();
 
         // Apply pagination
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->paginate(min($perPage, 100));
 
         return $this->respond([

@@ -40,22 +40,22 @@ class TimeEntryController extends BaseApiController
         $query = TimeEntry::query()->with(['task', 'user']);
 
         if ($request->has('task_id')) {
-            $query->where('task_id', $request->get('task_id'));
+            $query->where('task_id', $request->query('task_id'));
         }
 
         if ($request->has('user_id')) {
-            $query->where('user_id', $request->get('user_id'));
+            $query->where('user_id', $request->query('user_id'));
         }
 
         if ($request->has('start_date')) {
-            $query->where('date', '>=', $request->get('start_date'));
+            $query->where('date', '>=', $request->query('start_date'));
         }
 
         if ($request->has('end_date')) {
-            $query->where('date', '<=', $request->get('end_date'));
+            $query->where('date', '<=', $request->query('end_date'));
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->orderBy('date', 'desc')->paginate(min($perPage, 100));
 
         return $this->respond([

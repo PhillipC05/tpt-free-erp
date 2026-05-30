@@ -68,18 +68,18 @@ class JournalEntryController extends BaseApiController
         $query = JournalEntry::query()->with(['creator']);
 
         if ($request->has('status')) {
-            $query->where('status', $request->get('status'));
+            $query->where('status', $request->query('status'));
         }
 
         if ($request->has('start_date')) {
-            $query->where('entry_date', '>=', $request->get('start_date'));
+            $query->where('entry_date', '>=', $request->query('start_date'));
         }
 
         if ($request->has('end_date')) {
-            $query->where('entry_date', '<=', $request->get('end_date'));
+            $query->where('entry_date', '<=', $request->query('end_date'));
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->orderBy('entry_date', 'desc')->paginate(min($perPage, 100));
 
         return $this->respond([

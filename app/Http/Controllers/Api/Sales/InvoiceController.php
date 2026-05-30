@@ -107,7 +107,7 @@ class InvoiceController extends BaseApiController
         ]);
         if ($error) return $error;
 
-        $amount = (float) $request->get('amount');
+        $amount = (float) $request->query('amount');
         $totalPaid = (float) $invoice->paid_amount + $amount;
         $totalAmount = (float) $invoice->total_amount;
         $newBalance = $totalAmount - $totalPaid;
@@ -141,22 +141,22 @@ class InvoiceController extends BaseApiController
         $query = Invoice::query()->with(['customer', 'order']);
 
         if ($request->has('customer_id')) {
-            $query->where('customer_id', $request->get('customer_id'));
+            $query->where('customer_id', $request->query('customer_id'));
         }
 
         if ($request->has('status')) {
-            $query->where('status', $request->get('status'));
+            $query->where('status', $request->query('status'));
         }
 
         if ($request->has('start_date')) {
-            $query->where('invoice_date', '>=', $request->get('start_date'));
+            $query->where('invoice_date', '>=', $request->query('start_date'));
         }
 
         if ($request->has('end_date')) {
-            $query->where('invoice_date', '<=', $request->get('end_date'));
+            $query->where('invoice_date', '<=', $request->query('end_date'));
         }
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->orderBy('invoice_date', 'desc')->paginate(min($perPage, 100));
 
         return $this->respond([
@@ -177,7 +177,7 @@ class InvoiceController extends BaseApiController
             ->orWhere('status', 'partially_paid')
             ->where('due_date', '<', now()->toDateString());
 
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->query('per_page', 15);
         $items = $query->with('customer')->orderBy('due_date', 'asc')->paginate(min($perPage, 100));
 
         return $this->respond([

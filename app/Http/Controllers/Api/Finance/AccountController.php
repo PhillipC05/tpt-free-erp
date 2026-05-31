@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 
 class AccountController extends BaseApiController
 {
+    protected string $cacheTag = 'finance_accounts';
+
     protected array $validationRules = [
         'code' => 'required|string|max:20|unique:finance_accounts,code',
         'name' => 'required|string|max:200',
@@ -34,19 +36,20 @@ class AccountController extends BaseApiController
             return $this->respondNotFound();
         }
 
-        $totalDebits = Transaction::where('account_id', $id)->where('type', 'debit')->sum('amount');
-        $totalCredits = Transaction::where('account_id', $id)->where('type', 'credit')->sum('amount');
+        $data = $this->cacheRemember("account_balance_{$id}", function () use ($id, $account) {
+            $totalDebits  = Transaction::where('account_id', $id)->where('type', 'debit')->sum('amount');
+            $totalCredits = Transaction::where('account_id', $id)->where('type', 'credit')->sum('amount');
 
-        return $this->respond([
-            'success' => true,
-            'data' => [
-                'account' => $account,
-                'total_debits' => $totalDebits,
-                'total_credits' => $totalCredits,
-                'calculated_balance' => $totalDebits - $totalCredits,
-                'current_balance' => $account->current_balance,
-            ],
-        ]);
+            return [
+                'account'             => $account,
+                'total_debits'        => $totalDebits,
+                'total_credits'       => $totalCredits,
+                'calculated_balance'  => $totalDebits - $totalCredits,
+                'current_balance'     => $account->current_balance,
+            ];
+        }, ttl: 300); // 5-minute TTL for live balance data
+
+        return $this->respond(['success' => true, 'data' => $data]);
     }
 
     public function store(Request $request): JsonResponse
@@ -57,6 +60,7 @@ class AccountController extends BaseApiController
         if ($error) return $error;
 
         $account = Account::create($request->all());
+        $this->cacheFlush();
         return $this->respondCreated($account, 'Account created successfully');
     }
 
@@ -71,6 +75,7 @@ class AccountController extends BaseApiController
         if ($error) return $error;
 
         $account->update($request->all());
+        $this->cacheFlush();
         return $this->respondSuccess('Account updated', $account->fresh());
     }
 }

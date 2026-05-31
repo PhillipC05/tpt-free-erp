@@ -3,11 +3,13 @@
 namespace App\Models\Quality;
 
 use App\Models\HR\Employee;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class NonConformance extends Model
 {
+    use HasFactory;
     protected $table = 'quality_non_conformances';
 
     protected $fillable = [

@@ -9,11 +9,14 @@ use Illuminate\Http\Request;
 
 class CourseController extends BaseApiController
 {
+    protected string $cacheTag = 'lms_courses';
+    protected int $cacheTtl = 3600;
+
     protected array $validationRules = [
         'code' => 'required|string|max:20|unique:lms_courses,code',
         'title' => 'required|string|max:200',
         'description' => 'nullable|string',
-        'type' => 'required|in:online,classroom,blended,workshop',
+        'type' => 'required|in:online,classroom,blended',
         'duration_hours' => 'nullable|numeric|min:0',
         'cost' => 'nullable|numeric|min:0',
         'is_active' => 'boolean',
@@ -51,7 +54,7 @@ class CourseController extends BaseApiController
             'code' => 'required|string|max:20|unique:lms_courses,code,' . $id,
             'title' => 'required|string|max:200',
             'description' => 'nullable|string',
-            'type' => 'required|in:online,classroom,blended,workshop',
+            'type' => 'required|in:online,classroom,blended',
             'duration_hours' => 'nullable|numeric|min:0',
             'cost' => 'nullable|numeric|min:0',
             'is_active' => 'boolean',

@@ -9,14 +9,16 @@ use Illuminate\Http\Request;
 
 class ProjectController extends BaseApiController
 {
+    protected string $cacheTag = 'projects';
+
     protected array $validationRules = [
         'code' => 'required|string|max:20|unique:projects,code',
         'name' => 'required|string|max:200',
         'description' => 'nullable|string',
         'start_date' => 'required|date',
         'end_date' => 'nullable|date|after_or_equal:start_date',
-        'status' => 'sometimes|in:planning,in_progress,on_hold,completed,cancelled',
-        'priority' => 'nullable|in:low,medium,high,urgent',
+        'status' => 'sometimes|in:planning,active,on_hold,completed,cancelled',
+        'priority' => 'nullable|in:low,medium,high,critical',
         'project_manager_id' => 'nullable|exists:hr_employees,id',
         'budget' => 'nullable|numeric|min:0',
         'actual_cost' => 'nullable|numeric|min:0',
@@ -59,8 +61,8 @@ class ProjectController extends BaseApiController
             'description' => 'nullable|string',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'status' => 'sometimes|in:planning,in_progress,on_hold,completed,cancelled',
-            'priority' => 'nullable|in:low,medium,high,urgent',
+            'status' => 'sometimes|in:planning,active,on_hold,completed,cancelled',
+            'priority' => 'nullable|in:low,medium,high,critical',
             'project_manager_id' => 'nullable|exists:hr_employees,id',
             'budget' => 'nullable|numeric|min:0',
             'actual_cost' => 'nullable|numeric|min:0',

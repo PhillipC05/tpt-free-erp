@@ -20,8 +20,8 @@ class AssetController extends BaseApiController
         'current_value' => 'nullable|numeric|min:0',
         'salvage_value' => 'nullable|numeric|min:0',
         'useful_life_years' => 'nullable|integer|min:1',
-        'depreciation_method' => 'nullable|in:straight_line,declining_balance,sum_of_years,units_of_production',
-        'status' => 'sometimes|in:active,in_use,under_maintenance,retired,disposed',
+        'depreciation_method' => 'nullable|in:straight_line,declining,sum_of_years',
+        'status' => 'sometimes|in:active,maintenance,retired,disposed',
         'assigned_to' => 'nullable|exists:hr_employees,id',
         'location_id' => 'nullable|exists:inventory_warehouses,id',
     ];
@@ -131,18 +131,22 @@ class AssetController extends BaseApiController
         ]);
     }
 
-    public function depreciate(int $id): JsonResponse
+    public function calculateDepreciation(int $id): JsonResponse
     {
         $asset = Asset::find($id);
         if (!$asset) return $this->respondNotFound();
 
+        if (!$asset->useful_life_years || !$asset->depreciation_method) {
+            return $this->respondError('Asset is missing depreciation configuration', 422);
+        }
+
         if ($asset->depreciation_method === 'straight_line') {
-            $annualDepreciation = ($asset->purchase_cost - $asset->salvage_value) / $asset->useful_life_years;
+            $annualDepreciation = ($asset->purchase_cost - ($asset->salvage_value ?? 0)) / $asset->useful_life_years;
         } else {
             return $this->respondError('Depreciation method not yet implemented', 501);
         }
 
-        $newValue = max($asset->current_value - $annualDepreciation, $asset->salvage_value);
+        $newValue = max($asset->current_value - $annualDepreciation, $asset->salvage_value ?? 0);
         $asset->update(['current_value' => $newValue]);
 
         return $this->respondSuccess('Depreciation calculated', $asset->fresh());

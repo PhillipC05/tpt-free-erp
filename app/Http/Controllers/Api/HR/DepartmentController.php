@@ -9,6 +9,9 @@ use Illuminate\Http\Request;
 
 class DepartmentController extends BaseApiController
 {
+    protected string $cacheTag = 'hr_departments';
+    protected int $cacheTtl = 3600;
+
     protected array $validationRules = [
         'code' => 'required|string|max:20|unique:hr_departments,code',
         'name' => 'required|string|max:200',

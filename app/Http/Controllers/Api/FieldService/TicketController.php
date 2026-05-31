@@ -109,8 +109,8 @@ class TicketController extends BaseApiController
         ]);
         if ($error) return $error;
 
-        $updates = ['status' => $request->query('status')];
-        if (in_array($request->query('status'), ['resolved', 'closed'])) {
+        $updates = ['status' => $request->input('status')];
+        if (in_array($request->input('status'), ['resolved', 'closed'])) {
             $updates['resolved_at'] = now();
         }
 
@@ -133,7 +133,7 @@ class TicketController extends BaseApiController
         if ($error) return $error;
 
         $record->update([
-            'assigned_to' => $request->query('assigned_to'),
+            'assigned_to' => $request->input('assigned_to'),
             'status' => 'assigned',
         ]);
 

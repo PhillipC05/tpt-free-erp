@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 
 class VendorController extends BaseApiController
 {
+    protected string $cacheTag = 'procurement_vendors';
+
     protected array $validationRules = [
         'code' => 'required|string|max:20|unique:procurement_vendors,code',
         'name' => 'required|string|max:200',

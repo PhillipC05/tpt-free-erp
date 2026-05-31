@@ -4,11 +4,13 @@ namespace App\Models\Manufacturing;
 
 use App\Models\HR\Employee;
 use App\Models\Inventory\Product;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WorkOrder extends Model
 {
+    use HasFactory;
     protected $table = 'manufacturing_work_orders';
 
     protected $fillable = [

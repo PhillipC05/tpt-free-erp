@@ -17,8 +17,8 @@ class TaskController extends BaseApiController
         'assigned_to' => 'nullable|exists:hr_employees,id',
         'start_date' => 'nullable|date',
         'due_date' => 'nullable|date|after_or_equal:start_date',
-        'status' => 'sometimes|in:pending,in_progress,completed,on_hold,cancelled',
-        'priority' => 'nullable|in:low,medium,high,urgent',
+        'status' => 'sometimes|in:todo,in_progress,review,done,cancelled',
+        'priority' => 'nullable|in:low,medium,high,critical',
         'estimated_hours' => 'nullable|numeric|min:0',
         'actual_hours' => 'nullable|numeric|min:0',
         'parent_id' => 'nullable|exists:project_tasks,id',
@@ -45,7 +45,7 @@ class TaskController extends BaseApiController
         if ($error) return $error;
 
         $data = $request->all();
-        $data['status'] = $data['status'] ?? 'pending';
+        $data['status'] = $data['status'] ?? 'todo';
 
         $task = Task::create($data);
         return $this->respondCreated($task, 'Task created successfully');
@@ -83,12 +83,12 @@ class TaskController extends BaseApiController
         if (!$task) return $this->respondNotFound();
 
         $data = [
-            'status' => 'completed',
+            'status' => 'done',
             'completed_at' => now()->toDateString(),
         ];
 
         if ($request->has('actual_hours')) {
-            $data['actual_hours'] = $request->query('actual_hours');
+            $data['actual_hours'] = $request->input('actual_hours');
         }
 
         $task->update($data);
@@ -128,6 +128,36 @@ class TaskController extends BaseApiController
                 'total' => $items->total(),
             ],
         ]);
+    }
+
+    public function updateStatus(Request $request, int $task): JsonResponse
+    {
+        $record = Task::find($task);
+        if (!$record) return $this->respondNotFound();
+
+        $error = $this->validate($request->all(), [
+            'status' => 'required|in:todo,in_progress,review,done,cancelled',
+        ]);
+        if ($error) return $error;
+
+        $updates = ['status' => $request->input('status')];
+        if ($request->input('status') === 'done') {
+            $updates['completed_at'] = now()->toDateString();
+        }
+
+        $record->update($updates);
+        return $this->respondSuccess('Status updated', $record->fresh());
+    }
+
+    public function byProject(int $project): JsonResponse
+    {
+        $tasks = Task::where('project_id', $project)
+            ->with(['assignee', 'parent'])
+            ->orderBy('sort_order')
+            ->orderBy('created_at')
+            ->get();
+
+        return $this->respond(['success' => true, 'data' => $tasks]);
     }
 
     public function show(int $id): JsonResponse

@@ -4,11 +4,13 @@ namespace App\Models\FieldService;
 
 use App\Models\HR\Employee;
 use App\Models\Sales\Customer;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ServiceTicket extends Model
 {
+    use HasFactory;
     protected $table = 'field_service_tickets';
 
     protected $fillable = [

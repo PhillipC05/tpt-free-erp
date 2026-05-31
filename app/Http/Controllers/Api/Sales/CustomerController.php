@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 
 class CustomerController extends BaseApiController
 {
+    protected string $cacheTag = 'sales_customers';
+
     protected array $validationRules = [
         'code' => 'required|string|max:20|unique:sales_customers,code',
         'name' => 'required|string|max:200',

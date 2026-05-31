@@ -140,6 +140,20 @@ class OrderController extends BaseApiController
         ]);
     }
 
+    public function updateStatus(Request $request, int $order): JsonResponse
+    {
+        $record = Order::find($order);
+        if (!$record) return $this->respondNotFound();
+
+        $error = $this->validate($request->all(), [
+            'status' => 'required|in:draft,confirmed,processing,shipped,delivered,cancelled',
+        ]);
+        if ($error) return $error;
+
+        $record->update(['status' => $request->input('status')]);
+        return $this->respondSuccess('Status updated', $record->fresh());
+    }
+
     public function show(int $id): JsonResponse
     {
         $order = Order::with(['customer', 'items.product', 'invoices'])->find($id);

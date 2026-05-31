@@ -4,12 +4,14 @@ namespace App\Models\Quality;
 
 use App\Models\HR\Employee;
 use App\Models\Inventory\Product;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class QualityCheck extends Model
 {
+    use HasFactory;
     protected $table = 'quality_checks';
 
     protected $fillable = [

@@ -1,0 +1,119 @@
+<?php
+
+namespace Tests\Feature\Lms;
+
+use App\Models\HR\Employee;
+use App\Models\Lms\Course;
+use App\Models\Lms\Enrollment;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class EnrollmentTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private User $user;
+    private string $token;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->user = User::factory()->create();
+        $this->token = $this->user->createToken('test')->plainTextToken;
+    }
+
+    private function auth(): array
+    {
+        return ['Authorization' => "Bearer {$this->token}"];
+    }
+
+    public function test_can_list_enrollments(): void
+    {
+        Enrollment::factory()->count(3)->create();
+
+        $response = $this->getJson('/api/lms/enrollments', $this->auth());
+
+        $response->assertOk()
+            ->assertJsonStructure(['success', 'data', 'meta'])
+            ->assertJson(['success' => true]);
+    }
+
+    public function test_can_create_enrollment(): void
+    {
+        $course = Course::factory()->create();
+        $employee = Employee::factory()->create();
+
+        $response = $this->postJson('/api/lms/enrollments', [
+            'course_id' => $course->id,
+            'employee_id' => $employee->id,
+            'enrollment_date' => '2026-05-31',
+            'status' => 'enrolled',
+        ], $this->auth());
+
+        $response->assertCreated()->assertJson(['success' => true]);
+        $this->assertDatabaseHas('lms_enrollments', [
+            'course_id' => $course->id,
+            'employee_id' => $employee->id,
+        ]);
+    }
+
+    public function test_create_enrollment_requires_mandatory_fields(): void
+    {
+        $response = $this->postJson('/api/lms/enrollments', [], $this->auth());
+
+        $response->assertStatus(422)->assertJson(['success' => false]);
+    }
+
+    public function test_can_show_enrollment(): void
+    {
+        $enrollment = Enrollment::factory()->create();
+
+        $response = $this->getJson("/api/lms/enrollments/{$enrollment->id}", $this->auth());
+
+        $response->assertOk()
+            ->assertJson(['success' => true, 'data' => ['id' => $enrollment->id]]);
+    }
+
+    public function test_show_nonexistent_enrollment_returns_404(): void
+    {
+        $response = $this->getJson('/api/lms/enrollments/99999', $this->auth());
+
+        $response->assertNotFound();
+    }
+
+    public function test_can_enroll_via_course_endpoint(): void
+    {
+        $course = Course::factory()->create();
+        $employee = Employee::factory()->create();
+
+        $response = $this->postJson("/api/lms/courses/{$course->id}/enroll", [
+            'employee_id' => $employee->id,
+        ], $this->auth());
+
+        $response->assertCreated()->assertJson(['success' => true]);
+        $this->assertDatabaseHas('lms_enrollments', [
+            'course_id' => $course->id,
+            'employee_id' => $employee->id,
+        ]);
+    }
+
+    public function test_can_mark_enrollment_complete(): void
+    {
+        $enrollment = Enrollment::factory()->create(['status' => 'in_progress']);
+
+        $response = $this->putJson("/api/lms/enrollments/{$enrollment->id}/complete", [
+            'score' => 88.5,
+        ], $this->auth());
+
+        $response->assertOk()->assertJson(['success' => true]);
+        $this->assertDatabaseHas('lms_enrollments', ['id' => $enrollment->id, 'status' => 'completed']);
+    }
+
+    public function test_requires_authentication(): void
+    {
+        $response = $this->getJson('/api/lms/enrollments');
+
+        $response->assertUnauthorized();
+    }
+}

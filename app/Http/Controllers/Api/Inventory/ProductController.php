@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 
 class ProductController extends BaseApiController
 {
+    protected string $cacheTag = 'inventory_products';
+
     protected array $validationRules = [
         'sku' => 'required|string|max:50|unique:inventory_products,sku',
         'barcode' => 'nullable|string|max:100|unique:inventory_products,barcode',
@@ -21,7 +23,7 @@ class ProductController extends BaseApiController
         'weight' => 'numeric|min:0',
         'image_url' => 'nullable|string|max:500',
         'is_active' => 'boolean',
-        'valuation_method' => 'nullable|string|in:fifo,weighted_average,standard',
+        'valuation_method' => 'nullable|string|in:fifo,lifo,average',
         'min_stock_level' => 'numeric|min:0',
         'max_stock_level' => 'numeric|min:0',
     ];
@@ -59,7 +61,7 @@ class ProductController extends BaseApiController
             'weight' => 'numeric|min:0',
             'image_url' => 'nullable|string|max:500',
             'is_active' => 'boolean',
-            'valuation_method' => 'nullable|string|in:fifo,weighted_average,standard',
+            'valuation_method' => 'nullable|string|in:fifo,lifo,average',
             'min_stock_level' => 'numeric|min:0',
             'max_stock_level' => 'numeric|min:0',
         ]);

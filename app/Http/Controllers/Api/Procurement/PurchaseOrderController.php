@@ -178,4 +178,24 @@ class PurchaseOrderController extends BaseApiController
 
         return $this->respond(['success' => true, 'data' => $po]);
     }
+
+    public function updateStatus(Request $request, int $po): JsonResponse
+    {
+        $record = PurchaseOrder::find($po);
+        if (!$record) return $this->respondNotFound();
+
+        $error = $this->validate($request->all(), [
+            'status' => 'required|in:draft,sent,confirmed,received,cancelled',
+        ]);
+        if ($error) return $error;
+
+        $updates = ['status' => $request->input('status')];
+        if ($request->input('status') === 'confirmed') {
+            $updates['approved_by'] = Auth::id();
+            $updates['approved_at'] = now();
+        }
+
+        $record->update($updates);
+        return $this->respondSuccess('Status updated', $record->fresh());
+    }
 }

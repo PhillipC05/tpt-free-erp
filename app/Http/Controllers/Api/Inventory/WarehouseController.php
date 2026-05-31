@@ -9,6 +9,9 @@ use Illuminate\Http\Request;
 
 class WarehouseController extends BaseApiController
 {
+    protected string $cacheTag = 'inventory_warehouses';
+    protected int $cacheTtl = 3600;
+
     protected array $validationRules = [
         'code' => 'required|string|max:20|unique:inventory_warehouses,code',
         'name' => 'required|string|max:200',

@@ -14,7 +14,7 @@ class NonConformanceController extends BaseApiController
         'check_id' => 'nullable|exists:quality_checks,id',
         'description' => 'required|string',
         'severity' => 'required|in:minor,major,critical',
-        'status' => 'sometimes|in:open,under_review,resolved,closed',
+        'status' => 'sometimes|in:open,investigating,resolved,closed',
         'root_cause' => 'nullable|string',
         'corrective_action' => 'nullable|string',
         'assigned_to' => 'nullable|exists:hr_employees,id',
@@ -75,12 +75,12 @@ class NonConformanceController extends BaseApiController
         if (!$record) return $this->respondNotFound();
 
         $error = $this->validate($request->all(), [
-            'status' => 'required|in:open,under_review,resolved,closed',
+            'status' => 'required|in:open,investigating,resolved,closed',
         ]);
         if ($error) return $error;
 
-        $updates = ['status' => $request->query('status')];
-        if ($request->query('status') === 'resolved') {
+        $updates = ['status' => $request->input('status')];
+        if ($request->input('status') === 'resolved') {
             $updates['resolved_at'] = now();
         }
 

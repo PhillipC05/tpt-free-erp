@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 
 abstract class BaseApiController extends Controller
@@ -14,6 +15,12 @@ abstract class BaseApiController extends Controller
     protected array $defaultIncludes = [];
     protected array $validationRules = [];
     protected array $validationMessages = [];
+
+    /** Override in subclass to enable tag-based cache invalidation on mutations. */
+    protected string $cacheTag = '';
+
+    /** Default TTL in seconds for cached responses (30 minutes). */
+    protected int $cacheTtl = 1800;
 
     public function __construct(?Model $model = null)
     {
@@ -62,6 +69,39 @@ abstract class BaseApiController extends Controller
         return $this->respondError('Validation failed', 422, $errors);
     }
 
+    /**
+     * Cache-aside helper. Falls back to no-cache when cache tags are unsupported
+     * (e.g., file/database driver) so the app works without Redis.
+     */
+    protected function cacheRemember(string $key, callable $callback, ?int $ttl = null, ?string $tag = null): mixed
+    {
+        $ttl ??= $this->cacheTtl;
+        $tag ??= $this->cacheTag;
+
+        try {
+            if ($tag) {
+                return Cache::tags([$tag])->remember($key, $ttl, $callback);
+            }
+            return Cache::remember($key, $ttl, $callback);
+        } catch (\BadMethodCallException) {
+            // Cache driver doesn't support tags — execute without caching.
+            return $callback();
+        }
+    }
+
+    /** Flush all cached data for a tag. No-ops gracefully when unsupported. */
+    protected function cacheFlush(?string $tag = null): void
+    {
+        $tag ??= $this->cacheTag;
+        if (!$tag) return;
+
+        try {
+            Cache::tags([$tag])->flush();
+        } catch (\BadMethodCallException) {
+            // Not supported by driver — no-op.
+        }
+    }
+
     protected function validate(array $data, array $rules = [], array $messages = []): ?JsonResponse
     {
         $rules = $rules ?: $this->validationRules;
@@ -104,6 +144,7 @@ abstract class BaseApiController extends Controller
         }
 
         $item = $this->model->create($request->all());
+        $this->cacheFlush();
         return $this->respondCreated($item);
     }
 
@@ -132,6 +173,7 @@ abstract class BaseApiController extends Controller
         }
 
         $item->update($request->all());
+        $this->cacheFlush();
         return $this->respondSuccess('Updated successfully', $item);
     }
 
@@ -144,6 +186,7 @@ abstract class BaseApiController extends Controller
         }
 
         $item->delete();
+        $this->cacheFlush();
         return $this->respondSuccess('Deleted successfully');
     }
 }

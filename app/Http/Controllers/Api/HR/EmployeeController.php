@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 
 class EmployeeController extends BaseApiController
 {
+    protected string $cacheTag = 'hr_employees';
+
     protected array $validationRules = [
         'employee_code' => 'required|string|max:20|unique:hr_employees,employee_code',
         'user_id' => 'nullable|exists:users,id',
@@ -21,8 +23,8 @@ class EmployeeController extends BaseApiController
         'manager_id' => 'nullable|exists:hr_employees,id',
         'hire_date' => 'required|date',
         'termination_date' => 'nullable|date|after_or_equal:hire_date',
-        'employment_type' => 'required|in:permanent,contract,intern,probation',
-        'status' => 'sometimes|in:active,inactive,terminated,suspended',
+        'employment_type' => 'required|in:full_time,part_time,contract,intern',
+        'status' => 'sometimes|in:active,on_leave,terminated',
         'salary' => 'nullable|numeric|min:0',
         'currency' => 'nullable|string|size:3',
         'address' => 'nullable|string',
@@ -78,8 +80,8 @@ class EmployeeController extends BaseApiController
             'manager_id' => 'nullable|exists:hr_employees,id',
             'hire_date' => 'required|date',
             'termination_date' => 'nullable|date|after_or_equal:hire_date',
-            'employment_type' => 'required|in:permanent,contract,intern,probation',
-            'status' => 'sometimes|in:active,inactive,terminated,suspended',
+            'employment_type' => 'required|in:full_time,part_time,contract,intern',
+            'status' => 'sometimes|in:active,on_leave,terminated',
             'salary' => 'nullable|numeric|min:0',
             'currency' => 'nullable|string|size:3',
             'address' => 'nullable|string',

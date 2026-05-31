@@ -1,58 +1,209 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# TPT Free ERP
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Open-source Enterprise Resource Planning system built on **Laravel 13.8** (PHP 8.3+). Covers Finance, Inventory, HR, Sales, Procurement, Manufacturing, Projects, Quality, Asset Management, Field Service, and LMS — 60+ REST API endpoints, 191 passing tests, interactive Swagger UI.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Quick Start
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Prerequisites
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+| Tool | Version | Download |
+|------|---------|----------|
+| PHP | 8.3+ | [Laravel Herd](https://herd.laravel.com/) (Windows/macOS) or [php.net](https://windows.php.net/) |
+| Composer | 2.x | [getcomposer.org](https://getcomposer.org/) |
+| Node.js | 18+ | [nodejs.org](https://nodejs.org/) |
+| Git | any | [git-scm.com](https://git-scm.com/) |
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### One-command install
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone https://github.com/PhillipC05/tpt-free-erp.git
+cd tpt-free-erp
+composer run setup
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+`composer run setup` does everything: installs PHP and JS dependencies, copies `.env`, generates the app key, creates the SQLite database, runs all migrations, and builds the frontend.
+
+### Start the dev server
+
+```bash
+composer run dev
+```
+
+Opens four concurrent processes (PHP server, queue, log viewer, Vite). Visit **http://localhost:8000**.
+
+---
+
+## Windows Installation (Step by Step)
+
+The fastest path on Windows is [**Laravel Herd**](https://herd.laravel.com/) — a free installer that gives you PHP 8.3, Composer, and a zero-config web server in one click.
+
+1. **Install Laravel Herd** from [herd.laravel.com](https://herd.laravel.com/) (free tier is sufficient)
+2. **Install Node.js** from [nodejs.org](https://nodejs.org/) (LTS)
+3. Open **PowerShell** and run:
+
+```powershell
+git clone https://github.com/PhillipC05/tpt-free-erp.git
+cd tpt-free-erp
+composer run setup
+composer run dev
+```
+
+4. Open **http://localhost:8000**
+
+> **No MySQL required.** The default setup uses SQLite, so there's nothing extra to install or configure.
+
+### Alternative: install script
+
+A PowerShell script is included for environments without Herd:
+
+```powershell
+.\install.ps1
+```
+
+It verifies prerequisites, runs setup, and prints the URL when done.
+
+---
+
+## Configuration
+
+The setup command copies `.env.example` → `.env`. Key settings you may want to change:
+
+```env
+APP_NAME="TPT Free ERP"
+APP_URL=http://localhost:8000
+
+# Default: SQLite (no extra setup)
+DB_CONNECTION=sqlite
+
+# Switch to MySQL
+# DB_CONNECTION=mysql
+# DB_HOST=127.0.0.1
+# DB_DATABASE=tpt_erp
+# DB_USERNAME=root
+# DB_PASSWORD=
+
+# Redis caching (optional but recommended for production)
+# CACHE_STORE=redis
+# REDIS_HOST=127.0.0.1
+```
+
+---
+
+## Commands
+
+```bash
+# First-time setup (runs everything)
+composer run setup
+
+# Start full dev environment (server + queue + logs + Vite)
+composer run dev
+
+# Run all 191 tests
+composer run test
+
+# Run a single test file or filter
+php artisan test tests/Feature/Finance/AccountTest.php
+php artisan test --filter test_can_create_customer
+
+# Database
+php artisan migrate
+php artisan migrate:fresh --seed   # reset + seed
+
+# Code formatting (Laravel Pint)
+./vendor/bin/pint
+
+# Regenerate OpenAPI docs
+php artisan l5-swagger:generate
+
+# List all API routes
+php artisan route:list --path=api
+```
+
+---
+
+## API
+
+All endpoints live under `/api/` and require a Sanctum Bearer token.
+
+**Get a token:**
+```bash
+POST /api/auth/login
+{ "email": "user@example.com", "password": "password" }
+```
+
+**Interactive docs:** `http://localhost:8000/api/documentation`
+
+**Modules and key endpoints:**
+
+| Module | Base path | Highlights |
+|--------|-----------|------------|
+| Auth | `/api/auth/` | Login, register, logout, profile |
+| Finance | `/api/finance/` | Accounts, transactions, journal entries, balance sheet |
+| Inventory | `/api/inventory/` | Products, warehouses, stock movements |
+| HR | `/api/hr/` | Employees, departments, leave, payroll, attendance |
+| Sales | `/api/sales/` | Customers, orders, invoices, CRM pipeline |
+| Procurement | `/api/procurement/` | Vendors, purchase orders |
+| Manufacturing | `/api/manufacturing/` | BOMs, work orders |
+| Projects | `/api/projects/` | Projects, tasks, time entries |
+| Quality | `/api/quality/` | Checks (pass/fail/conditional), non-conformances |
+| Assets | `/api/assets/` | Asset lifecycle, straight-line depreciation, maintenance |
+| Field Service | `/api/field-service/` | Service tickets |
+| LMS | `/api/lms/` | Courses, enrollments |
+| Reports | `/api/reports/` | Cross-module report generation |
+
+---
+
+## Architecture
+
+```
+app/
+├── Http/Controllers/Api/     # 27 API controllers (one per module)
+│   ├── BaseApiController.php # Shared CRUD, validation, Redis cache helpers
+│   ├── OpenApiSpec.php       # Swagger annotations (59 documented paths)
+│   └── {Module}/
+├── Models/{Module}/          # Eloquent models
+├── Services/{Module}/        # Business logic services
+└── Exceptions/               # Custom exception hierarchy
+
+database/
+├── migrations/               # 9 migration files (full ERP schema + indexes)
+└── factories/                # 24 model factories
+
+tests/Feature/                # 191 feature tests (12 modules)
+resources/js/                 # Vue 3 + Pinia frontend
+routes/api.php                # 60+ API routes
+```
+
+**Stack:** Laravel 13.8 · PHP 8.3 · SQLite/MySQL/PostgreSQL · Vue 3 · Pinia · Vite · Tailwind CSS 4 · Laravel Sanctum · Swagger UI
+
+**Performance:** Redis tag-based cache invalidation, 65+ database indexes on all filter/FK columns.
+
+---
+
+## Testing
+
+Tests use an **in-memory SQLite database** — no database setup needed.
+
+```bash
+composer run test         # all 191 tests
+php artisan test --filter Sales   # filter by name
+```
+
+Coverage: Auth, Finance, Inventory, HR, Sales, Procurement, Manufacturing, Projects, Quality, Assets, Field Service, LMS.
+
+---
 
 ## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+1. Fork the repo and create a branch
+2. Write tests for any new feature (`tests/Feature/{Module}/`)
+3. Run `./vendor/bin/pint` to format code
+4. Open a PR — all 191 tests must pass
 
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+MIT — see [LICENSE](LICENSE)

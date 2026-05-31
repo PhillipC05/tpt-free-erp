@@ -108,10 +108,10 @@
 - [x] Create seeders for core reference data (roles, permissions, currencies, tax rates)
 - [x] Create factory classes for testing (Finance/Account, Finance/Transaction, Inventory/Product, Inventory/Warehouse, HR/Employee, HR/Department)
 
-### Cleanup (after each module is working in Laravel)
-- [ ] Remove `api/controllers/` equivalents
-- [ ] Remove `modules/` class equivalents
-- [ ] Remove `core/` once all features are covered by Laravel
+### Cleanup
+- [x] Remove `api/controllers/` equivalents — deleted 2026-05-31
+- [x] Remove `modules/` class equivalents — deleted 2026-05-31
+- [x] Remove `core/` — deleted 2026-05-31 (also removed orphan `config/bootstrap.php`)
 
 ---
 
@@ -270,7 +270,7 @@
 - [x] Assets — `resources/js/views/assets/`
 - [x] Field Service tickets — `resources/js/views/field-service/`
 - [x] LMS courses — `resources/js/views/lms/`
-- [ ] Reports builder
+- [x] Reports builder — `resources/js/views/reports/ReportsBuilderView.vue` (Finance, Sales, Procurement, Projects with CSV export)
 
 ### Build & Performance
 - [x] Lazy loading routes — all routes use `() => import(...)` dynamic imports
@@ -299,17 +299,16 @@
 - [ ] Server health checks
 
 ### Performance
-- [ ] Implement Redis caching for all frequent queries (use Laravel Cache facade)
-- [ ] Database query optimization
-- [ ] Add proper database indexes
+- [x] Implement Redis caching — `BaseApiController::cacheRemember/cacheFlush`, tag-based invalidation; enabled on 10 controllers
+- [x] Database query optimization and add proper database indexes — 65+ indexes on FK, status, and date columns (`2026_05_31_095348_add_performance_indexes_to_erp_tables.php`)
 - [ ] CDN configuration for static assets
 - [ ] Database read replicas
 
 ### API Documentation
-- [ ] Implement OpenAPI/Swagger
-- [ ] Auto-generate API docs
-- [ ] Interactive API explorer
-- [ ] Rate limiting per endpoint (use Laravel's `throttle` middleware)
+- [x] Implement OpenAPI/Swagger — `app/Http/Controllers/Api/OpenApiSpec.php`, 59 paths via PHP 8 attributes
+- [x] Auto-generate API docs — `php artisan l5-swagger:generate`
+- [x] Interactive API explorer — Swagger UI at `/api/documentation`
+- [x] Rate limiting per endpoint — Laravel `throttle` middleware already in `routes/api.php`
 
 ---
 

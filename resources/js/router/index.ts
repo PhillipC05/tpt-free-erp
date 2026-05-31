@@ -167,6 +167,11 @@ const routes: RouteRecordRaw[] = [
                 name: 'lms.courses',
                 component: () => import('@/views/lms/CoursesView.vue'),
             },
+            {
+                path: 'reports',
+                name: 'reports.builder',
+                component: () => import('@/views/reports/ReportsBuilderView.vue'),
+            },
         ],
     },
     {

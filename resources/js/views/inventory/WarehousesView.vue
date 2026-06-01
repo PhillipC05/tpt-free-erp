@@ -57,8 +57,8 @@ const columns = [
 
 async function loadWarehouses() {
     try {
-        const res = await apiClient.get('/warehouses');
-        warehouses.value = res.data;
+        const res = await apiClient.get('/inventory/warehouses');
+        warehouses.value = res.data?.data ?? res.data ?? [];
     } catch {
         warehouses.value = [];
     }
@@ -66,7 +66,7 @@ async function loadWarehouses() {
 
 async function createWarehouse() {
     try {
-        await apiClient.post('/warehouses', form);
+        await apiClient.post('/inventory/warehouses', form);
         showCreateModal.value = false;
         notify.success('Warehouse created successfully');
         await loadWarehouses();

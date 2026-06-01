@@ -58,6 +58,11 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/views/finance/TransactionsView.vue'),
             },
             {
+                path: 'finance/journal-entries',
+                name: 'finance.journal-entries',
+                component: () => import('@/views/finance/JournalEntriesView.vue'),
+            },
+            {
                 path: 'finance/reports',
                 name: 'finance.reports',
                 component: () => import('@/views/finance/ReportsView.vue'),
@@ -66,6 +71,11 @@ const routes: RouteRecordRaw[] = [
                 path: 'inventory/products',
                 name: 'inventory.products',
                 component: () => import('@/views/inventory/ProductsView.vue'),
+            },
+            {
+                path: 'inventory/categories',
+                name: 'inventory.categories',
+                component: () => import('@/views/inventory/CategoriesView.vue'),
             },
             {
                 path: 'inventory/warehouses',
@@ -86,6 +96,11 @@ const routes: RouteRecordRaw[] = [
                 path: 'hr/departments',
                 name: 'hr.departments',
                 component: () => import('@/views/hr/DepartmentsView.vue'),
+            },
+            {
+                path: 'hr/attendance',
+                name: 'hr.attendance',
+                component: () => import('@/views/hr/AttendanceView.vue'),
             },
             {
                 path: 'hr/leave-requests',
@@ -148,14 +163,29 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/views/projects/TasksView.vue'),
             },
             {
+                path: 'projects/time-entries',
+                name: 'projects.time-entries',
+                component: () => import('@/views/projects/TimeEntriesView.vue'),
+            },
+            {
                 path: 'quality/checks',
                 name: 'quality.checks',
                 component: () => import('@/views/quality/QualityChecksView.vue'),
             },
             {
+                path: 'quality/non-conformances',
+                name: 'quality.non-conformances',
+                component: () => import('@/views/quality/NonConformancesView.vue'),
+            },
+            {
                 path: 'assets/assets',
                 name: 'assets.list',
                 component: () => import('@/views/assets/AssetsView.vue'),
+            },
+            {
+                path: 'assets/maintenance',
+                name: 'assets.maintenance',
+                component: () => import('@/views/assets/MaintenanceView.vue'),
             },
             {
                 path: 'field-service/tickets',
@@ -168,9 +198,19 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/views/lms/CoursesView.vue'),
             },
             {
+                path: 'lms/enrollments',
+                name: 'lms.enrollments',
+                component: () => import('@/views/lms/EnrollmentsView.vue'),
+            },
+            {
                 path: 'reports',
                 name: 'reports.builder',
                 component: () => import('@/views/reports/ReportsBuilderView.vue'),
+            },
+            {
+                path: 'settings',
+                name: 'settings',
+                component: () => import('@/views/SettingsView.vue'),
             },
         ],
     },
@@ -186,15 +226,14 @@ const router = createRouter({
     routes,
 });
 
-router.beforeEach((to, _from, next) => {
+router.beforeEach((to, _from) => {
     const authStore = useAuthStore();
 
     if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-        next({ name: 'login', query: { redirect: to.fullPath } });
-    } else if (to.meta.guest && authStore.isAuthenticated) {
-        next({ name: 'dashboard' });
-    } else {
-        next();
+        return { name: 'login', query: { redirect: to.fullPath } };
+    }
+    if (to.meta.guest && authStore.isAuthenticated) {
+        return { name: 'dashboard' };
     }
 });
 

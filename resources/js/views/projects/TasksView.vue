@@ -58,8 +58,8 @@ function formatStatus(status: string): string {
 
 onMounted(async () => {
     try {
-        const res = await apiClient.get('/tasks');
-        tasks.value = res.data;
+        const res = await apiClient.get('/projects/tasks');
+        tasks.value = res.data?.data ?? res.data ?? [];
     } catch {
         tasks.value = [];
     }

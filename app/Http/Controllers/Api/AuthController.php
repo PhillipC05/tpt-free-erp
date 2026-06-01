@@ -56,10 +56,13 @@ class AuthController extends BaseApiController
 
         $token = $user->createToken('api-token')->plainTextToken;
 
-        return $this->respondCreated([
-            'token' => $token,
-            'user' => $user,
-        ], 'Registration successful');
+        return $this->respond([
+            'success' => true,
+            'data' => [
+                'token' => $token,
+                'user'  => $user,
+            ],
+        ], 201);
     }
 
     public function logout(Request $request): JsonResponse

@@ -99,8 +99,8 @@ function formatStage(stage: string): string {
 
 async function loadDeals() {
     try {
-        const res = await apiClient.get('/crm');
-        deals.value = res.data;
+        const res = await apiClient.get('/sales/crm');
+        deals.value = res.data?.data ?? res.data ?? [];
     } catch {
         deals.value = [];
     }
@@ -108,7 +108,7 @@ async function loadDeals() {
 
 async function createDeal() {
     try {
-        await apiClient.post('/crm', form);
+        await apiClient.post('/sales/crm', form);
         showCreateModal.value = false;
         notify.success('Deal added successfully');
         await loadDeals();

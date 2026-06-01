@@ -77,7 +77,9 @@ class DashboardController extends BaseApiController
     private function getInventorySummary(): array
     {
         $totalProducts = Product::count();
-        $lowStockProducts = Product::whereColumn('stock_quantity', '<=', 'min_stock_level')->count();
+        $lowStockProducts = Product::whereRaw(
+            '(SELECT COALESCE(SUM(quantity), 0) FROM inventory_stock WHERE product_id = inventory_products.id) <= inventory_products.min_stock_level'
+        )->count();
 
         return [
             'total_products' => $totalProducts,

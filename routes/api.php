@@ -17,6 +17,8 @@ use App\Http\Controllers\Api\HR\AttendanceController;
 use App\Http\Controllers\Api\Sales\CustomerController;
 use App\Http\Controllers\Api\Sales\OrderController;
 use App\Http\Controllers\Api\Sales\InvoiceController;
+use App\Http\Controllers\Api\Sales\CrmController;
+use App\Http\Controllers\Api\HR\PayrollController;
 use App\Http\Controllers\Api\Procurement\VendorController;
 use App\Http\Controllers\Api\Procurement\PurchaseOrderController;
 use App\Http\Controllers\Api\Manufacturing\BomController;
@@ -34,6 +36,7 @@ use App\Http\Controllers\Api\LMS\EnrollmentController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\SettingsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -130,6 +133,10 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->group(function 
         Route::apiResource('departments', DepartmentController::class);
         Route::apiResource('leave-requests', LeaveRequestController::class);
         Route::apiResource('attendance', AttendanceController::class);
+        Route::apiResource('payroll', PayrollController::class);
+        Route::post('payroll/{payroll}/process', [PayrollController::class, 'process']);
+        Route::post('payroll/{payroll}/approve', [PayrollController::class, 'approve']);
+        Route::post('payroll/{payroll}/mark-paid', [PayrollController::class, 'markPaid']);
         Route::get('employees/{employee}/attendance', [AttendanceController::class, 'byEmployee']);
         Route::get('employees/{employee}/leave-history', [LeaveRequestController::class, 'byEmployee']);
         Route::post('attendance/clock-in', [AttendanceController::class, 'clockIn']);
@@ -143,6 +150,8 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->group(function 
         Route::apiResource('customers', CustomerController::class);
         Route::apiResource('orders', OrderController::class);
         Route::apiResource('invoices', InvoiceController::class);
+        Route::apiResource('crm', CrmController::class);
+        Route::get('crm/pipeline/summary', [CrmController::class, 'pipelineSummary']);
         Route::get('orders/{order}/items', [OrderController::class, 'items']);
         Route::post('orders/{order}/items', [OrderController::class, 'addItem']);
         Route::put('orders/{order}/status', [OrderController::class, 'updateStatus']);
@@ -244,8 +253,8 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->group(function 
         Route::post('/consents/{type}/withdraw', [\App\Http\Controllers\Api\GDPRController::class, 'withdrawConsent']);
     });
 
-    // ===== USER MANAGEMENT =====
-    Route::prefix('users')->group(function () {
+    // ===== USER MANAGEMENT (admin only) =====
+    Route::prefix('users')->middleware('role:admin')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\UserController::class, 'index']);
         Route::post('/', [\App\Http\Controllers\Api\UserController::class, 'store']);
         Route::get('/{user}', [\App\Http\Controllers\Api\UserController::class, 'show']);
@@ -253,8 +262,12 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->group(function 
         Route::delete('/{user}', [\App\Http\Controllers\Api\UserController::class, 'destroy']);
     });
 
-    // ===== SECURITY =====
-    Route::prefix('security')->group(function () {
+    // ===== COMPANY SETTINGS =====
+    Route::get('settings', [SettingsController::class, 'index']);
+    Route::put('settings', [SettingsController::class, 'update'])->middleware('role:admin');
+
+    // ===== SECURITY (admin only) =====
+    Route::prefix('security')->middleware('role:admin')->group(function () {
         Route::get('/events', [\App\Http\Controllers\Api\SecurityController::class, 'events']);
         Route::get('/dashboard', [\App\Http\Controllers\Api\SecurityController::class, 'dashboard']);
         Route::get('/sessions', [\App\Http\Controllers\Api\SecurityController::class, 'sessions']);

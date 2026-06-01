@@ -3,7 +3,7 @@
         <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Projects</h1>
         <DataTable :columns="columns" :data="projects" searchable>
             <template #header>
-                <button @click="showCreateModal = true" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">
+                <button @click="openCreate" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">
                     New Project
                 </button>
             </template>
@@ -15,10 +15,14 @@
             <template #cell-budget="{ value }">
                 ${{ Number(value).toLocaleString() }}
             </template>
+            <template #actions="{ row }">
+                <button @click="openEdit(row)" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 mr-3 text-sm">Edit</button>
+                <button @click="deleteProject(row.id)" class="text-red-600 hover:text-red-800 dark:text-red-400 text-sm">Delete</button>
+            </template>
         </DataTable>
 
-        <ModalDialog v-model="showCreateModal" title="New Project">
-            <form @submit.prevent="createProject" class="space-y-4">
+        <ModalDialog v-model="showModal" :title="editingProject ? 'Edit Project' : 'New Project'">
+            <form @submit.prevent="submitForm" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Project Name</label>
                     <input v-model="form.name" type="text" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
@@ -37,6 +41,27 @@
                         <input v-model="form.end_date" type="date" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
                     </div>
                 </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+                        <select v-model="form.status" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                            <option value="planning">Planning</option>
+                            <option value="active">Active</option>
+                            <option value="on_hold">On Hold</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Priority</label>
+                        <select v-model="form.priority" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                    </div>
+                </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Budget ($)</label>
                     <input v-model.number="form.budget" type="number" min="0" step="0.01" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
@@ -46,7 +71,7 @@
                     <textarea v-model="form.description" rows="2" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"></textarea>
                 </div>
                 <div class="flex justify-end gap-2">
-                    <button type="button" @click="showCreateModal = false" class="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300">Cancel</button>
+                    <button type="button" @click="showModal = false" class="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300">Cancel</button>
                     <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">Save</button>
                 </div>
             </form>
@@ -64,8 +89,9 @@ import { useNotificationStore } from '@/stores/notification';
 
 const notify = useNotificationStore();
 const projects = ref<Project[]>([]);
-const showCreateModal = ref(false);
-const form = reactive({ name: '', code: '', start_date: '', end_date: '', budget: 0, description: '' });
+const showModal = ref(false);
+const editingProject = ref<Project | null>(null);
+const form = reactive({ name: '', code: '', start_date: '', end_date: '', status: 'planning', priority: 'medium', budget: 0, description: '' });
 
 const columns = [
     { key: 'code', label: 'Code', sortable: true },
@@ -89,21 +115,58 @@ function statusClass(status: string): string {
 
 async function loadProjects() {
     try {
-        const res = await apiClient.get('/projects');
-        projects.value = res.data;
+        const res = await apiClient.get('/projects/projects');
+        projects.value = res.data?.data ?? res.data ?? [];
     } catch {
         projects.value = [];
     }
 }
 
-async function createProject() {
+function openCreate() {
+    editingProject.value = null;
+    Object.assign(form, { name: '', code: '', start_date: '', end_date: '', status: 'planning', priority: 'medium', budget: 0, description: '' });
+    showModal.value = true;
+}
+
+function openEdit(row: Project) {
+    editingProject.value = row;
+    Object.assign(form, {
+        name: row.name,
+        code: row.code,
+        start_date: row.start_date ?? '',
+        end_date: row.end_date ?? '',
+        status: row.status ?? 'planning',
+        priority: row.priority ?? 'medium',
+        budget: row.budget ?? 0,
+        description: row.description ?? '',
+    });
+    showModal.value = true;
+}
+
+async function submitForm() {
     try {
-        await apiClient.post('/projects', form);
-        showCreateModal.value = false;
-        notify.success('Project created successfully');
+        if (editingProject.value) {
+            await apiClient.put(`/projects/projects/${editingProject.value.id}`, form);
+            notify.success('Project updated successfully');
+        } else {
+            await apiClient.post('/projects/projects', form);
+            notify.success('Project created successfully');
+        }
+        showModal.value = false;
         await loadProjects();
     } catch {
-        notify.error('Failed to create project');
+        notify.error(editingProject.value ? 'Failed to update project' : 'Failed to create project');
+    }
+}
+
+async function deleteProject(id: number) {
+    if (!confirm('Delete this project?')) return;
+    try {
+        await apiClient.delete(`/projects/projects/${id}`);
+        notify.success('Project deleted');
+        await loadProjects();
+    } catch {
+        notify.error('Failed to delete project');
     }
 }
 

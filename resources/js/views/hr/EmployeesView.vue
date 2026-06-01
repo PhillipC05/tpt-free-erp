@@ -39,6 +39,15 @@
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Position</label>
                     <input v-model="form.position" type="text" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
                 </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Employment Type</label>
+                    <select v-model="form.employment_type" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                        <option value="full_time">Full Time</option>
+                        <option value="part_time">Part Time</option>
+                        <option value="contract">Contract</option>
+                        <option value="intern">Intern</option>
+                    </select>
+                </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Hire Date</label>
@@ -69,7 +78,7 @@ import { useNotificationStore } from '@/stores/notification';
 const notify = useNotificationStore();
 const employees = ref<Employee[]>([]);
 const showCreateModal = ref(false);
-const form = reactive({ first_name: '', last_name: '', employee_code: '', email: '', position: '', hire_date: '', salary: 0 });
+const form = reactive({ first_name: '', last_name: '', employee_code: '', email: '', position: '', hire_date: '', salary: 0, employment_type: 'full_time' });
 
 const columns = [
     { key: 'employee_code', label: 'Code', sortable: true },
@@ -83,8 +92,8 @@ const columns = [
 
 async function loadEmployees() {
     try {
-        const res = await apiClient.get('/employees');
-        employees.value = res.data;
+        const res = await apiClient.get('/hr/employees');
+        employees.value = res.data?.data ?? res.data ?? [];
     } catch {
         employees.value = [];
     }
@@ -92,7 +101,7 @@ async function loadEmployees() {
 
 async function createEmployee() {
     try {
-        await apiClient.post('/employees', form);
+        await apiClient.post('/hr/employees', form);
         showCreateModal.value = false;
         notify.success('Employee added successfully');
         await loadEmployees();

@@ -66,8 +66,8 @@ const columns = [
 
 async function loadVendors() {
     try {
-        const res = await apiClient.get('/vendors');
-        vendors.value = res.data;
+        const res = await apiClient.get('/procurement/vendors');
+        vendors.value = res.data?.data ?? res.data ?? [];
     } catch {
         vendors.value = [];
     }
@@ -75,7 +75,7 @@ async function loadVendors() {
 
 async function createVendor() {
     try {
-        await apiClient.post('/vendors', form);
+        await apiClient.post('/procurement/vendors', form);
         showCreateModal.value = false;
         notify.success('Vendor added successfully');
         await loadVendors();

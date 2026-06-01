@@ -40,8 +40,8 @@ const columns = [
 
 async function loadTransactions() {
     try {
-        const response = await apiClient.get('/transactions');
-        transactions.value = response.data;
+        const response = await apiClient.get('/finance/transactions');
+        transactions.value = response.data.data ?? response.data;
     } catch {
         transactions.value = [];
     }

@@ -27,8 +27,8 @@
                     <input v-model="form.phone" type="text" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Company</label>
-                    <input v-model="form.company" type="text" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Customer Code</label>
+                    <input v-model="form.code" type="text" required placeholder="e.g. ACME-001" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Address</label>
@@ -54,20 +54,20 @@ import { useNotificationStore } from '@/stores/notification';
 const notify = useNotificationStore();
 const customers = ref<Customer[]>([]);
 const showCreateModal = ref(false);
-const form = reactive({ name: '', email: '', phone: '', company: '', address: '' });
+const form = reactive({ name: '', email: '', phone: '', code: '', address: '' });
 
 const columns = [
     { key: 'name', label: 'Name', sortable: true },
     { key: 'email', label: 'Email', sortable: true },
     { key: 'phone', label: 'Phone', sortable: false },
-    { key: 'company', label: 'Company', sortable: true },
+    { key: 'code', label: 'Code', sortable: true },
     { key: 'is_active', label: 'Status', sortable: true },
 ];
 
 async function loadCustomers() {
     try {
-        const res = await apiClient.get('/customers');
-        customers.value = res.data;
+        const res = await apiClient.get('/sales/customers');
+        customers.value = res.data?.data ?? res.data ?? [];
     } catch {
         customers.value = [];
     }
@@ -75,7 +75,7 @@ async function loadCustomers() {
 
 async function createCustomer() {
     try {
-        await apiClient.post('/customers', form);
+        await apiClient.post('/sales/customers', form);
         showCreateModal.value = false;
         notify.success('Customer added successfully');
         await loadCustomers();

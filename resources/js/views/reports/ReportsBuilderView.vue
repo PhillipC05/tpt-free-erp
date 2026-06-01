@@ -226,7 +226,7 @@ const availableReports: ReportDefinition[] = [
         id: 'finance-income',
         label: 'Income Statement',
         icon: '📈',
-        endpoint: '/finance/reports/income',
+        endpoint: '/finance/reports/income-statement',
         filters: [],
         columns: [
             { key: 'category', label: 'Category' },

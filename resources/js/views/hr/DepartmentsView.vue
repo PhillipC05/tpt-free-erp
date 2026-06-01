@@ -57,8 +57,8 @@ const columns = [
 
 async function loadDepartments() {
     try {
-        const res = await apiClient.get('/departments');
-        departments.value = res.data;
+        const res = await apiClient.get('/hr/departments');
+        departments.value = res.data?.data ?? res.data ?? [];
     } catch {
         departments.value = [];
     }
@@ -66,7 +66,7 @@ async function loadDepartments() {
 
 async function createDepartment() {
     try {
-        await apiClient.post('/departments', form);
+        await apiClient.post('/hr/departments', form);
         showCreateModal.value = false;
         notify.success('Department created successfully');
         await loadDepartments();

@@ -43,8 +43,8 @@ function statusClass(status: string): string {
 
 onMounted(async () => {
     try {
-        const res = await apiClient.get('/orders');
-        orders.value = res.data;
+        const res = await apiClient.get('/sales/orders');
+        orders.value = res.data?.data ?? res.data ?? [];
     } catch {
         orders.value = [];
     }

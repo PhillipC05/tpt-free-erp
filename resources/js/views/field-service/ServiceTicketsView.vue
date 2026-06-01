@@ -3,7 +3,7 @@
         <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Service Tickets</h1>
         <DataTable :columns="columns" :data="tickets" searchable>
             <template #header>
-                <button @click="showCreateModal = true" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">
+                <button @click="openCreate" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">
                     New Ticket
                 </button>
             </template>
@@ -17,10 +17,25 @@
                     {{ value }}
                 </span>
             </template>
+            <template #actions="{ row }">
+                <button @click="openEdit(row)" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 mr-3 text-sm">Edit</button>
+                <button @click="deleteTicket(row.id)" class="text-red-600 hover:text-red-800 dark:text-red-400 text-sm">Delete</button>
+            </template>
         </DataTable>
 
-        <ModalDialog v-model="showCreateModal" title="New Service Ticket">
-            <form @submit.prevent="createTicket" class="space-y-4">
+        <ModalDialog v-model="showModal" :title="editingTicket ? 'Edit Ticket' : 'New Service Ticket'">
+            <form @submit.prevent="submitForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Ticket Number</label>
+                    <input v-model="form.ticket_number" type="text" required placeholder="e.g. TKT-001" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Customer</label>
+                    <select v-model="form.customer_id" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                        <option value="" disabled>Select a customer</option>
+                        <option v-for="c in customers" :key="c.id" :value="c.id">{{ c.name }}</option>
+                    </select>
+                </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
                     <input v-model="form.title" type="text" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
@@ -36,10 +51,10 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
-                    <textarea v-model="form.description" rows="3" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"></textarea>
+                    <textarea v-model="form.description" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"></textarea>
                 </div>
                 <div class="flex justify-end gap-2">
-                    <button type="button" @click="showCreateModal = false" class="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300">Cancel</button>
+                    <button type="button" @click="showModal = false" class="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300">Cancel</button>
                     <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700">Submit</button>
                 </div>
             </form>
@@ -57,8 +72,10 @@ import { useNotificationStore } from '@/stores/notification';
 
 const notify = useNotificationStore();
 const tickets = ref<ServiceTicket[]>([]);
-const showCreateModal = ref(false);
-const form = reactive({ title: '', description: '', priority: 'medium' as ServiceTicket['priority'], customer_id: null as number | null });
+const customers = ref<Array<{ id: number; name: string }>>([]);
+const showModal = ref(false);
+const editingTicket = ref<ServiceTicket | null>(null);
+const form = reactive({ ticket_number: '', customer_id: '' as number | string, title: '', description: '', priority: 'medium' });
 
 const columns = [
     { key: 'ticket_number', label: 'Ticket #', sortable: true },
@@ -91,23 +108,69 @@ function priorityClass(priority: string): string {
 
 async function loadTickets() {
     try {
-        const res = await apiClient.get('/service-tickets');
-        tickets.value = res.data;
+        const res = await apiClient.get('/field-service/tickets');
+        tickets.value = res.data?.data ?? res.data ?? [];
     } catch {
         tickets.value = [];
     }
 }
 
-async function createTicket() {
+async function loadCustomers() {
     try {
-        await apiClient.post('/service-tickets', form);
-        showCreateModal.value = false;
-        notify.success('Ticket created successfully');
-        await loadTickets();
+        const res = await apiClient.get('/sales/customers');
+        customers.value = res.data?.data ?? res.data ?? [];
     } catch {
-        notify.error('Failed to create ticket');
+        customers.value = [];
     }
 }
 
-onMounted(loadTickets);
+function openCreate() {
+    editingTicket.value = null;
+    Object.assign(form, { ticket_number: '', customer_id: '', title: '', description: '', priority: 'medium' });
+    showModal.value = true;
+}
+
+function openEdit(row: ServiceTicket) {
+    editingTicket.value = row;
+    Object.assign(form, {
+        ticket_number: row.ticket_number,
+        customer_id: (row as any).customer_id ?? '',
+        title: row.title,
+        description: row.description ?? '',
+        priority: row.priority ?? 'medium',
+    });
+    showModal.value = true;
+}
+
+async function submitForm() {
+    try {
+        if (editingTicket.value) {
+            await apiClient.put(`/field-service/tickets/${editingTicket.value.id}`, form);
+            notify.success('Ticket updated successfully');
+        } else {
+            await apiClient.post('/field-service/tickets', form);
+            notify.success('Ticket created successfully');
+        }
+        showModal.value = false;
+        await loadTickets();
+    } catch {
+        notify.error(editingTicket.value ? 'Failed to update ticket' : 'Failed to create ticket');
+    }
+}
+
+async function deleteTicket(id: number) {
+    if (!confirm('Delete this ticket?')) return;
+    try {
+        await apiClient.delete(`/field-service/tickets/${id}`);
+        notify.success('Ticket deleted');
+        await loadTickets();
+    } catch {
+        notify.error('Failed to delete ticket');
+    }
+}
+
+onMounted(() => {
+    loadTickets();
+    loadCustomers();
+});
 </script>

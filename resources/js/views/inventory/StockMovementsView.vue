@@ -42,8 +42,8 @@ function typeClass(type: string): string {
 
 onMounted(async () => {
     try {
-        const res = await apiClient.get('/stock-movements');
-        movements.value = res.data;
+        const res = await apiClient.get('/inventory/stock-movements');
+        movements.value = res.data?.data ?? res.data ?? [];
     } catch {
         movements.value = [];
     }

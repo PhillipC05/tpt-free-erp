@@ -85,8 +85,8 @@ function statusClass(status: string): string {
 
 async function loadRequests() {
     try {
-        const res = await apiClient.get('/leave-requests');
-        requests.value = res.data;
+        const res = await apiClient.get('/hr/leave-requests');
+        requests.value = res.data?.data ?? res.data ?? [];
     } catch {
         requests.value = [];
     }
@@ -94,7 +94,7 @@ async function loadRequests() {
 
 async function createRequest() {
     try {
-        await apiClient.post('/leave-requests', form);
+        await apiClient.post('/hr/leave-requests', form);
         showCreateModal.value = false;
         notify.success('Leave request submitted');
         await loadRequests();

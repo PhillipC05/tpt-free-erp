@@ -32,11 +32,13 @@
             <form @submit.prevent="createAccount" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Code</label>
-                    <input v-model="form.code" type="text" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+                    <input v-model="form.code" type="text" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" :class="{ 'border-red-500': formErrors.code }" />
+                    <p v-if="formErrors.code" class="mt-1 text-xs text-red-600">{{ formErrors.code[0] }}</p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
-                    <input v-model="form.name" type="text" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" />
+                    <input v-model="form.name" type="text" required class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100" :class="{ 'border-red-500': formErrors.name }" />
+                    <p v-if="formErrors.name" class="mt-1 text-xs text-red-600">{{ formErrors.name[0] }}</p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Type</label>
@@ -47,6 +49,11 @@
                         <option value="revenue">Revenue</option>
                         <option value="expense">Expense</option>
                     </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Currency</label>
+                    <input v-model="form.currency" type="text" maxlength="3" placeholder="USD" class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 uppercase" :class="{ 'border-red-500': formErrors.currency }" />
+                    <p v-if="formErrors.currency" class="mt-1 text-xs text-red-600">{{ formErrors.currency[0] }}</p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
@@ -72,7 +79,8 @@ import { useNotificationStore } from '@/stores/notification';
 const notify = useNotificationStore();
 const accounts = ref<Account[]>([]);
 const showCreateModal = ref(false);
-const form = reactive({ code: '', name: '', type: 'asset' as Account['type'], description: '' });
+const formErrors = ref<Record<string, string[]>>({});
+const form = reactive({ code: '', name: '', type: 'asset' as Account['type'], description: '', currency: 'USD' });
 
 const columns = [
     { key: 'code', label: 'Code', sortable: true },
@@ -95,21 +103,26 @@ function typeClass(type: string): string {
 
 async function loadAccounts() {
     try {
-        const response = await apiClient.get('/accounts');
-        accounts.value = response.data;
+        const response = await apiClient.get('/finance/accounts');
+        accounts.value = response.data.data ?? response.data;
     } catch {
         accounts.value = [];
     }
 }
 
 async function createAccount() {
+    formErrors.value = {};
     try {
-        await apiClient.post('/accounts', form);
+        await apiClient.post('/finance/accounts', form);
         showCreateModal.value = false;
+        form.code = ''; form.name = ''; form.type = 'asset'; form.description = ''; form.currency = 'USD';
         notify.success('Account created successfully');
         await loadAccounts();
-    } catch {
-        notify.error('Failed to create account');
+    } catch (err: any) {
+        const errors = err?.response?.data?.errors;
+        if (errors) {
+            formErrors.value = errors;
+        }
     }
 }
 

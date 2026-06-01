@@ -133,6 +133,7 @@ const sortDir = ref<'asc' | 'desc'>('asc');
 const currentPage = ref(1);
 
 const filteredData = computed(() => {
+    if (!Array.isArray(props.data)) return [];
     let result = [...props.data];
 
     if (searchQuery.value) {
@@ -161,7 +162,7 @@ const filteredData = computed(() => {
     return result.slice(start, end);
 });
 
-const totalPages = computed(() => Math.ceil(props.data.length / props.pageSize));
+const totalPages = computed(() => Array.isArray(props.data) ? Math.ceil(props.data.length / props.pageSize) : 0);
 
 watch([() => props.data, searchQuery], () => {
     currentPage.value = 1;

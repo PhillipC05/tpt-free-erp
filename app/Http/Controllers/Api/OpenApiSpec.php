@@ -31,6 +31,8 @@ use OpenApi\Attributes as OA;
 #[OA\Tag(name: 'Assets',        description: 'Asset lifecycle, depreciation, maintenance')]
 #[OA\Tag(name: 'FieldService',  description: 'Service tickets')]
 #[OA\Tag(name: 'LMS',           description: 'Courses and enrollments')]
+#[OA\Tag(name: 'Reports',       description: 'Async report generation, scheduling, and download')]
+#[OA\Tag(name: 'Agents',        description: 'AI agent profiles, skill assignments, executions, and schedules')]
 class OpenApiSpec
 {
     // ── Reusable response schemas ───────────────────────────────────────────
@@ -670,4 +672,264 @@ class OpenApiSpec
         requestBody: new OA\RequestBody(required: false, content: new OA\JsonContent(properties: [new OA\Property(property: 'score', type: 'number', example: 88.5)])),
         responses: [new OA\Response(response: 200, description: 'Completed')])]
     public function lmsEnrollmentComplete(): void {}
+
+    // ── REPORTS ────────────────────────────────────────────────────────────
+
+    #[OA\Post(path: '/v1/reports/generate', tags: ['Reports'], summary: 'Queue a report for async generation',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['report_type', 'format'],
+            properties: [
+                new OA\Property(property: 'report_type', type: 'string', enum: ['trial_balance', 'income_statement', 'balance_sheet', 'cash_flow', 'hr_attendance', 'hr_payroll', 'sales_summary', 'procurement']),
+                new OA\Property(property: 'format',      type: 'string', enum: ['json', 'csv', 'pdf']),
+                new OA\Property(property: 'date_from',   type: 'string', format: 'date'),
+                new OA\Property(property: 'date_to',     type: 'string', format: 'date'),
+            ]
+        )),
+        responses: [
+            new OA\Response(response: 202, description: 'Report queued — returns report_id'),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ]
+    )]
+    public function reportGenerate(): void {}
+
+    #[OA\Get(path: '/v1/reports/{id}', tags: ['Reports'], summary: 'Poll report status and retrieve result',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [
+            new OA\Response(response: 200, description: 'Report record with status (queued|running|completed|failed)'),
+            new OA\Response(response: 404, description: 'Not found'),
+        ]
+    )]
+    public function reportShow(): void {}
+
+    #[OA\Get(path: '/v1/reports/{id}/download', tags: ['Reports'], summary: 'Download completed report as JSON, CSV, or PDF',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [
+            new OA\Response(response: 200, description: 'File download'),
+            new OA\Response(response: 422, description: 'Report not yet completed'),
+        ]
+    )]
+    public function reportDownload(): void {}
+
+    #[OA\Get(path: '/v1/reports/scheduled', tags: ['Reports'], summary: 'List scheduled reports for current user',
+        security: [['bearerAuth' => []]],
+        responses: [new OA\Response(response: 200, description: 'List of scheduled reports')]
+    )]
+    public function reportScheduledIndex(): void {}
+
+    #[OA\Post(path: '/v1/reports/scheduled', tags: ['Reports'], summary: 'Create a scheduled report',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['name', 'report_type', 'format', 'frequency'],
+            properties: [
+                new OA\Property(property: 'name',        type: 'string'),
+                new OA\Property(property: 'report_type', type: 'string'),
+                new OA\Property(property: 'format',      type: 'string', enum: ['json', 'csv', 'pdf']),
+                new OA\Property(property: 'frequency',   type: 'string', enum: ['daily', 'weekly', 'monthly']),
+                new OA\Property(property: 'delivery_email', type: 'string', format: 'email'),
+            ]
+        )),
+        responses: [new OA\Response(response: 201, description: 'Scheduled report created')]
+    )]
+    public function reportScheduledStore(): void {}
+
+    #[OA\Delete(path: '/v1/reports/scheduled/{id}', tags: ['Reports'], summary: 'Delete a scheduled report',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [new OA\Response(response: 200, description: 'Deleted')]
+    )]
+    public function reportScheduledDestroy(): void {}
+
+    // ── AGENTS ─────────────────────────────────────────────────────────────
+
+    #[OA\Get(path: '/v1/agents', tags: ['Agents'], summary: 'List agent profiles',
+        security: [['bearerAuth' => []]],
+        responses: [new OA\Response(response: 200, description: 'Paginated list of agents')]
+    )]
+    public function agentIndex(): void {}
+
+    #[OA\Post(path: '/v1/agents', tags: ['Agents'], summary: 'Create an agent profile',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['name', 'agent_type'],
+            properties: [
+                new OA\Property(property: 'name',            type: 'string', example: 'Finance Bot'),
+                new OA\Property(property: 'description',     type: 'string'),
+                new OA\Property(property: 'agent_type',      type: 'string', enum: ['local', 'openrouter', 'api', 'human_subcontractor']),
+                new OA\Property(property: 'provider_config', type: 'object', description: 'Model/API configuration'),
+                new OA\Property(property: 'is_active',       type: 'boolean', default: true),
+            ]
+        )),
+        responses: [
+            new OA\Response(response: 201, description: 'Agent created'),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ]
+    )]
+    public function agentStore(): void {}
+
+    #[OA\Get(path: '/v1/agents/{id}', tags: ['Agents'], summary: 'Get agent with assigned skills',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [new OA\Response(response: 200, description: 'Agent profile with skill assignments'), new OA\Response(response: 404, description: 'Not found')]
+    )]
+    public function agentShow(): void {}
+
+    #[OA\Put(path: '/v1/agents/{id}', tags: ['Agents'], summary: 'Update agent profile',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object')),
+        responses: [new OA\Response(response: 200, description: 'Updated')]
+    )]
+    public function agentUpdate(): void {}
+
+    #[OA\Delete(path: '/v1/agents/{id}', tags: ['Agents'], summary: 'Soft-delete agent profile',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [new OA\Response(response: 200, description: 'Deleted')]
+    )]
+    public function agentDestroy(): void {}
+
+    #[OA\Post(path: '/v1/agents/{id}/tokens', tags: ['Agents'], summary: 'Create a scoped API token for an agent',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['name'],
+            properties: [
+                new OA\Property(property: 'name',                 type: 'string'),
+                new OA\Property(property: 'abilities',            type: 'array', items: new OA\Items(type: 'string')),
+                new OA\Property(property: 'allowed_skill_slugs',  type: 'array', items: new OA\Items(type: 'string')),
+                new OA\Property(property: 'rate_limit_per_minute', type: 'integer', default: 10),
+                new OA\Property(property: 'expires_at',           type: 'string', format: 'date-time'),
+            ]
+        )),
+        responses: [new OA\Response(response: 201, description: 'Token created — plain_token shown once')]
+    )]
+    public function agentTokenStore(): void {}
+
+    #[OA\Delete(path: '/v1/agents/{id}/tokens/{tokenId}', tags: ['Agents'], summary: 'Revoke an agent token',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id',      in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'tokenId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [new OA\Response(response: 200, description: 'Token revoked')]
+    )]
+    public function agentTokenDestroy(): void {}
+
+    #[OA\Get(path: '/v1/agents/skills/available', tags: ['Agents'], summary: 'Browse full skill catalog',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'category', in: 'query', schema: new OA\Schema(type: 'string'))],
+        responses: [new OA\Response(response: 200, description: 'All available skills from the registry')]
+    )]
+    public function agentSkillCatalog(): void {}
+
+    #[OA\Post(path: '/v1/agents/skills/upload', tags: ['Agents'], summary: 'Upload a new skill .md file (admin)',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\MediaType(mediaType: 'multipart/form-data', schema: new OA\Schema(
+            required: ['skill_file'],
+            properties: [new OA\Property(property: 'skill_file', type: 'string', format: 'binary')]
+        ))),
+        responses: [
+            new OA\Response(response: 200, description: 'Skill uploaded and registry cache cleared'),
+            new OA\Response(response: 422, description: 'Validation error — missing frontmatter or invalid slug'),
+        ]
+    )]
+    public function agentSkillUpload(): void {}
+
+    #[OA\Get(path: '/v1/agents/{id}/skills', tags: ['Agents'], summary: 'List skills assigned to an agent with registry metadata',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [new OA\Response(response: 200, description: 'Agent skill assignments with full metadata')]
+    )]
+    public function agentSkillIndex(): void {}
+
+    #[OA\Put(path: '/v1/agents/{id}/skills/{slug}', tags: ['Agents'], summary: 'Enable or disable a skill for an agent',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id',   in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'slug', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'is_enabled',       type: 'boolean'),
+                new OA\Property(property: 'config_overrides', type: 'object'),
+            ]
+        )),
+        responses: [new OA\Response(response: 200, description: 'Assignment updated')]
+    )]
+    public function agentSkillUpdate(): void {}
+
+    #[OA\Post(path: '/v1/agents/{id}/skills/{slug}/run', tags: ['Agents'], summary: 'Manually trigger a skill execution',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id',   in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'slug', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['input'],
+            properties: [new OA\Property(property: 'input', type: 'object', description: 'Skill input matching the skill\'s inputs schema')]
+        )),
+        responses: [
+            new OA\Response(response: 202, description: 'Execution queued — returns execution_id'),
+            new OA\Response(response: 404, description: 'Agent or skill not found'),
+            new OA\Response(response: 422, description: 'Skill disabled for this agent'),
+        ]
+    )]
+    public function agentSkillRun(): void {}
+
+    #[OA\Get(path: '/v1/agents/{id}/executions', tags: ['Agents'], summary: 'Paginated execution audit log for an agent',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id',     in: 'path',  required: true,  schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'status', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['queued', 'running', 'completed', 'failed'])),
+            new OA\Parameter(name: 'skill',  in: 'query', required: false, schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [new OA\Response(response: 200, description: 'Paginated execution log')]
+    )]
+    public function agentExecutionIndex(): void {}
+
+    #[OA\Get(path: '/v1/agents/{id}/executions/{execId}', tags: ['Agents'], summary: 'Get single execution detail',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id',     in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'execId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [new OA\Response(response: 200, description: 'Execution detail'), new OA\Response(response: 404, description: 'Not found')]
+    )]
+    public function agentExecutionShow(): void {}
+
+    #[OA\Get(path: '/v1/agents/{id}/schedules', tags: ['Agents'], summary: 'List schedules for an agent',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [new OA\Response(response: 200, description: 'Agent schedules')]
+    )]
+    public function agentScheduleIndex(): void {}
+
+    #[OA\Post(path: '/v1/agents/{id}/schedules', tags: ['Agents'], summary: 'Create a cron schedule for an agent skill',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['skill_slug'],
+            properties: [
+                new OA\Property(property: 'skill_slug',       type: 'string', example: 'finance.extract_invoice'),
+                new OA\Property(property: 'cron_expression',  type: 'string', example: '0 9 * * 1'),
+                new OA\Property(property: 'input_template',   type: 'object'),
+                new OA\Property(property: 'is_active',        type: 'boolean', default: true),
+            ]
+        )),
+        responses: [new OA\Response(response: 201, description: 'Schedule created')]
+    )]
+    public function agentScheduleStore(): void {}
+
+    #[OA\Delete(path: '/v1/agents/{id}/schedules/{schedId}', tags: ['Agents'], summary: 'Delete an agent schedule',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id',      in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'schedId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [new OA\Response(response: 200, description: 'Deleted')]
+    )]
+    public function agentScheduleDestroy(): void {}
 }

@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Console\Commands\CleanExpiredReports;
 use App\Console\Commands\RunScheduledReports;
 use App\Console\Commands\SyncSkills;
 use App\Console\Commands\RunAgentSchedules;
@@ -11,6 +12,7 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 class Kernel extends ConsoleKernel
 {
     protected $commands = [
+        CleanExpiredReports::class,
         RunScheduledReports::class,
         SyncSkills::class,
         RunAgentSchedules::class,
@@ -22,6 +24,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('reports:run-scheduled')->everyFiveMinutes();
         // Run agent schedules every minute
         $schedule->command('agents:run-schedules')->everyMinute();
+        // Clean up expired generated reports daily
+        $schedule->command('reports:clean-expired')->daily();
     }
 
     protected function commands(): void

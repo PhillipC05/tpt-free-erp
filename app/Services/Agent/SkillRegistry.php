@@ -37,6 +37,28 @@ class SkillRegistry
         Cache::forget(self::CACHE_KEY);
     }
 
+    /**
+     * Parse a raw markdown string (with YAML frontmatter) and return the skill metadata.
+     * Returns an array with frontmatter fields plus 'instructions', or null on parse failure.
+     */
+    public function parseContent(string $content): ?array
+    {
+        if (!preg_match('/^---\s*\n(.*?)\n---\s*\n(.*)/s', $content, $matches)) {
+            return null;
+        }
+
+        $yamlStr  = $matches[1];
+        $markdown = trim($matches[2]);
+
+        try {
+            $meta = $this->parseYaml($yamlStr);
+        } catch (\Throwable $e) {
+            return null;
+        }
+
+        return array_merge($meta, ['instructions' => $markdown]);
+    }
+
     private function scanAll(): array
     {
         if (!File::isDirectory($this->skillsPath)) {

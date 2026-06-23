@@ -122,6 +122,43 @@ class CampaignController extends BaseApiController
         return $this->respondSuccess('Campaign deleted successfully');
     }
 
+    public function roi(int $id): JsonResponse
+    {
+        $campaign = Campaign::find($id);
+
+        if (!$campaign) {
+            return $this->respondNotFound('Campaign not found');
+        }
+
+        $analytics = $campaign->analytics()->get();
+        $totalCost     = (float) $analytics->sum('cost');
+        $totalRevenue  = (float) $analytics->sum('revenue');
+        $totalClicks   = (int)   $analytics->sum('clicks');
+        $conversions   = (int)   $analytics->sum('conversions');
+
+        $roi           = $totalCost > 0 ? round(($totalRevenue - $totalCost) / $totalCost * 100, 2) : null;
+        $cpa           = $conversions > 0 ? round($totalCost / $conversions, 2) : null;
+        $roas          = $totalCost > 0 ? round($totalRevenue / $totalCost, 4) : null;
+        $cpc           = $totalClicks > 0 ? round($totalCost / $totalClicks, 4) : null;
+
+        return $this->respond([
+            'success' => true,
+            'data'    => [
+                'campaign_id'       => $campaign->id,
+                'campaign_name'     => $campaign->name,
+                'budget'            => (float) $campaign->budget,
+                'total_cost'        => $totalCost,
+                'total_revenue'     => $totalRevenue,
+                'roi_percent'       => $roi,
+                'roas'              => $roas,
+                'cost_per_click'    => $cpc,
+                'cost_per_acquisition' => $cpa,
+                'total_conversions' => $conversions,
+                'total_clicks'      => $totalClicks,
+            ],
+        ]);
+    }
+
     public function analytics(int $id): JsonResponse
     {
         $campaign = Campaign::find($id);

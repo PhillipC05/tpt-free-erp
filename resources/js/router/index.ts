@@ -229,6 +229,12 @@ const routes: RouteRecordRaw[] = [
             { path: 'documents', name: 'documents', component: () => import('@/views/documents/DocumentsView.vue') },
             // Contracts
             { path: 'contracts', name: 'contracts', component: () => import('@/views/contracts/ContractsView.vue') },
+            // AI Agents
+            { path: 'agents', name: 'agents', component: () => import('@/views/agents/AgentsView.vue') },
+            { path: 'agents/skills/catalog', name: 'agents.skill-catalog', component: () => import('@/views/agents/SkillCatalogView.vue') },
+            { path: 'agents/:id', name: 'agents.detail', component: () => import('@/views/agents/AgentDetailView.vue') },
+            // Scheduled Reports
+            { path: 'reports/scheduled', name: 'reports.scheduled', component: () => import('@/views/reports/ScheduledReportsView.vue') },
         ],
     },
     {

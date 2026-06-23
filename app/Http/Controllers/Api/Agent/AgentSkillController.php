@@ -9,6 +9,7 @@ use App\Services\Agent\AgentExecutionService;
 use App\Services\Agent\SkillRegistry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class AgentSkillController extends BaseApiController
 {
@@ -94,5 +95,46 @@ class AgentSkillController extends BaseApiController
             'status'       => $execution->status,
             'message'      => 'Execution queued. Poll GET /api/v1/agents/' . $agentId . '/executions/' . $execution->id,
         ]);
+    }
+
+    // POST /agents/skills/upload — admin only
+    public function upload(Request $request): JsonResponse
+    {
+        if (!$request->hasFile('skill_file') || !$request->file('skill_file')->isValid()) {
+            return $this->respondError('A valid skill_file is required', 422);
+        }
+
+        $file = $request->file('skill_file');
+
+        if ($file->getClientOriginalExtension() !== 'md') {
+            return $this->respondError('Only .md files are accepted', 422);
+        }
+
+        $content = file_get_contents($file->getRealPath());
+
+        // Parse to validate required frontmatter fields
+        $parsed = $this->registry->parseContent($content);
+
+        $required = ['slug', 'category', 'name'];
+        foreach ($required as $field) {
+            if (empty($parsed[$field])) {
+                return $this->respondError("Missing required frontmatter field: {$field}", 422);
+            }
+        }
+
+        // Validate slug format: category.name (no spaces, lowercase)
+        if (!preg_match('/^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$/', $parsed['slug'])) {
+            return $this->respondError('Slug must be in format category.name (lowercase, underscores only)', 422);
+        }
+
+        $category = $parsed['category'];
+        $slug = $parsed['slug'];
+        $filename = str_replace($category . '.', '', $slug) . '.md';
+        $path = "skills/{$category}/{$filename}";
+
+        Storage::put($path, $content);
+        $this->registry->clearCache();
+
+        return $this->respondSuccess('Skill uploaded successfully', ['path' => $path, 'slug' => $slug]);
     }
 }

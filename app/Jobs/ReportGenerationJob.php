@@ -16,9 +16,12 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class ReportGenerationJob implements ShouldQueue
 {
@@ -57,14 +60,24 @@ class ReportGenerationJob implements ShouldQueue
             $rowCount = is_array($data) ? count($data['rows'] ?? $data) : 0;
             $resultJson = json_encode($data);
 
-            DB::table('generated_reports')->where('id', $reportId)->update([
+            $updateFields = [
                 'status'       => 'completed',
                 'result_data'  => $resultJson,
                 'row_count'    => $rowCount,
                 'completed_at' => now(),
                 'expires_at'   => now()->addDays(7),
                 'updated_at'   => now(),
-            ]);
+            ];
+
+            if ($this->format === 'pdf') {
+                $title = ucwords(str_replace('_', ' ', $this->reportType));
+                $pdf = $this->toPdf($title, $data['rows'] ?? []);
+                $path = "reports/{$reportId}.pdf";
+                Storage::put($path, $pdf);
+                $updateFields['result_path'] = $path;
+            }
+
+            DB::table('generated_reports')->where('id', $reportId)->update($updateFields);
 
             if ($this->deliveryEmail) {
                 $this->sendEmailDelivery($this->deliveryEmail, $data, $reportId);
@@ -211,6 +224,42 @@ class ReportGenerationJob implements ShouldQueue
         $debits = (float) (clone $q)->where('type', 'debit')->sum('amount');
         $credits = (float) (clone $q)->where('type', 'credit')->sum('amount');
         return $debits - $credits;
+    }
+
+    private function toPdf(string $title, array $data): string
+    {
+        if (empty($data)) {
+            $html = "<h1>{$title}</h1><p>No data available.</p>";
+        } else {
+            $headers = array_keys((array) (is_array($data[0]) ? $data[0] : (array) $data[0]));
+            $headerHtml = implode('', array_map(fn($h) => '<th>' . htmlspecialchars(ucwords(str_replace('_', ' ', $h))) . '</th>', $headers));
+            $rowsHtml = '';
+            foreach ($data as $row) {
+                $row = (array) $row;
+                $cells = implode('', array_map(fn($v) => '<td>' . htmlspecialchars((string) $v) . '</td>', $row));
+                $rowsHtml .= "<tr>{$cells}</tr>";
+            }
+            $html = "
+                <style>
+                    body { font-family: Arial, sans-serif; font-size: 12px; }
+                    h1 { font-size: 18px; margin-bottom: 12px; }
+                    table { width: 100%; border-collapse: collapse; }
+                    th { background: #333; color: #fff; padding: 6px 8px; text-align: left; }
+                    td { padding: 5px 8px; border-bottom: 1px solid #ddd; }
+                    tr:nth-child(even) td { background: #f5f5f5; }
+                </style>
+                <h1>{$title}</h1>
+                <table><thead><tr>{$headerHtml}</tr></thead><tbody>{$rowsHtml}</tbody></table>
+            ";
+        }
+
+        $options = new Options();
+        $options->set('defaultFont', 'Helvetica');
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'landscape');
+        $dompdf->render();
+        return $dompdf->output();
     }
 
     private function sendEmailDelivery(string $email, array $data, int $reportId): void

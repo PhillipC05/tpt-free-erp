@@ -474,6 +474,7 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
             Route::get('campaigns', [CampaignController::class, 'index']);
             Route::get('campaigns/{campaign}', [CampaignController::class, 'show']);
             Route::get('campaigns/{campaign}/analytics', [CampaignController::class, 'analytics']);
+            Route::get('campaigns/{campaign}/roi', [CampaignController::class, 'roi']);
             Route::get('leads', [LeadController::class, 'index']);
             Route::get('leads/{lead}', [LeadController::class, 'show']);
         });
@@ -630,6 +631,7 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
     Route::prefix('agents')->middleware('role:admin')->group(function () {
         // Skill catalog — all agents can browse
         Route::get('/skills/available', [AgentSkillController::class, 'catalog']);
+        Route::post('/skills/upload', [AgentSkillController::class, 'upload']);
 
         // Agent CRUD
         Route::get('/', [AgentController::class, 'index']);

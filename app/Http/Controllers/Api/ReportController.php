@@ -10,6 +10,7 @@ use App\Models\Procurement\PurchaseOrder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ReportController extends BaseApiController
 {
@@ -26,7 +27,7 @@ class ReportController extends BaseApiController
             'start_date'  => 'nullable|date',
             'end_date'    => 'nullable|date',
             'date'        => 'nullable|date',
-            'format'      => 'nullable|string|in:json,csv',
+            'format'      => 'nullable|string|in:json,csv,pdf',
         ]);
         if ($error) return $error;
 
@@ -106,6 +107,17 @@ class ReportController extends BaseApiController
             ]);
         }
 
+        if ($format === 'pdf') {
+            $path = $report->result_path;
+            if (!$path || !Storage::exists($path)) {
+                return $this->respondError('PDF file not found', 404);
+            }
+            return response(Storage::get($path), 200, [
+                'Content-Type'        => 'application/pdf',
+                'Content-Disposition' => "attachment; filename=\"report_{$id}.pdf\"",
+            ]);
+        }
+
         return $this->respondSuccess('Report download', $data);
     }
 
@@ -127,7 +139,7 @@ class ReportController extends BaseApiController
             'name'           => 'required|string|max:200',
             'report_type'    => 'required|string|in:trial_balance,income_statement,balance_sheet,cash_flow,hr_attendance,hr_payroll,sales_summary,procurement',
             'frequency'      => 'required|string|in:hourly,daily,weekly,monthly',
-            'format'         => 'nullable|string|in:json,csv',
+            'format'         => 'nullable|string|in:json,csv,pdf',
             'delivery_email' => 'nullable|email',
             'parameters'     => 'nullable|array',
         ]);

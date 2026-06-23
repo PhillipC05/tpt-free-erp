@@ -30,6 +30,9 @@ class RoleMiddleware
             ->join('user_roles as ur', 'r.id', '=', 'ur.role_id')
             ->where('ur.user_id', $user->id)
             ->whereNull('ur.deleted_at')
+            ->where(function ($q) {
+                $q->whereNull('ur.expires_at')->orWhere('ur.expires_at', '>', now());
+            })
             ->pluck('r.name')
             ->all();
 

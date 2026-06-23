@@ -20,9 +20,10 @@
       <div class="border-b border-gray-200">
         <nav class="flex gap-6">
           <button v-for="tab in tabs" :key="tab.key" @click="activeTab = tab.key"
-            class="py-3 text-sm font-medium border-b-2 -mb-px transition-colors"
+            class="py-3 text-sm font-medium border-b-2 -mb-px transition-colors flex items-center gap-1.5"
             :class="activeTab === tab.key ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'">
-            {{ tab.label }}
+            <span>{{ tab.label }}</span>
+            <span v-if="tab.key === 'executions' && hasRunningExecutions" class="inline-block w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
           </button>
         </nav>
       </div>
@@ -132,7 +133,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 
@@ -148,6 +149,11 @@ const showSkillBrowser = ref(false)
 const showTokenCreate = ref(false)
 const newToken = ref('')
 const tokenForm = ref({ name: '' })
+const pollInterval = ref<ReturnType<typeof setInterval> | null>(null)
+
+const hasRunningExecutions = computed(() =>
+  executions.value.some(e => e.status === 'running' || e.status === 'queued')
+)
 
 const tabs = [
   { key: 'skills', label: 'Skills' },
@@ -162,6 +168,25 @@ const typeLabels: Record<string, string> = {
 const statusColors: Record<string, string> = {
   queued: 'bg-yellow-100 text-yellow-700', running: 'bg-blue-100 text-blue-700',
   completed: 'bg-green-100 text-green-700', failed: 'bg-red-100 text-red-700'
+}
+
+async function fetchExecutions() {
+  try {
+    const execRes = await axios.get(`/api/v1/agents/${agentId}/executions`)
+    executions.value = execRes.data.data ?? []
+  } catch {
+    // silently ignore
+  }
+  if (hasRunningExecutions.value) {
+    if (!pollInterval.value) {
+      pollInterval.value = setInterval(fetchExecutions, 5000)
+    }
+  } else {
+    if (pollInterval.value) {
+      clearInterval(pollInterval.value)
+      pollInterval.value = null
+    }
+  }
 }
 
 async function loadAll() {
@@ -179,6 +204,12 @@ async function loadAll() {
     schedules.value = schedRes.data.data ?? []
   } finally {
     loading.value = false
+  }
+  // Kick off polling if any execution is active after initial load
+  if (hasRunningExecutions.value) {
+    if (!pollInterval.value) {
+      pollInterval.value = setInterval(fetchExecutions, 5000)
+    }
   }
 }
 
@@ -217,4 +248,11 @@ async function deleteSchedule(schedId: number) {
 }
 
 onMounted(loadAll)
+
+onUnmounted(() => {
+  if (pollInterval.value) {
+    clearInterval(pollInterval.value)
+    pollInterval.value = null
+  }
+})
 </script>

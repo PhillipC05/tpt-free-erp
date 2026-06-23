@@ -452,6 +452,93 @@
 - [ ] **Developer Portal** — self-service API key management + usage analytics
 - [ ] **Push Notifications** — web push for tickets, approvals, alerts
 
+---
+
+## Phase 7: AI Agents, Skills System & Reporting Enhancement (2026-06-24)
+
+### Reporting Enhancement
+- [x] Create `app/Console/Kernel.php` — Laravel console kernel (was missing)
+- [x] Create `app/Console/Commands/RunScheduledReports.php` — `php artisan reports:run-scheduled`
+- [x] Create `app/Console/Commands/RunAgentSchedules.php` — `php artisan agents:run-schedules`
+- [x] Migration: `generated_reports` + `scheduled_reports` tables — `2026_06_24_000001_create_reporting_tables.php`
+- [x] Create `app/Jobs/ReportGenerationJob.php` — async report execution (8 report types: trial balance, income statement, balance sheet, cash flow, HR attendance, HR payroll, sales summary, procurement)
+- [x] Wire `app/Http/Controllers/Api/ReportController.php` — `generate()`, `show()`, `download()`, `scheduledIndex/Store/Destroy()`
+- [x] Update `routes/api.php` — `POST /reports/generate`, `GET /reports/{id}`, `GET /reports/{id}/download`, `GET/POST/DELETE /reports/scheduled`
+- [x] Frontend: `resources/js/views/reports/ScheduledReportsView.vue` — manage scheduled reports
+- [x] Router + sidebar updated (Scheduled Reports link under Finance/Reports)
+- [x] Write feature tests: `tests/Feature/ReportGenerationTest.php` — queue, poll status, download CSV, ownership isolation, scheduled CRUD
+- [x] Add PDF export support via `barryvdh/laravel-dompdf` — added to composer.json, `toPdf()` in ReportGenerationJob, download streams PDF with correct Content-Type
+- [x] Add report expiry cleanup command: `app/Console/Commands/CleanExpiredReports.php` — `php artisan reports:clean-expired` (runs daily via scheduler)
+- [ ] Add per-report caching so identical parameters within 1 hour reuse existing result
+
+### AI Agent Infrastructure
+- [x] Migration: `agent_profiles`, `agent_tokens`, `agent_skill_assignments`, `agent_executions`, `agent_schedules` — `2026_06_24_000002_create_agent_infrastructure_tables.php`
+- [x] Models: `app/Models/Agent/` — AgentProfile, AgentToken, AgentSkillAssignment, AgentExecution, AgentSchedule
+- [x] Service: `app/Services/Agent/SkillRegistry.php` — scan+parse+cache `storage/app/skills/*.md`
+- [x] Service: `app/Services/Agent/AgentExecutionService.php` — validate + dispatch `AgentSkillJob`
+- [x] Service: `app/Services/Agent/LocalModelService.php` — Ollama `/api/generate` + `/api/chat`
+- [x] Service: `app/Services/Agent/OpenRouterService.php` — OpenRouter chat completions
+- [x] Job: `app/Jobs/AgentSkillJob.php` — execute skill against provider, parse JSON output, audit log
+- [x] Config: `config/ai.php` — `OLLAMA_BASE_URL`, `AI_OPENROUTER_API_KEY`, `AI_DEFAULT_PROVIDER/MODEL`
+- [x] `.env.example` updated with AI config keys
+- [x] Controllers: `app/Http/Controllers/Api/Agent/` — AgentController, AgentTokenController, AgentSkillController, AgentExecutionController, AgentScheduleController
+- [x] Routes: `/api/v1/agents/` (admin only) — full CRUD + tokens + skills + executions + schedules
+- [x] `RoleSeeder.php` updated — `agents` module added to all roles, `agents.execute` extra permission for admin
+- [x] Write feature tests: `tests/Feature/Agent/AgentTest.php` — CRUD, skill assign, token create, execution log, queued run, admin-only guard
+- [x] Write unit tests: `tests/Feature/Agent/SkillRegistryTest.php` — parse, find, byCategory, cache warm/clear, real skills parseable, invalid files skipped
+- [x] Create `app/Console/Commands/SyncSkills.php` — `php artisan skills:sync` (lists all parsed skills)
+- [ ] Add rate-limit enforcement for agent tokens (check `rate_limit_per_minute` in `AgentSkillJob`)
+- [ ] Add multi-company agent access: `agent_company_access` pivot table (Phase 8 — multi-tenant)
+- [ ] Add agent execution webhook: fire `WebhookService::dispatch('agent.execution.completed', ...)` after successful run
+- [x] Complete OpenAPI spec for all `/api/v1/agents/` and `/api/v1/reports/` endpoints in `OpenApiSpec.php` — added Reports + Agents tags and 20+ endpoint annotations
+
+### Skills System
+- [x] Create `storage/app/skills/` directory structure (finance/, hr/, sales/, inventory/, expenses/)
+- [x] Write 10 Tier 1 skill files with YAML frontmatter + Markdown instructions:
+  - [x] `finance/extract_invoice.md` — OCR invoice data extraction
+  - [x] `finance/categorize_transaction.md` — auto-categorise bank transactions
+  - [x] `finance/match_purchase_order.md` — 3-way PO match
+  - [x] `hr/draft_job_description.md` — JD generator
+  - [x] `hr/generate_payslip_summary.md` — payslip narrative
+  - [x] `hr/draft_performance_review.md` — performance review drafter
+  - [x] `sales/score_crm_lead.md` — lead scoring 0–100
+  - [x] `sales/draft_quote.md` — sales quote generator
+  - [x] `inventory/reorder_alert.md` — reorder point detection + draft PO
+  - [x] `expenses/categorize_expense.md` — expense categorisation
+- [x] Write Tier 2 skills (10 files): finance.forecast_cashflow, finance.reconcile_accounts, finance.budget_variance_analysis, sales.draft_followup_email, sales.customer_churn_risk, procurement.evaluate_vendor, procurement.rfq_generator, projects.generate_status_report, hr.onboard_employee, marketing.generate_campaign_brief
+- [x] Add skill file upload endpoint: `POST /api/v1/agents/skills/upload` (admin only) — validates frontmatter, stores .md, clears registry cache; exposed `SkillRegistry::parseContent()` for validation
+- [ ] Add `SkillRegistry` fallback: if `storage/app/skills/` is empty, return empty array with helpful message
+- [ ] Add skill validation on upload (must have slug, category, required_permissions, inputs, outputs)
+
+### AI Agent Frontend
+- [x] `resources/js/views/agents/AgentsView.vue` — list + filter + create agents
+- [x] `resources/js/views/agents/AgentDetailView.vue` — tabbed detail: Skills, Executions, API Tokens, Schedules
+- [x] `resources/js/views/agents/SkillCatalogView.vue` — searchable/filterable skill catalog
+- [x] Router: `/agents`, `/agents/:id`, `/agents/skills/catalog` routes added
+- [x] Sidebar: "AI Agents" nav group (admin-only) added to `MainLayout.vue`
+- [x] Create `resources/js/stores/agents.ts` — Pinia store with typed interfaces, CRUD, skill catalog cache, execution polling with auto-cleanup
+- [x] Add execution status polling in `AgentDetailView.vue` — auto-refresh every 5s when queued/running; animated pulse dot on tab; auto-clears on unmount
+- [x] Onboarding redirect wired in `MainLayout.vue` — redirects to `/onboarding` when `authStore.onboardingPending` is true
+- [ ] Add `SkillEnableModal` component — enable a skill on an agent with optional config overrides
+- [ ] Add `ScheduleCreateModal` component in `AgentDetailView.vue` — cron expression builder UI
+
+### Skills — Tier 3 & 4 (completed this session)
+- [x] Write Tier 3 skills (10 files): inventory.demand_forecast, manufacturing.optimise_bom, hr.leave_coverage_check, quality.analyse_nonconformance, assets.maintenance_schedule, finance.budget_variance_analysis, sales.upsell_opportunities, contracts.review_terms, hr.interview_question_generator, finance.audit_trail_summary, marketing.lead_nurture_sequence
+- [x] Write Tier 4 skills (10 files): finance.tax_return_prep, projects.resource_allocation, sales.win_loss_analysis, hr.org_chart_analysis, inventory.shrinkage_detection, manufacturing.production_schedule, quality.supplier_quality_report, assets.depreciation_schedule, finance.scenario_planning, procurement.price_trend_analysis
+- [x] Write `tests/Feature/Finance/BudgetTest.php` — CRUD, validation, year filter, soft-delete, auth guard
+- [x] Write `database/factories/Finance/BudgetFactory.php`
+
+### Future AI Capabilities (Phase 8)
+- [ ] **Tier 5 skills** — write remaining 10 skill files (external API dependent): documents.extract_contract_terms, hr.benchmark_salaries, sales.competitive_analysis, manufacturing.yield_analysis, hr.training_needs_analysis, projects.retrospective_summary, sales.territory_planning, finance.investor_report, etc.
+- [ ] **Skill marketplace** — community-contributed skills, importable from GitHub repo
+- [ ] **Agent teams** — orchestrate multiple agents on a single complex task (chain of skills)
+- [ ] **Multi-company agent sharing** — `agent_company_access` pivot, cross-tenant token scoping
+- [ ] **Model cost tracking** — dashboard showing token usage + estimated cost per agent/skill/period
+- [ ] **Skill A/B testing** — compare two skill versions on the same input to evaluate quality
+- [ ] **Agent audit export** — export `agent_executions` as CSV for compliance
+
+---
+
 ## Notes
 
 - **Priority**: Get Auth + one complete module (Finance) working end-to-end in Laravel first
@@ -460,3 +547,4 @@
 - **Performance**: Every new feature must consider caching strategy
 - **Cleanup**: Remove `api/`/`modules/`/`core/` equivalents once replaced by Laravel
 - **API versioning**: All new endpoints under `/api/v1/`. Legacy `/api/auth/*` routes maintained for backward compat.
+- **AI agents**: Completely optional — no agent code affects ERP operation. Enable per-company via admin panel.

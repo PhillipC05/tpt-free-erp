@@ -312,10 +312,151 @@
 
 ---
 
+---
+
+## Phase 6: RBAC, New Modules & Platform Expansion (2026-06-23)
+
+### RBAC — Critical Security Fix
+- [x] Create `app/Models/Permission.php` — `roles()` BelongsToMany
+- [x] Add `permissions()` BelongsToMany to `app/Models/Role.php`
+- [x] Add `hasPermission()`, `hasAnyPermission()`, `flushPermissionCache()` to `app/Models/User.php`
+- [x] Create `app/Http/Middleware/PermissionMiddleware.php` — per-request permission check with 5-min cache
+- [x] Register `permission` middleware alias in `bootstrap/app.php`
+- [x] Update `database/seeders/RoleSeeder.php` — fill permissions for all 8 roles (was only admin/viewer)
+- [x] Create `app/Http/Controllers/Api/RoleController.php` — admin CRUD + sync permissions + assign/revoke user roles
+- [x] Apply `permission:module.action` middleware to all module route groups in `routes/api.php`
+- [x] Add `/api/v1/roles` admin-only routes in `routes/api.php`
+- [ ] Add permission indexes to `role_permissions` and `user_roles` tables for query performance
+- [ ] Write tests for role expiration enforcement (expired `user_roles.expires_at` should deny access)
+- [ ] Consider adding a `PermissionSeeder` that can be run standalone to top-up permissions after new module additions
+
+### API Versioning & Webhooks
+- [x] Wrap all module routes in `Route::prefix('v1')` group — all endpoints now at `/api/v1/`
+- [x] Create `database/migrations/2026_06_23_000001_create_webhooks_tables.php`
+- [x] Create `app/Models/Webhook.php` + `app/Models/WebhookDelivery.php`
+- [x] Create `app/Services/WebhookService.php` — dispatch events to subscriber URLs
+- [x] Create `app/Jobs/WebhookDeliveryJob.php` — HMAC-SHA256 signed POST, exponential backoff, auto-disable after 10 failures
+- [x] Create `app/Http/Controllers/Api/WebhookController.php` — user manages their own webhooks + test-fire endpoint
+- [x] Add webhook routes to `routes/api.php` — `/api/v1/webhooks`
+- [ ] Wire `WebhookService::dispatch()` calls into key model events (Finance, Inventory, Sales mutations)
+- [ ] Add webhook event filtering UI in frontend
+- [ ] Write tests for `WebhookDeliveryJob` (delivered, retry, failed, auto-disable)
+- [ ] Complete OpenAPI spec coverage for all new endpoints in `app/Http/Controllers/Api/OpenApiSpec.php`
+
+### Marketing Module
+- [x] Migration: `marketing_campaigns`, `marketing_leads`, `campaign_analytics` tables
+- [x] Models: `app/Models/Marketing/Campaign.php`, `Lead.php`, `CampaignAnalytic.php`
+- [x] Factories: `database/factories/Marketing/CampaignFactory.php`, `LeadFactory.php`
+- [x] Controllers: `Api/Marketing/CampaignController.php` + `LeadController.php`
+- [x] Service: lead-to-customer conversion + add-to-CRM-pipeline in `LeadController`
+- [x] Routes: `/api/v1/marketing/` with `permission:marketing.*` middleware
+- [x] Frontend: `resources/js/views/marketing/CampaignsView.vue` + `LeadsView.vue`
+- [x] Router + sidebar nav updated
+- [x] Feature tests: `tests/Feature/Marketing/MarketingTest.php`
+- [ ] Add `CampaignAnalytic` seeding via a daily scheduled job
+- [ ] Add campaign ROI calculation endpoint (`GET /api/v1/marketing/campaigns/{id}/roi`)
+- [ ] Email integration: campaign send via SMTP/Mailgun (Phase 7)
+
+### Network Module (Professional Networking)
+- [x] Migration: `user_profiles`, `user_profile_interests`, `user_follows`, `user_connections`, `network_posts`, `network_post_reactions`, `network_post_comments` tables
+- [x] Models: `app/Models/Network/` — UserProfile, UserProfileInterest, UserFollow, UserConnection, NetworkPost, NetworkPostReaction, NetworkPostComment
+- [x] User model: added `profile()` HasOne relation
+- [x] Controllers: ProfileController, DiscoveryController, FollowController, ConnectionController, FeedController, PostController
+- [x] Routes: `/api/v1/network/` (auth only, no module-level permission gate — self-service)
+- [x] CRM bridge: `DiscoveryController::addToCrm()` + `addToLead()`
+- [x] Frontend: NetworkFeedView, NetworkDiscoveryView, MyProfileView, ConnectionsView, FollowingView
+- [x] Feature tests: `tests/Feature/Network/NetworkTest.php`
+- [ ] Add profile avatar upload endpoint (store in `storage/app/public/avatars/`)
+- [ ] Add `ProfileView.vue` (view someone else's public profile)
+- [ ] Add post image/attachment support (Phase 7)
+- [ ] Add notification on connection request / new follower
+- [ ] Privacy: ensure non-discoverable profiles never appear in Discovery or Feed to non-connections
+
+### Expense Management Module
+- [x] Migration: `expense_categories`, `expense_reports`, `expense_items` tables
+- [x] Models: `app/Models/Expenses/ExpenseReport.php`, `ExpenseItem.php`, `ExpenseCategory.php`
+- [x] Factory: `database/factories/Expenses/ExpenseReportFactory.php`
+- [x] Controller: `app/Http/Controllers/Api/Expenses/ExpenseController.php`
+- [x] Routes: `/api/v1/expenses/` with `permission:expenses.*` middleware
+- [x] Frontend: `resources/js/views/expenses/ExpensesView.vue`
+- [x] Feature tests: `tests/Feature/Expenses/ExpenseTest.php`
+- [ ] Add `ExpenseItem` CRUD endpoints (currently only ExpenseReport top-level)
+- [ ] Add receipt upload endpoint (store in `storage/app/expenses/`)
+- [ ] Add expense category seeder with common defaults (Meals, Travel, Accommodation, Software, etc.)
+- [ ] Add expense summary dashboard widget
+
+### Budget & Forecasting Module
+- [x] Migration: `finance_budgets`, `budget_lines` tables
+- [x] Models: `app/Models/Finance/Budget.php`, `BudgetLine.php`
+- [x] Controller: `app/Http/Controllers/Api/Finance/BudgetController.php`
+- [x] Routes: `/api/v1/finance/budgets/` with `permission:finance.*` middleware
+- [x] Frontend: `resources/js/views/finance/BudgetsView.vue`
+- [ ] Add budget vs actuals variance calculation endpoint
+- [ ] Add budget line CRUD endpoints (`/api/v1/finance/budgets/{id}/lines`)
+- [ ] Add budget approval workflow (draft → approved)
+- [ ] Write feature tests: `tests/Feature/Finance/BudgetTest.php`
+
+### Document Management Module
+- [x] Migration: `document_folders`, `documents` tables (polymorphic `documentable`)
+- [x] Models: `app/Models/Documents/Document.php`, `DocumentFolder.php`
+- [x] Controller: `app/Http/Controllers/Api/Documents/DocumentController.php`
+- [x] Routes: `/api/v1/documents/` with `permission:documents.*` middleware
+- [x] Frontend: `resources/js/views/documents/DocumentsView.vue`
+- [x] Feature tests: `tests/Feature/Documents/DocumentTest.php`
+- [ ] Add actual file upload via `Storage::disk('local')` (currently stores metadata only)
+- [ ] Add document version history tracking
+- [ ] Add document sharing endpoint (`/api/v1/documents/{id}/share`)
+- [ ] Add polymorphic document attachment to Invoice, Contract, Employee, Asset views
+
+### Contract Management Module
+- [x] Migration: `contracts`, `contract_milestones` tables
+- [x] Models: `app/Models/Contracts/Contract.php`, `ContractMilestone.php`
+- [x] Factory: `database/factories/Contracts/ContractFactory.php`
+- [x] Controller: `app/Http/Controllers/Api/Contracts/ContractController.php`
+- [x] Routes: `/api/v1/contracts/` with `permission:contracts.*` middleware
+- [x] Frontend: `resources/js/views/contracts/ContractsView.vue`
+- [x] Feature tests: `tests/Feature/Contracts/ContractTest.php`
+- [ ] Add milestone CRUD endpoints (`/api/v1/contracts/{id}/milestones`)
+- [ ] Add contract expiry alert (auto-notify 30/7/1 days before end_date)
+- [ ] Add e-signature integration (DocuSign/SignNow) — Phase 7
+
+### Onboarding Wizard (15-Industry Preset)
+- [x] Migration: `onboarding_presets`, `onboarding_completions` tables
+- [x] Models: `app/Models/OnboardingPreset.php`, `app/Models/OnboardingCompletion.php`
+- [x] Controller: `app/Http/Controllers/Api/OnboardingController.php` — presets/status/apply/skip
+- [x] Routes: `/api/v1/onboarding/` (auth, no permission gate)
+- [x] Seeder: `database/seeders/OnboardingPresetSeeder.php` — all 15 industries with full CoA + department templates
+- [x] Added `OnboardingPresetSeeder` to `DatabaseSeeder`
+- [x] Frontend: `resources/js/views/onboarding/OnboardingWizardView.vue` — 5-step wizard
+- [x] Pinia store: `resources/js/stores/onboarding.ts`
+- [x] Auth store: checks onboarding status after login, sets `onboardingPending` flag
+- [x] Feature tests: `tests/Feature/OnboardingTest.php`
+- [ ] Trigger onboarding wizard redirect in `MainLayout.vue` when `onboardingPending` is true
+- [ ] Add "Re-run onboarding" option in Settings
+- [ ] Add industry preset import for existing accounts (don't duplicate existing CoA codes)
+
+### GitHub URL & Housekeeping
+- [x] Update `README.md` — clone URL already correct (`PhillipC05`)
+- [x] Update `composer.json` — homepage/support URLs updated to `PhillipC05`
+- [x] Update `package.json` — repository URL updated to `PhillipC05`
+- [x] Update `CHANGELOG.md` — release URL updated to `PhillipC05`
+
+### Future Modules (Phase 7)
+- [ ] **Point of Sale (POS)** — for Retail & Hospitality industries
+- [ ] **Fleet Management** — for Transportation & Field Services
+- [ ] **Subscription/Recurring Billing** — for Technology/SaaS
+- [ ] **Donor/Grant Management** — for Non-Profit sector
+- [ ] **E-signature Integration** — link to Contracts module
+- [ ] **Email Campaign Sending** — link to Marketing module
+- [ ] **API rate limiting tiers** — premium vs. standard per-user limits
+- [ ] **Developer Portal** — self-service API key management + usage analytics
+- [ ] **Push Notifications** — web push for tickets, approvals, alerts
+
 ## Notes
 
 - **Priority**: Get Auth + one complete module (Finance) working end-to-end in Laravel first
 - **Testing**: Every new module must have minimum 70% test coverage
-- **Security**: All endpoints must have proper authorization checks
+- **Security**: All endpoints must have proper authorization checks — RBAC now enforced on all routes
 - **Performance**: Every new feature must consider caching strategy
 - **Cleanup**: Remove `api/`/`modules/`/`core/` equivalents once replaced by Laravel
+- **API versioning**: All new endpoints under `/api/v1/`. Legacy `/api/auth/*` routes maintained for backward compat.

@@ -1,10 +1,22 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "tpt-solutions/tpt-free-erp",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
-    "license": "MIT",
+    "description": "Open-source Enterprise Resource Planning system covering Finance, Inventory, HR, Sales, Procurement, Manufacturing, Projects, Quality, Assets, Field Service, and LMS.",
+    "keywords": ["erp", "laravel", "finance", "inventory", "hr", "sales", "open-source", "enterprise"],
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "TPT Solutions",
+            "email": "support@tptsolutions.co.nz",
+            "homepage": "https://github.com/PhillipC05/tpt-free-erp"
+        }
+    ],
+    "homepage": "https://github.com/PhillipC05/tpt-free-erp",
+    "support": {
+        "issues": "https://github.com/PhillipC05/tpt-free-erp/issues",
+        "source": "https://github.com/PhillipC05/tpt-free-erp"
+    },
     "require": {
         "php": "^8.3",
         "darkaonline/l5-swagger": "^11.0",

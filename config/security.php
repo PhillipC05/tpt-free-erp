@@ -30,7 +30,7 @@ return [
     'session' => [
         'timeout' => env('SESSION_TIMEOUT', 7200),
         'regenerate_frequency' => 300,
-        'secure_cookie' => env('SESSION_SECURE_COOKIE', false),
+        'secure_cookie' => env('SESSION_SECURE_COOKIE', true),
         'http_only' => true,
         'same_site' => 'lax',
     ],

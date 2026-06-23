@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'cors.tpt' => \App\Http\Middleware\Cors::class,
             'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'permission' => \App\Http\Middleware\PermissionMiddleware::class,
             'csrf.protect' => \App\Http\Middleware\CsrfProtection::class,
         ]);
 

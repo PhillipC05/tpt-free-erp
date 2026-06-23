@@ -1,5 +1,14 @@
 {
     "$schema": "https://www.schemastore.org/package.json",
+    "name": "@tpt-solutions/tpt-free-erp",
+    "version": "1.0.0",
+    "description": "Vue 3 frontend for TPT Free ERP",
+    "license": "Apache-2.0",
+    "author": "TPT Solutions <support@tptsolutions.co.nz>",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/PhillipC05/tpt-free-erp.git"
+    },
     "private": true,
     "type": "module",
     "scripts": {

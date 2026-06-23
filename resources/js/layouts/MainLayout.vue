@@ -17,7 +17,7 @@
             </div>
 
             <nav class="flex-1 overflow-y-auto px-2 py-4 space-y-0.5">
-                <template v-for="item in navigationGroups" :key="item.label">
+                <template v-for="item in visibleNav" :key="item.label">
                     <!-- Single link (Dashboard, Reports, Field Service) -->
                     <router-link
                         v-if="!item.children"
@@ -179,7 +179,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
@@ -206,9 +206,10 @@ interface NavChild { to: string; label: string }
 interface NavGroup {
     label: string;
     icon: string;
-    to?: string;       // for single-link items
-    prefix?: string;   // for expandable groups
+    to?: string;
+    prefix?: string;
     children?: NavChild[];
+    roles?: string[];  // if set, user must have at least one of these roles (or no roles = show all)
 }
 
 const navigationGroups: NavGroup[] = [
@@ -220,17 +221,20 @@ const navigationGroups: NavGroup[] = [
     {
         label: 'Finance',
         prefix: '/finance',
+        roles: ['finance', 'finance_manager', 'accountant', 'cfo'],
         icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>',
         children: [
             { to: '/finance/accounts', label: 'Chart of Accounts' },
             { to: '/finance/transactions', label: 'Transactions' },
             { to: '/finance/journal-entries', label: 'Journal Entries' },
             { to: '/finance/reports', label: 'Financial Reports' },
+            { to: '/finance/budgets', label: 'Budgets' },
         ],
     },
     {
         label: 'Inventory',
         prefix: '/inventory',
+        roles: ['inventory', 'inventory_manager', 'warehouse', 'warehouse_manager'],
         icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>',
         children: [
             { to: '/inventory/products', label: 'Products' },
@@ -242,6 +246,7 @@ const navigationGroups: NavGroup[] = [
     {
         label: 'HR',
         prefix: '/hr',
+        roles: ['hr', 'hr_manager', 'payroll'],
         icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>',
         children: [
             { to: '/hr/employees', label: 'Employees' },
@@ -254,6 +259,7 @@ const navigationGroups: NavGroup[] = [
     {
         label: 'Sales',
         prefix: '/sales',
+        roles: ['sales', 'sales_manager', 'crm', 'account_manager'],
         icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>',
         children: [
             { to: '/sales/customers', label: 'Customers' },
@@ -263,8 +269,19 @@ const navigationGroups: NavGroup[] = [
         ],
     },
     {
+        label: 'Marketing',
+        prefix: '/marketing',
+        roles: ['marketing', 'marketing_manager'],
+        icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>',
+        children: [
+            { to: '/marketing/campaigns', label: 'Campaigns' },
+            { to: '/marketing/leads', label: 'Leads' },
+        ],
+    },
+    {
         label: 'Procurement',
         prefix: '/procurement',
+        roles: ['procurement', 'procurement_manager', 'purchasing'],
         icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>',
         children: [
             { to: '/procurement/vendors', label: 'Vendors' },
@@ -274,6 +291,7 @@ const navigationGroups: NavGroup[] = [
     {
         label: 'Manufacturing',
         prefix: '/manufacturing',
+        roles: ['manufacturing', 'production', 'production_manager'],
         icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>',
         children: [
             { to: '/manufacturing/boms', label: 'Bill of Materials' },
@@ -283,6 +301,7 @@ const navigationGroups: NavGroup[] = [
     {
         label: 'Projects',
         prefix: '/projects',
+        roles: ['projects', 'project_manager', 'team_lead'],
         icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>',
         children: [
             { to: '/projects/projects', label: 'Projects' },
@@ -293,6 +312,7 @@ const navigationGroups: NavGroup[] = [
     {
         label: 'Quality',
         prefix: '/quality',
+        roles: ['quality', 'quality_manager', 'qc_inspector'],
         icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>',
         children: [
             { to: '/quality/checks', label: 'Quality Checks' },
@@ -302,6 +322,7 @@ const navigationGroups: NavGroup[] = [
     {
         label: 'Assets',
         prefix: '/assets',
+        roles: ['assets', 'asset_manager', 'facilities'],
         icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>',
         children: [
             { to: '/assets/assets', label: 'Assets' },
@@ -311,16 +332,45 @@ const navigationGroups: NavGroup[] = [
     {
         label: 'Field Service',
         to: '/field-service/tickets',
+        roles: ['field_service', 'technician', 'dispatcher'],
         icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>',
     },
     {
         label: 'LMS',
         prefix: '/lms',
+        roles: ['lms', 'instructor', 'learner', 'training_manager'],
         icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>',
         children: [
             { to: '/lms/courses', label: 'Courses' },
             { to: '/lms/enrollments', label: 'Enrollments' },
         ],
+    },
+    {
+        label: 'Network',
+        prefix: '/network',
+        icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>',
+        children: [
+            { to: '/network/feed', label: 'Feed' },
+            { to: '/network/discovery', label: 'Discovery' },
+            { to: '/network/profile', label: 'My Profile' },
+            { to: '/network/connections', label: 'Connections' },
+            { to: '/network/following', label: 'Following' },
+        ],
+    },
+    {
+        label: 'Expenses',
+        to: '/expenses',
+        icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" /></svg>',
+    },
+    {
+        label: 'Documents',
+        to: '/documents',
+        icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>',
+    },
+    {
+        label: 'Contracts',
+        to: '/contracts',
+        icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>',
     },
     {
         label: 'Reports',
@@ -333,6 +383,17 @@ const navigationGroups: NavGroup[] = [
         icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>',
     },
 ];
+
+// Filter nav based on user roles — show everything when user has no roles assigned
+const visibleNav = computed(() => {
+    const userRoleNames = authStore.userRoles();
+    if (userRoleNames.length === 0) return navigationGroups; // no roles = full access
+    const isAdmin = userRoleNames.includes('admin') || userRoleNames.includes('super_admin');
+    if (isAdmin) return navigationGroups;
+    return navigationGroups.filter(item =>
+        !item.roles || item.roles.some(r => userRoleNames.includes(r))
+    );
+});
 
 // ── Expandable groups state ──────────────────────────────────────────────────
 const openGroups = ref<string[]>([]);

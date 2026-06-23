@@ -4,13 +4,15 @@ namespace App\Models\Finance;
 
 use App\Models\HR\Department;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Budget extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'finance_budgets';
 
@@ -18,6 +20,8 @@ class Budget extends Model
         'code', 'name', 'account_id', 'department_id', 'fiscal_year', 'period',
         'period_number', 'budgeted_amount', 'actual_amount', 'status',
         'start_date', 'end_date', 'notes', 'created_by',
+        // New fields
+        'period_type', 'year',
     ];
 
     protected $casts = [
@@ -25,7 +29,13 @@ class Budget extends Model
         'actual_amount' => 'decimal:2',
         'start_date' => 'date',
         'end_date' => 'date',
+        'year' => 'integer',
     ];
+
+    public function lines(): HasMany
+    {
+        return $this->hasMany(BudgetLine::class, 'budget_id');
+    }
 
     public function account(): BelongsTo
     {

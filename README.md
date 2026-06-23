@@ -206,4 +206,6 @@ Coverage: Auth, Finance, Inventory, HR, Sales, Procurement, Manufacturing, Proje
 
 ## License
 
-MIT — see [LICENSE](LICENSE)
+Apache License 2.0 — see [LICENSE](LICENSE)
+
+Copyright 2025 [TPT Solutions](https://github.com/TPT-Solutions)

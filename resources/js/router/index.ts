@@ -212,7 +212,30 @@ const routes: RouteRecordRaw[] = [
                 name: 'settings',
                 component: () => import('@/views/SettingsView.vue'),
             },
+            // Network
+            { path: 'network/feed', name: 'network.feed', component: () => import('@/views/network/NetworkFeedView.vue') },
+            { path: 'network/discovery', name: 'network.discovery', component: () => import('@/views/network/NetworkDiscoveryView.vue') },
+            { path: 'network/profile', name: 'network.profile', component: () => import('@/views/network/MyProfileView.vue') },
+            { path: 'network/connections', name: 'network.connections', component: () => import('@/views/network/ConnectionsView.vue') },
+            { path: 'network/following', name: 'network.following', component: () => import('@/views/network/FollowingView.vue') },
+            // Marketing
+            { path: 'marketing/campaigns', name: 'marketing.campaigns', component: () => import('@/views/marketing/CampaignsView.vue') },
+            { path: 'marketing/leads', name: 'marketing.leads', component: () => import('@/views/marketing/LeadsView.vue') },
+            // Expenses
+            { path: 'expenses', name: 'expenses', component: () => import('@/views/expenses/ExpensesView.vue') },
+            // Finance budgets
+            { path: 'finance/budgets', name: 'finance.budgets', component: () => import('@/views/finance/BudgetsView.vue') },
+            // Documents
+            { path: 'documents', name: 'documents', component: () => import('@/views/documents/DocumentsView.vue') },
+            // Contracts
+            { path: 'contracts', name: 'contracts', component: () => import('@/views/contracts/ContractsView.vue') },
         ],
+    },
+    {
+        path: '/onboarding',
+        name: 'onboarding',
+        component: () => import('@/views/onboarding/OnboardingWizardView.vue'),
+        meta: { requiresAuth: true },
     },
     {
         path: '/:pathMatch(.*)*',

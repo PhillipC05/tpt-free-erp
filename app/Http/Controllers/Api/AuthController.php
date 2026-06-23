@@ -32,6 +32,7 @@ class AuthController extends BaseApiController
         }
 
         $token = $user->createToken('api-token')->plainTextToken;
+        $user->load('roles');
 
         return $this->respond([
             'success' => true,
@@ -55,6 +56,7 @@ class AuthController extends BaseApiController
         ]);
 
         $token = $user->createToken('api-token')->plainTextToken;
+        $user->load('roles');
 
         return $this->respond([
             'success' => true,
@@ -73,7 +75,7 @@ class AuthController extends BaseApiController
 
     public function me(Request $request): JsonResponse
     {
-        return $this->respond(['success' => true, 'data' => $request->user()]);
+        return $this->respond(['success' => true, 'data' => $request->user()->load('roles')]);
     }
 
     public function refresh(Request $request): JsonResponse

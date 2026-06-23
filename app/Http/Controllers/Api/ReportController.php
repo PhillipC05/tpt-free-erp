@@ -2,17 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Api\Finance\ReportController as FinanceReportController;
-use App\Models\Finance\Transaction;
+use App\Jobs\ReportGenerationJob;
 use App\Models\HR\Attendance;
-use App\Models\HR\Employee;
-use App\Models\Sales\Invoice;
+use App\Models\HR\Payroll;
 use App\Models\Sales\Order;
 use App\Models\Procurement\PurchaseOrder;
-use App\Models\Projects\Project;
-use App\Models\Projects\TimeEntry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ReportController extends BaseApiController
 {
@@ -21,202 +18,208 @@ class ReportController extends BaseApiController
         parent::__construct();
     }
 
-    // ===== Finance reports (delegated to Finance\ReportController) =====
-
-    public function balanceSheet(Request $request): JsonResponse
+    // POST /api/v1/reports/generate
+    public function generate(Request $request): JsonResponse
     {
-        return (new FinanceReportController())->balanceSheet($request);
-    }
+        $error = $this->validate($request->all(), [
+            'report_type' => 'required|string|in:trial_balance,income_statement,balance_sheet,cash_flow,hr_attendance,hr_payroll,sales_summary,procurement',
+            'start_date'  => 'nullable|date',
+            'end_date'    => 'nullable|date',
+            'date'        => 'nullable|date',
+            'format'      => 'nullable|string|in:json,csv',
+        ]);
+        if ($error) return $error;
 
-    public function incomeStatement(Request $request): JsonResponse
-    {
-        return (new FinanceReportController())->incomeStatement($request);
-    }
+        $parameters = array_filter([
+            'start_date' => $request->start_date,
+            'end_date'   => $request->end_date,
+            'date'       => $request->date,
+        ]);
 
-    public function trialBalance(Request $request): JsonResponse
-    {
-        return (new FinanceReportController())->trialBalance($request);
-    }
+        $reportId = DB::table('generated_reports')->insertGetId([
+            'user_id'     => $request->user()->id,
+            'report_type' => $request->report_type,
+            'parameters'  => json_encode($parameters),
+            'format'      => $request->format ?? 'json',
+            'status'      => 'queued',
+            'created_at'  => now(),
+            'updated_at'  => now(),
+        ]);
 
-    public function cashFlow(Request $request): JsonResponse
-    {
-        $startDate = $request->query('start_date', now()->startOfMonth()->toDateString());
-        $endDate = $request->query('end_date', now()->toDateString());
+        ReportGenerationJob::dispatch(
+            $request->user()->id,
+            $request->report_type,
+            $parameters,
+            $request->format ?? 'json',
+            null,
+            null,
+            $reportId
+        );
 
-        $inflows = (float) Transaction::where('type', 'debit')
-            ->where('status', 'posted')
-            ->whereBetween('transaction_date', [$startDate, $endDate])
-            ->sum('amount');
-
-        $outflows = (float) Transaction::where('type', 'credit')
-            ->where('status', 'posted')
-            ->whereBetween('transaction_date', [$startDate, $endDate])
-            ->sum('amount');
-
-        return $this->respond([
-            'success' => true,
-            'data' => [
-                'period' => ['start' => $startDate, 'end' => $endDate],
-                'total_inflows' => $inflows,
-                'total_outflows' => $outflows,
-                'net_cash_flow' => $inflows - $outflows,
-            ],
+        return $this->respondCreated([
+            'report_id' => $reportId,
+            'status'    => 'queued',
+            'message'   => 'Report generation queued. Poll GET /api/v1/reports/' . $reportId . ' for status.',
         ]);
     }
 
-    // ===== HR reports =====
+    // GET /api/v1/reports/{id}
+    public function show(Request $request, int $id): JsonResponse
+    {
+        $report = DB::table('generated_reports')
+            ->where('id', $id)
+            ->where('user_id', $request->user()->id)
+            ->first();
 
+        if (!$report) return $this->respondNotFound();
+
+        $data = (array) $report;
+        if ($data['result_data']) {
+            $data['result_data'] = json_decode($data['result_data'], true);
+        }
+
+        return $this->respondSuccess('Report retrieved', $data);
+    }
+
+    // GET /api/v1/reports/{id}/download
+    public function download(Request $request, int $id): JsonResponse|\Illuminate\Http\Response
+    {
+        $report = DB::table('generated_reports')
+            ->where('id', $id)
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        if (!$report) return $this->respondNotFound();
+        if ($report->status !== 'completed') {
+            return $this->respondError('Report not ready yet', 422);
+        }
+
+        $data = json_decode($report->result_data, true);
+        $format = $report->format ?? 'json';
+
+        if ($format === 'csv') {
+            $rows = $data['rows'] ?? [];
+            $csv = $this->toCsv($rows);
+            return response($csv, 200, [
+                'Content-Type'        => 'text/csv',
+                'Content-Disposition' => "attachment; filename=\"report_{$id}.csv\"",
+            ]);
+        }
+
+        return $this->respondSuccess('Report download', $data);
+    }
+
+    // GET /api/v1/reports/scheduled
+    public function scheduledIndex(Request $request): JsonResponse
+    {
+        $scheduled = DB::table('scheduled_reports')
+            ->where('user_id', $request->user()->id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        return $this->respondSuccess('Scheduled reports retrieved', $scheduled);
+    }
+
+    // POST /api/v1/reports/scheduled
+    public function scheduledStore(Request $request): JsonResponse
+    {
+        $error = $this->validate($request->all(), [
+            'name'           => 'required|string|max:200',
+            'report_type'    => 'required|string|in:trial_balance,income_statement,balance_sheet,cash_flow,hr_attendance,hr_payroll,sales_summary,procurement',
+            'frequency'      => 'required|string|in:hourly,daily,weekly,monthly',
+            'format'         => 'nullable|string|in:json,csv',
+            'delivery_email' => 'nullable|email',
+            'parameters'     => 'nullable|array',
+        ]);
+        if ($error) return $error;
+
+        $nextRun = match ($request->frequency) {
+            'hourly'  => now()->addHour(),
+            'daily'   => now()->addDay()->startOfDay(),
+            'weekly'  => now()->addWeek()->startOfDay(),
+            'monthly' => now()->addMonth()->startOfDay(),
+        };
+
+        $id = DB::table('scheduled_reports')->insertGetId([
+            'user_id'        => $request->user()->id,
+            'name'           => $request->name,
+            'report_type'    => $request->report_type,
+            'parameters'     => json_encode($request->parameters ?? []),
+            'format'         => $request->format ?? 'json',
+            'frequency'      => $request->frequency,
+            'next_run_at'    => $nextRun,
+            'delivery_email' => $request->delivery_email,
+            'is_active'      => true,
+            'created_at'     => now(),
+            'updated_at'     => now(),
+        ]);
+
+        return $this->respondCreated(['id' => $id, 'next_run_at' => $nextRun]);
+    }
+
+    // DELETE /api/v1/reports/scheduled/{id}
+    public function scheduledDestroy(Request $request, int $id): JsonResponse
+    {
+        $deleted = DB::table('scheduled_reports')
+            ->where('id', $id)
+            ->where('user_id', $request->user()->id)
+            ->delete();
+
+        if (!$deleted) return $this->respondNotFound();
+        return $this->respondSuccess('Scheduled report deleted');
+    }
+
+    // HR reports (used in routes)
     public function attendance(Request $request): JsonResponse
     {
         $startDate = $request->query('start_date', now()->startOfMonth()->toDateString());
-        $endDate = $request->query('end_date', now()->toDateString());
+        $endDate   = $request->query('end_date', now()->toDateString());
 
-        $query = Attendance::whereBetween('date', [$startDate, $endDate]);
-
-        $summary = [
-            'present' => (clone $query)->where('status', 'present')->count(),
-            'absent' => (clone $query)->where('status', 'absent')->count(),
-            'late' => (clone $query)->where('status', 'late')->count(),
-            'total_hours' => (float) (clone $query)->sum('total_hours'),
-        ];
+        $records = Attendance::with('employee:id,first_name,last_name,employee_number')
+            ->whereBetween('date', [$startDate, $endDate])
+            ->orderBy('date')
+            ->get();
 
         return $this->respond([
             'success' => true,
             'data' => [
-                'period' => ['start' => $startDate, 'end' => $endDate],
-                'summary' => $summary,
+                'period'  => ['start' => $startDate, 'end' => $endDate],
+                'records' => $records,
+                'total'   => $records->count(),
             ],
         ]);
     }
 
     public function payroll(Request $request): JsonResponse
     {
-        $month = $request->query('month', now()->format('Y-m'));
-
-        $employeeCount = Employee::where('status', 'active')->count();
-
-        return $this->respond([
-            'success' => true,
-            'data' => [
-                'month' => $month,
-                'active_employees' => $employeeCount,
-                'total_gross' => 0,
-                'total_deductions' => 0,
-                'total_net' => 0,
-            ],
-        ]);
-    }
-
-    // ===== Sales reports =====
-
-    public function sales(Request $request): JsonResponse
-    {
-        $startDate = $request->query('start_date', now()->startOfMonth()->toDateString());
-        $endDate = $request->query('end_date', now()->toDateString());
-
-        $totalOrders = Order::whereBetween('created_at', [$startDate, $endDate])->count();
-        $totalRevenue = (float) Invoice::whereBetween('invoice_date', [$startDate, $endDate])
-            ->where('status', 'paid')
-            ->sum('total_amount');
-
-        return $this->respond([
-            'success' => true,
-            'data' => [
-                'period' => ['start' => $startDate, 'end' => $endDate],
-                'total_orders' => $totalOrders,
-                'total_revenue' => $totalRevenue,
-            ],
-        ]);
-    }
-
-    public function customer(Request $request): JsonResponse
-    {
         $startDate = $request->query('start_date', now()->startOfYear()->toDateString());
-        $endDate = $request->query('end_date', now()->toDateString());
+        $endDate   = $request->query('end_date', now()->toDateString());
+
+        $records = Payroll::with('employee:id,first_name,last_name')
+            ->whereBetween('period_start', [$startDate, $endDate])
+            ->orderByDesc('period_start')
+            ->get();
 
         return $this->respond([
             'success' => true,
             'data' => [
-                'period' => ['start' => $startDate, 'end' => $endDate],
-                'new_customers' => 0,
-                'active_customers' => 0,
+                'period'  => ['start' => $startDate, 'end' => $endDate],
+                'records' => $records,
+                'total_gross' => $records->sum('gross_pay'),
+                'total_net'   => $records->sum('net_pay'),
             ],
         ]);
     }
 
-    // ===== Procurement reports =====
-
-    public function purchases(Request $request): JsonResponse
+    private function toCsv(array $rows): string
     {
-        $startDate = $request->query('start_date', now()->startOfMonth()->toDateString());
-        $endDate = $request->query('end_date', now()->toDateString());
-
-        $totalPOs = PurchaseOrder::whereBetween('order_date', [$startDate, $endDate])->count();
-        $totalValue = (float) PurchaseOrder::whereBetween('order_date', [$startDate, $endDate])
-            ->sum('total_amount');
-
-        return $this->respond([
-            'success' => true,
-            'data' => [
-                'period' => ['start' => $startDate, 'end' => $endDate],
-                'total_purchase_orders' => $totalPOs,
-                'total_value' => $totalValue,
-            ],
-        ]);
-    }
-
-    // ===== Projects reports =====
-
-    public function projects(Request $request): JsonResponse
-    {
-        $total = Project::count();
-        $active = Project::where('status', 'active')->count();
-        $totalHours = (float) TimeEntry::sum('hours');
-
-        return $this->respond([
-            'success' => true,
-            'data' => [
-                'total_projects' => $total,
-                'active_projects' => $active,
-                'total_logged_hours' => $totalHours,
-            ],
-        ]);
-    }
-
-    // ===== Generic report endpoints =====
-
-    public function index(Request $request): JsonResponse
-    {
-        return $this->respondSuccess('Available reports', [
-            'finance' => ['balance-sheet', 'income-statement', 'cash-flow', 'trial-balance'],
-            'hr' => ['attendance', 'payroll'],
-            'sales' => ['sales', 'customer'],
-            'procurement' => ['purchases'],
-            'projects' => ['projects'],
-        ]);
-    }
-
-    public function available(Request $request): JsonResponse
-    {
-        return $this->index($request);
-    }
-
-    public function generate(Request $request): JsonResponse
-    {
-        $error = $this->validate($request->all(), [
-            'report_type' => 'required|string',
-            'parameters' => 'nullable|array',
-        ]);
-        if ($error) return $error;
-
-        return $this->respondSuccess('Report generation queued', [
-            'report_type' => $request->report_type,
-            'status' => 'queued',
-        ]);
-    }
-
-    public function scheduled(): JsonResponse
-    {
-        return $this->respondSuccess('Scheduled reports', ['scheduled' => []]);
+        if (empty($rows)) return '';
+        $header = array_keys((array) (is_array($rows[0]) ? $rows[0] : (array) $rows[0]));
+        $lines  = [implode(',', array_map(fn($h) => '"' . $h . '"', $header))];
+        foreach ($rows as $row) {
+            $row = (array) $row;
+            $lines[] = implode(',', array_map(fn($v) => '"' . str_replace('"', '""', (string) $v) . '"', $row));
+        }
+        return implode("\n", $lines);
     }
 }

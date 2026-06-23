@@ -170,6 +170,59 @@ class ReportController extends BaseApiController
         ]);
     }
 
+    public function cashFlow(Request $request): JsonResponse
+    {
+        $startDate = $request->query('start_date', now()->startOfYear()->toDateString());
+        $endDate   = $request->query('end_date', now()->toDateString());
+
+        $accounts = Account::where('is_active', true)->get()->groupBy('type');
+
+        $buildSection = function (array $types) use ($accounts, $startDate, $endDate): array {
+            $items = [];
+            $net   = 0.0;
+
+            foreach ($types as $type) {
+                foreach ($accounts->get($type, collect()) as $account) {
+                    $query = Transaction::where('account_id', $account->id)
+                        ->where('status', 'posted')
+                        ->whereBetween('transaction_date', [$startDate, $endDate]);
+
+                    $debits  = (float) (clone $query)->where('type', 'debit')->sum('amount');
+                    $credits = (float) (clone $query)->where('type', 'credit')->sum('amount');
+                    $flow    = $credits - $debits;
+
+                    if (abs($flow) > 0.001) {
+                        $items[] = [
+                            'account_code' => $account->code,
+                            'account_name' => $account->name,
+                            'type'         => $account->type,
+                            'flow'         => $flow,
+                        ];
+                        $net += $flow;
+                    }
+                }
+            }
+
+            return ['items' => $items, 'net' => $net];
+        };
+
+        $operating  = $buildSection(['revenue', 'expense']);
+        $investing  = $buildSection(['asset']);
+        $financing  = $buildSection(['liability', 'equity']);
+        $netChange  = $operating['net'] + $investing['net'] + $financing['net'];
+
+        return $this->respond([
+            'success' => true,
+            'data' => [
+                'period'            => ['start' => $startDate, 'end' => $endDate],
+                'operating'         => $operating,
+                'investing'         => $investing,
+                'financing'         => $financing,
+                'net_change'        => $netChange,
+            ],
+        ]);
+    }
+
     private function getAccountBalance(int $accountId, ?string $startDate, ?string $endDate): float
     {
         $query = Transaction::where('account_id', $accountId)->where('status', 'posted');

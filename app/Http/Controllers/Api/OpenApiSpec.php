@@ -8,8 +8,8 @@ use OpenApi\Attributes as OA;
     version: '1.0.0',
     title: 'TPT Free ERP API',
     description: 'Open-source Enterprise Resource Planning REST API. Finance, Inventory, HR, Sales, Procurement, Manufacturing, Projects, Quality, Assets, Field Service, and LMS.',
-    contact: new OA\Contact(email: 'support@tpt-erp.com'),
-    license: new OA\License(name: 'MIT', url: 'https://opensource.org/licenses/MIT')
+    contact: new OA\Contact(email: 'support@tptsolutions.co.nz'),
+    license: new OA\License(name: 'Apache-2.0', url: 'https://www.apache.org/licenses/LICENSE-2.0')
 )]
 #[OA\Server(url: '/api', description: 'API Server')]
 #[OA\SecurityScheme(

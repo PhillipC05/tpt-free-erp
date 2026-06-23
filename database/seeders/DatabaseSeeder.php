@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             CurrencySeeder::class,
             TaxRateSeeder::class,
+            OnboardingPresetSeeder::class,
 
             // Chart of Accounts — swap to CoaSimpleSeeder or CoaManufacturingSeeder for different templates:
             //   php artisan migrate:fresh --seed (uses CoaStandardSeeder by default)

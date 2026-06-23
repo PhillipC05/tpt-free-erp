@@ -35,8 +35,17 @@
                     <input type="date" v-model="endDate" class="block rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500" />
                 </div>
             </template>
+            <template v-if="activeTab === 'cash-flow'">
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Start date</label>
+                    <input type="date" v-model="startDate" class="block rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">End date</label>
+                    <input type="date" v-model="endDate" class="block rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                </div>
+            </template>
             <button
-                v-if="activeTab !== 'cash-flow'"
                 @click="runReport"
                 :disabled="loading"
                 class="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white text-sm font-medium rounded-md transition-colors"
@@ -261,17 +270,57 @@
             </div>
         </div>
 
-        <!-- ── CASH FLOW (placeholder) ─────────────────────── -->
-        <div v-if="activeTab === 'cash-flow'" class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-12 text-center">
-            <svg class="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            <p class="text-gray-500 dark:text-gray-400 font-medium">Cash Flow Statement</p>
-            <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">Coming soon — requires journal entry classification by activity type.</p>
+        <!-- ── CASH FLOW ───────────────────────────────────── -->
+        <div v-if="activeTab === 'cash-flow' && reportData">
+            <div class="text-center mb-4">
+                <p class="text-xs text-gray-500 dark:text-gray-400">Period: {{ reportData.period?.start }} — {{ reportData.period?.end }}</p>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Section renderer helper -->
+                <template v-for="section in cashFlowSections" :key="section.key">
+                    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div :class="['px-4 py-3 border-b border-gray-200 dark:border-gray-700', section.headerClass]">
+                            <h3 :class="['text-sm font-semibold', section.titleClass]">{{ section.label }}</h3>
+                        </div>
+                        <table class="w-full text-sm">
+                            <tbody>
+                                <tr v-if="reportData[section.key]?.items?.length === 0">
+                                    <td colspan="3" class="px-4 py-3 text-gray-400 dark:text-gray-500 text-center text-xs">No activity in period</td>
+                                </tr>
+                                <tr v-for="item in reportData[section.key]?.items" :key="item.account_code"
+                                    class="border-b border-gray-100 dark:border-gray-700/50">
+                                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">{{ item.account_code }}</td>
+                                    <td class="px-4 py-2 text-gray-900 dark:text-gray-100">{{ item.account_name }}</td>
+                                    <td :class="['px-4 py-2 text-right font-mono', item.flow >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400']">
+                                        {{ formatCurrency(item.flow) }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr :class="['font-semibold', section.footerClass]">
+                                    <td colspan="2" :class="['px-4 py-2', section.totalLabelClass]">Net {{ section.label }}</td>
+                                    <td :class="['px-4 py-2 text-right font-mono', reportData[section.key]?.net >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400']">
+                                        {{ formatCurrency(reportData[section.key]?.net ?? 0) }}
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </template>
+
+                <!-- Net change summary -->
+                <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between">
+                    <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Net Change in Cash</span>
+                    <span :class="['text-sm font-bold font-mono', reportData.net_change >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400']">
+                        {{ formatCurrency(reportData.net_change) }}
+                    </span>
+                </div>
+            </div>
         </div>
 
         <!-- Empty state when no report run yet -->
-        <div v-if="!reportData && !loading && !error && activeTab !== 'cash-flow'" class="bg-white dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 p-12 text-center">
+        <div v-if="!reportData && !loading && !error" class="bg-white dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 p-12 text-center">
             <svg class="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
@@ -307,7 +356,35 @@ const ENDPOINTS: Record<string, string> = {
     'balance-sheet': '/finance/reports/balance-sheet',
     'income-statement': '/finance/reports/income-statement',
     'trial-balance': '/finance/reports/trial-balance',
+    'cash-flow': '/finance/reports/cash-flow',
 };
+
+const cashFlowSections = [
+    {
+        key: 'operating',
+        label: 'Operating Activities',
+        headerClass: 'bg-blue-50 dark:bg-blue-900/20',
+        titleClass: 'text-blue-800 dark:text-blue-300',
+        footerClass: 'bg-blue-50 dark:bg-blue-900/20',
+        totalLabelClass: 'text-blue-800 dark:text-blue-300',
+    },
+    {
+        key: 'investing',
+        label: 'Investing Activities',
+        headerClass: 'bg-purple-50 dark:bg-purple-900/20',
+        titleClass: 'text-purple-800 dark:text-purple-300',
+        footerClass: 'bg-purple-50 dark:bg-purple-900/20',
+        totalLabelClass: 'text-purple-800 dark:text-purple-300',
+    },
+    {
+        key: 'financing',
+        label: 'Financing Activities',
+        headerClass: 'bg-orange-50 dark:bg-orange-900/20',
+        titleClass: 'text-orange-800 dark:text-orange-300',
+        footerClass: 'bg-orange-50 dark:bg-orange-900/20',
+        totalLabelClass: 'text-orange-800 dark:text-orange-300',
+    },
+];
 
 async function runReport() {
     if (!ENDPOINTS[activeTab.value]) return;
@@ -316,7 +393,7 @@ async function runReport() {
     reportData.value = null;
 
     const params: Record<string, string> = {};
-    if (activeTab.value === 'income-statement') {
+    if (activeTab.value === 'income-statement' || activeTab.value === 'cash-flow') {
         params.start_date = startDate.value;
         params.end_date = endDate.value;
     } else {

@@ -230,6 +230,8 @@ const routes: RouteRecordRaw[] = [
             { path: 'documents', name: 'documents', component: () => import('@/views/documents/DocumentsView.vue') },
             // Contracts
             { path: 'contracts', name: 'contracts', component: () => import('@/views/contracts/ContractsView.vue') },
+            // E-Signatures (management)
+            { path: 'esignatures', name: 'esignatures', component: () => import('@/views/esignature/ESignatureView.vue') },
             // AI Agents
             { path: 'agents', name: 'agents', component: () => import('@/views/agents/AgentsView.vue') },
             { path: 'agents/skills/catalog', name: 'agents.skill-catalog', component: () => import('@/views/agents/SkillCatalogView.vue') },
@@ -238,6 +240,13 @@ const routes: RouteRecordRaw[] = [
             // Scheduled Reports
             { path: 'reports/scheduled', name: 'reports.scheduled', component: () => import('@/views/reports/ScheduledReportsView.vue') },
         ],
+    },
+    {
+        // Public signing page — no auth required, accessed via emailed link
+        path: '/esignatures/sign/:token',
+        name: 'esignatures.sign',
+        component: () => import('@/views/esignature/SigningView.vue'),
+        meta: { guest: false }, // allow all (auth not required)
     },
     {
         path: '/onboarding',

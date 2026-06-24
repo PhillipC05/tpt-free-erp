@@ -53,6 +53,7 @@ use App\Http\Controllers\Api\Expenses\ExpenseController;
 use App\Http\Controllers\Api\Expenses\ExpenseItemController;
 use App\Http\Controllers\Api\Documents\DocumentController;
 use App\Http\Controllers\Api\Contracts\ContractController;
+use App\Http\Controllers\Api\Contracts\ContractMilestoneController;
 use App\Http\Controllers\Api\WebhookController;
 use App\Http\Controllers\Api\OnboardingController;
 use App\Http\Controllers\Api\Agent\AgentController;
@@ -60,6 +61,7 @@ use App\Http\Controllers\Api\Agent\AgentTokenController;
 use App\Http\Controllers\Api\Agent\AgentSkillController;
 use App\Http\Controllers\Api\Agent\AgentExecutionController;
 use App\Http\Controllers\Api\Agent\AgentScheduleController;
+use App\Http\Controllers\Api\ESignature\ESignatureController;
 
 /*
 |--------------------------------------------------------------------------
@@ -78,6 +80,13 @@ Route::middleware('throttle:5,1')->group(function () {
     Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
     Route::post('/auth/magic-link/send', [AuthController::class, 'sendMagicLink']);
     Route::post('/auth/magic-link/verify', [AuthController::class, 'verifyMagicLink']);
+});
+
+// ===== PUBLIC E-SIGNATURE ENDPOINTS (no auth — accessed via emailed token link) =====
+Route::prefix('esignatures/sign')->group(function () {
+    Route::get('/{token}', [ESignatureController::class, 'getByToken']);
+    Route::post('/{token}', [ESignatureController::class, 'sign']);
+    Route::post('/{token}/decline', [ESignatureController::class, 'decline']);
 });
 
 // ===== HEALTH CHECK =====
@@ -618,6 +627,38 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
         });
         Route::middleware('permission:contracts.delete')->group(function () {
             Route::delete('/{contract}', [ContractController::class, 'destroy']);
+        });
+
+        // Milestones
+        Route::middleware('permission:contracts.view')->group(function () {
+            Route::get('/{contract}/milestones', [ContractMilestoneController::class, 'index']);
+            Route::get('/{contract}/milestones/{milestone}', [ContractMilestoneController::class, 'show']);
+        });
+        Route::middleware('permission:contracts.create')->group(function () {
+            Route::post('/{contract}/milestones', [ContractMilestoneController::class, 'store']);
+        });
+        Route::middleware('permission:contracts.edit')->group(function () {
+            Route::put('/{contract}/milestones/{milestone}', [ContractMilestoneController::class, 'update']);
+            Route::patch('/{contract}/milestones/{milestone}', [ContractMilestoneController::class, 'update']);
+            Route::patch('/{contract}/milestones/{milestone}/complete', [ContractMilestoneController::class, 'complete']);
+        });
+        Route::middleware('permission:contracts.delete')->group(function () {
+            Route::delete('/{contract}/milestones/{milestone}', [ContractMilestoneController::class, 'destroy']);
+        });
+    });
+
+    // ===== E-SIGNATURE MODULE =====
+    Route::prefix('esignatures')->group(function () {
+        Route::middleware('permission:contracts.view')->group(function () {
+            Route::get('/', [ESignatureController::class, 'index']);
+            Route::get('/{id}', [ESignatureController::class, 'show']);
+            Route::get('/{id}/verify', [ESignatureController::class, 'verify']);
+        });
+        Route::middleware('permission:contracts.create')->group(function () {
+            Route::post('/', [ESignatureController::class, 'store']);
+        });
+        Route::middleware('permission:contracts.delete')->group(function () {
+            Route::delete('/{id}', [ESignatureController::class, 'destroy']);
         });
     });
 

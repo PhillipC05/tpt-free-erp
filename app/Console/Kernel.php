@@ -3,6 +3,7 @@
 namespace App\Console;
 
 use App\Console\Commands\CleanExpiredReports;
+use App\Console\Commands\NotifyContractExpiry;
 use App\Console\Commands\RunScheduledReports;
 use App\Console\Commands\SeedCampaignAnalytics;
 use App\Console\Commands\SyncSkills;
@@ -14,6 +15,7 @@ class Kernel extends ConsoleKernel
 {
     protected $commands = [
         CleanExpiredReports::class,
+        NotifyContractExpiry::class,
         RunScheduledReports::class,
         SeedCampaignAnalytics::class,
         SyncSkills::class,
@@ -28,6 +30,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('agents:run-schedules')->everyMinute();
         // Clean up expired generated reports daily
         $schedule->command('reports:clean-expired')->daily();
+        // Alert creators/signers about contracts expiring in 30, 7, or 1 day(s)
+        $schedule->command('contracts:notify-expiry')->dailyAt('08:00');
         // Seed yesterday's campaign analytics rows for all active campaigns
         $schedule->command('marketing:seed-analytics')->dailyAt('01:00');
     }

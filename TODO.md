@@ -418,7 +418,7 @@
 - [x] Feature tests: `tests/Feature/Contracts/ContractTest.php`
 - [ ] Add milestone CRUD endpoints (`/api/v1/contracts/{id}/milestones`)
 - [ ] Add contract expiry alert (auto-notify 30/7/1 days before end_date)
-- [ ] Add e-signature integration (DocuSign/SignNow) — Phase 7
+- [x] Add in-house e-signature module — `ESignature` model, controller, migration, factory, 14 tests, Vue management view + public signing page with canvas/typed modes, token-based audit trail with SHA-256 tamper detection
 
 ### Onboarding Wizard (15-Industry Preset)
 - [x] Migration: `onboarding_presets`, `onboarding_completions` tables
@@ -446,7 +446,7 @@
 - [ ] **Fleet Management** — for Transportation & Field Services
 - [ ] **Subscription/Recurring Billing** — for Technology/SaaS
 - [ ] **Donor/Grant Management** — for Non-Profit sector
-- [ ] **E-signature Integration** — link to Contracts module
+- [x] **E-signature Module** — in-house, token-based, audit trail + SHA-256 tamper detection (linked to Contracts + Documents)
 - [ ] **Email Campaign Sending** — link to Marketing module
 - [ ] **API rate limiting tiers** — premium vs. standard per-user limits
 - [ ] **Developer Portal** — self-service API key management + usage analytics

@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api\Network;
 
 use App\Http\Controllers\Api\BaseApiController;
 use App\Models\Network\UserConnection;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ConnectionController extends BaseApiController
 {
@@ -60,6 +62,26 @@ class ConnectionController extends BaseApiController
             'status' => 'pending',
             'message' => $request->input('message'),
         ]);
+
+        // Notify the addressee about the incoming connection request
+        $addressee = User::find($userId);
+        if ($addressee) {
+            DB::table('notifications')->insert([
+                'id'               => \Illuminate\Support\Str::uuid(),
+                'type'             => 'connection_request',
+                'notifiable_type'  => User::class,
+                'notifiable_id'    => $userId,
+                'data'             => json_encode([
+                    'type'           => 'connection_request',
+                    'requester_id'   => $request->user()->id,
+                    'requester_name' => $request->user()->name,
+                    'connection_id'  => $connection->id,
+                    'message'        => $connection->message,
+                ]),
+                'created_at'       => now(),
+                'updated_at'       => now(),
+            ]);
+        }
 
         return $this->respondCreated($connection);
     }

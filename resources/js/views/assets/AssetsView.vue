@@ -20,9 +20,19 @@
             </template>
             <template #actions="{ row }">
                 <button @click="openEdit(row)" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 mr-3 text-sm">Edit</button>
-                <button @click="deleteAsset(row.id)" class="text-red-600 hover:text-red-800 dark:text-red-400 text-sm">Delete</button>
+                <button @click="deleteAsset(row.id)" class="text-red-600 hover:text-red-800 dark:text-red-400 mr-3 text-sm">Delete</button>
+                <button @click="openDocs(row)" class="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 text-sm">Docs</button>
             </template>
         </DataTable>
+
+        <!-- Document Attachment Modal -->
+        <ModalDialog v-model="showDocsModal" :title="`Documents — ${selectedAssetName}`">
+            <DocumentAttachmentPanel
+                v-if="selectedAssetId"
+                documentable-type="App\Models\Assets\Asset"
+                :documentable-id="selectedAssetId"
+            />
+        </ModalDialog>
 
         <ModalDialog v-model="showModal" :title="editingAsset ? 'Edit Asset' : 'Add Asset'">
             <form @submit.prevent="submitForm" class="space-y-4">
@@ -83,11 +93,22 @@
 import { ref, reactive, onMounted } from 'vue';
 import DataTable from '@/components/DataTable.vue';
 import ModalDialog from '@/components/ModalDialog.vue';
+import DocumentAttachmentPanel from '@/components/DocumentAttachmentPanel.vue';
 import apiClient from '@/api/axios';
 import type { Asset } from '@/types';
 import { useNotificationStore } from '@/stores/notification';
 
 const notify = useNotificationStore();
+
+const showDocsModal = ref(false);
+const selectedAssetId = ref<number | null>(null);
+const selectedAssetName = ref('');
+
+function openDocs(row: any) {
+    selectedAssetId.value = row.id;
+    selectedAssetName.value = row.name ?? String(row.id);
+    showDocsModal.value = true;
+}
 const assets = ref<Asset[]>([]);
 const showModal = ref(false);
 const editingAsset = ref<Asset | null>(null);

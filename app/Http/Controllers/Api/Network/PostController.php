@@ -8,6 +8,7 @@ use App\Models\Network\NetworkPostComment;
 use App\Models\Network\NetworkPostReaction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PostController extends BaseApiController
 {
@@ -43,24 +44,60 @@ class PostController extends BaseApiController
             'body' => 'required|string',
             'type' => 'nullable|string|in:text,image,link,video',
             'visibility' => 'nullable|string|in:public,connections,private',
+            'attachment' => 'nullable|file|max:20480|mimes:jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,mp4,mov',
         ]);
 
         if ($error) {
             return $error;
         }
 
-        $post = NetworkPost::create([
+        $attachmentData = [];
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $attachmentData = [
+                'attachment_path' => $file->store('network/attachments', 'local'),
+                'attachment_name' => $file->getClientOriginalName(),
+                'attachment_mime' => $file->getMimeType(),
+                'attachment_size' => $file->getSize(),
+            ];
+        }
+
+        $post = NetworkPost::create(array_merge([
             'user_id' => $request->user()->id,
             'body' => $request->input('body'),
             'type' => $request->input('type', 'text'),
             'visibility' => $request->input('visibility', 'public'),
             'likes_count' => 0,
             'comments_count' => 0,
-        ]);
+        ], $attachmentData));
 
         $this->cacheFlush();
 
         return $this->respondCreated($post);
+    }
+
+    public function removeAttachment(Request $request, int $id): JsonResponse
+    {
+        $post = NetworkPost::where('id', $id)
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        if (!$post) {
+            return $this->respondNotFound('Post not found or you do not have permission to edit it');
+        }
+
+        if ($post->attachment_path) {
+            Storage::disk('local')->delete($post->attachment_path);
+            $post->update([
+                'attachment_path' => null,
+                'attachment_name' => null,
+                'attachment_mime' => null,
+                'attachment_size' => null,
+            ]);
+            $this->cacheFlush();
+        }
+
+        return $this->respondSuccess('Attachment removed', $post->fresh());
     }
 
     public function show(int $id): JsonResponse
@@ -107,6 +144,10 @@ class PostController extends BaseApiController
 
         if (!$post) {
             return $this->respondNotFound('Post not found or you do not have permission to delete it');
+        }
+
+        if ($post->attachment_path) {
+            Storage::disk('local')->delete($post->attachment_path);
         }
 
         $post->delete();

@@ -13,17 +13,39 @@
             <template #cell-paid_amount="{ value }">
                 ${{ Number(value).toLocaleString() }}
             </template>
+            <template #cell-actions="{ row }">
+                <button
+                    @click="openDocs(row as any)"
+                    class="text-xs text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
+                >
+                    Docs
+                </button>
+            </template>
         </DataTable>
+
+        <!-- Document Attachment Modal -->
+        <ModalDialog v-model="showDocsModal" :title="`Documents — Invoice #${selectedInvoiceNumber}`">
+            <DocumentAttachmentPanel
+                v-if="selectedInvoiceId"
+                documentable-type="App\Models\Sales\Invoice"
+                :documentable-id="selectedInvoiceId"
+            />
+        </ModalDialog>
     </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import DataTable from '@/components/DataTable.vue';
+import ModalDialog from '@/components/ModalDialog.vue';
+import DocumentAttachmentPanel from '@/components/DocumentAttachmentPanel.vue';
 import apiClient from '@/api/axios';
 import type { Invoice } from '@/types';
 
 const invoices = ref<Invoice[]>([]);
+const showDocsModal = ref(false);
+const selectedInvoiceId = ref<number | null>(null);
+const selectedInvoiceNumber = ref('');
 
 const columns = [
     { key: 'invoice_number', label: 'Invoice #', sortable: true },
@@ -32,7 +54,14 @@ const columns = [
     { key: 'total', label: 'Total', sortable: true },
     { key: 'paid_amount', label: 'Paid', sortable: true },
     { key: 'status', label: 'Status', sortable: true },
+    { key: 'actions', label: '' },
 ];
+
+function openDocs(row: any) {
+    selectedInvoiceId.value = row.id;
+    selectedInvoiceNumber.value = row.invoice_number ?? String(row.id);
+    showDocsModal.value = true;
+}
 
 function statusClass(status: string): string {
     const classes: Record<string, string> = {

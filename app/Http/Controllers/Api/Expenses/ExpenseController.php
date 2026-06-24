@@ -156,4 +156,32 @@ class ExpenseController extends BaseApiController
 
         return $this->respondSuccess('Expense report deleted successfully');
     }
+
+    public function summary(Request $request): JsonResponse
+    {
+        $query = ExpenseReport::query();
+
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->query('user_id'));
+        }
+
+        $reports = $query->get();
+
+        return $this->respond([
+            'success' => true,
+            'data' => [
+                'total_submitted' => $reports->whereIn('status', ['submitted', 'approved', 'paid'])->sum('total_amount'),
+                'total_approved' => $reports->whereIn('status', ['approved', 'paid'])->sum('total_amount'),
+                'total_pending' => $reports->where('status', 'submitted')->sum('total_amount'),
+                'count_by_status' => [
+                    'draft' => $reports->where('status', 'draft')->count(),
+                    'submitted' => $reports->where('status', 'submitted')->count(),
+                    'approved' => $reports->where('status', 'approved')->count(),
+                    'rejected' => $reports->where('status', 'rejected')->count(),
+                    'paid' => $reports->where('status', 'paid')->count(),
+                ],
+                'total_reports' => $reports->count(),
+            ],
+        ]);
+    }
 }

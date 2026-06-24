@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Finance\TransactionController;
 use App\Http\Controllers\Api\Finance\JournalEntryController;
 use App\Http\Controllers\Api\Finance\ReportController as FinanceReportController;
 use App\Http\Controllers\Api\Finance\BudgetController;
+use App\Http\Controllers\Api\Finance\BudgetLineController;
 use App\Http\Controllers\Api\Inventory\ProductController;
 use App\Http\Controllers\Api\Inventory\CategoryController;
 use App\Http\Controllers\Api\Inventory\WarehouseController;
@@ -49,6 +50,7 @@ use App\Http\Controllers\Api\Network\ConnectionController;
 use App\Http\Controllers\Api\Network\FeedController;
 use App\Http\Controllers\Api\Network\PostController;
 use App\Http\Controllers\Api\Expenses\ExpenseController;
+use App\Http\Controllers\Api\Expenses\ExpenseItemController;
 use App\Http\Controllers\Api\Documents\DocumentController;
 use App\Http\Controllers\Api\Contracts\ContractController;
 use App\Http\Controllers\Api\WebhookController;
@@ -138,12 +140,16 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
             Route::get('reports/trial-balance', [FinanceReportController::class, 'trialBalance']);
             Route::get('budgets', [BudgetController::class, 'index']);
             Route::get('budgets/{budget}', [BudgetController::class, 'show']);
+            Route::get('budgets/{budget}/lines', [BudgetLineController::class, 'index']);
+            Route::get('budgets/{budget}/lines/{line}', [BudgetLineController::class, 'show']);
+            Route::get('budgets/{budget}/variance', [BudgetLineController::class, 'variance']);
         });
         Route::middleware('permission:finance.create')->group(function () {
             Route::post('accounts', [AccountController::class, 'store']);
             Route::post('transactions', [TransactionController::class, 'store']);
             Route::post('journal-entries', [JournalEntryController::class, 'store']);
             Route::post('budgets', [BudgetController::class, 'store']);
+            Route::post('budgets/{budget}/lines', [BudgetLineController::class, 'store']);
         });
         Route::middleware('permission:finance.edit')->group(function () {
             Route::put('accounts/{account}', [AccountController::class, 'update']);
@@ -153,16 +159,21 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
             Route::put('journal-entries/{entry}', [JournalEntryController::class, 'update']);
             Route::patch('journal-entries/{entry}', [JournalEntryController::class, 'update']);
             Route::put('budgets/{budget}', [BudgetController::class, 'update']);
+            Route::put('budgets/{budget}/lines/{line}', [BudgetLineController::class, 'update']);
+            Route::patch('budgets/{budget}/lines/{line}', [BudgetLineController::class, 'update']);
         });
         Route::middleware('permission:finance.approve')->group(function () {
             Route::post('transactions/{transaction}/approve', [TransactionController::class, 'approve']);
             Route::post('transactions/{transaction}/void', [TransactionController::class, 'void']);
+            Route::post('budgets/{budget}/approve', [BudgetController::class, 'approve']);
+            Route::post('budgets/{budget}/close', [BudgetController::class, 'close']);
         });
         Route::middleware('permission:finance.delete')->group(function () {
             Route::delete('accounts/{account}', [AccountController::class, 'destroy']);
             Route::delete('transactions/{transaction}', [TransactionController::class, 'destroy']);
             Route::delete('journal-entries/{entry}', [JournalEntryController::class, 'destroy']);
             Route::delete('budgets/{budget}', [BudgetController::class, 'destroy']);
+            Route::delete('budgets/{budget}/lines/{line}', [BudgetLineController::class, 'destroy']);
         });
     });
 
@@ -480,6 +491,7 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
         });
         Route::middleware('permission:marketing.create')->group(function () {
             Route::post('campaigns', [CampaignController::class, 'store']);
+            Route::post('campaigns/{campaign}/send', [CampaignController::class, 'send']);
             Route::post('leads', [LeadController::class, 'store']);
         });
         Route::middleware('permission:marketing.edit')->group(function () {
@@ -503,6 +515,7 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
         Route::put('/profile', [NetworkProfileController::class, 'update']);
         Route::post('/profile/opt-in', [NetworkProfileController::class, 'optIn']);
         Route::post('/profile/opt-out', [NetworkProfileController::class, 'optOut']);
+        Route::post('/profile/avatar', [NetworkProfileController::class, 'uploadAvatar']);
         Route::get('/profiles/{profile}', [NetworkProfileController::class, 'show']);
 
         // Discovery (view discoverable profiles)
@@ -529,20 +542,28 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
         Route::post('/posts/{post}/react', [PostController::class, 'react']);
         Route::post('/posts/{post}/comments', [PostController::class, 'addComment']);
         Route::delete('/posts/{post}/comments/{comment}', [PostController::class, 'deleteComment']);
+        Route::delete('/posts/{post}/attachment', [PostController::class, 'removeAttachment']);
     });
 
     // ===== EXPENSES MODULE =====
     Route::prefix('expenses')->group(function () {
         Route::middleware('permission:expenses.view')->group(function () {
             Route::get('/', [ExpenseController::class, 'index']);
+            Route::get('/summary', [ExpenseController::class, 'summary']);
             Route::get('/{expense}', [ExpenseController::class, 'show']);
+            Route::get('/{expense}/items', [ExpenseItemController::class, 'index']);
+            Route::get('/{expense}/items/{item}', [ExpenseItemController::class, 'show']);
         });
         Route::middleware('permission:expenses.create')->group(function () {
             Route::post('/', [ExpenseController::class, 'store']);
+            Route::post('/{expense}/items', [ExpenseItemController::class, 'store']);
+            Route::post('/{expense}/items/{item}/receipt', [ExpenseItemController::class, 'uploadReceipt']);
         });
         Route::middleware('permission:expenses.edit')->group(function () {
             Route::put('/{expense}', [ExpenseController::class, 'update']);
             Route::patch('/{expense}', [ExpenseController::class, 'update']);
+            Route::put('/{expense}/items/{item}', [ExpenseItemController::class, 'update']);
+            Route::patch('/{expense}/items/{item}', [ExpenseItemController::class, 'update']);
         });
         Route::middleware('permission:expenses.approve')->group(function () {
             Route::post('/{expense}/approve', [ExpenseController::class, 'approve']);
@@ -550,20 +571,25 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
         });
         Route::middleware('permission:expenses.delete')->group(function () {
             Route::delete('/{expense}', [ExpenseController::class, 'destroy']);
+            Route::delete('/{expense}/items/{item}', [ExpenseItemController::class, 'destroy']);
         });
     });
 
     // ===== DOCUMENTS MODULE =====
+    // Public shared-link download (no auth required)
+    Route::get('documents/shared/{token}', [DocumentController::class, 'sharedDownload']);
+
     Route::prefix('documents')->group(function () {
         Route::middleware('permission:documents.view')->group(function () {
             Route::get('/', [DocumentController::class, 'index']);
+            Route::get('/folders', [DocumentController::class, 'folders']);
             Route::get('/{document}', [DocumentController::class, 'show']);
             Route::get('/{document}/download', [DocumentController::class, 'download']);
-            Route::get('/folders', [DocumentController::class, 'folders']);
         });
         Route::middleware('permission:documents.create')->group(function () {
             Route::post('/', [DocumentController::class, 'store']);
             Route::post('/folders', [DocumentController::class, 'createFolder']);
+            Route::post('/{document}/share', [DocumentController::class, 'share']);
         });
         Route::middleware('permission:documents.edit')->group(function () {
             Route::put('/{document}', [DocumentController::class, 'update']);

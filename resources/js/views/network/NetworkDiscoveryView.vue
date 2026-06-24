@@ -56,11 +56,15 @@
                 class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5"
             >
                 <div class="flex items-start gap-3 mb-4">
-                    <div class="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center text-white font-semibold flex-shrink-0">
-                        {{ initials(profile.name) }}
+                    <div class="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center text-white font-semibold flex-shrink-0 overflow-hidden">
+                        <img v-if="profile.avatar_path" :src="`/storage/${profile.avatar_path.replace(/^public\//, '')}`" class="w-12 h-12 object-cover" />
+                        <span v-else>{{ initials(profile.name) }}</span>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <p class="font-semibold text-gray-900 dark:text-gray-100 truncate">{{ profile.name }}</p>
+                        <router-link :to="{ name: 'network.profile.public', params: { id: profile.id } }"
+                            class="font-semibold text-gray-900 dark:text-gray-100 truncate hover:text-blue-600 dark:hover:text-blue-400">
+                            {{ profile.name }}
+                        </router-link>
                         <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ profile.headline }}</p>
                         <p class="text-xs text-gray-400 dark:text-gray-500 truncate">{{ profile.company }}</p>
                     </div>

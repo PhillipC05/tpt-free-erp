@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             HrSeeder::class,            // departments → employees
             SalesSeeder::class,         // customers
             ProcurementSeeder::class,   // vendors
+            ExpenseCategorySeeder::class,
         ]);
 
         // Default admin user

@@ -216,6 +216,7 @@ const routes: RouteRecordRaw[] = [
             { path: 'network/feed', name: 'network.feed', component: () => import('@/views/network/NetworkFeedView.vue') },
             { path: 'network/discovery', name: 'network.discovery', component: () => import('@/views/network/NetworkDiscoveryView.vue') },
             { path: 'network/profile', name: 'network.profile', component: () => import('@/views/network/MyProfileView.vue') },
+            { path: 'network/profiles/:id', name: 'network.profile.public', component: () => import('@/views/network/PublicProfileView.vue') },
             { path: 'network/connections', name: 'network.connections', component: () => import('@/views/network/ConnectionsView.vue') },
             { path: 'network/following', name: 'network.following', component: () => import('@/views/network/FollowingView.vue') },
             // Marketing
@@ -233,6 +234,7 @@ const routes: RouteRecordRaw[] = [
             { path: 'agents', name: 'agents', component: () => import('@/views/agents/AgentsView.vue') },
             { path: 'agents/skills/catalog', name: 'agents.skill-catalog', component: () => import('@/views/agents/SkillCatalogView.vue') },
             { path: 'agents/:id', name: 'agents.detail', component: () => import('@/views/agents/AgentDetailView.vue') },
+            { path: 'webhooks', name: 'webhooks', component: () => import('@/views/WebhooksView.vue') },
             // Scheduled Reports
             { path: 'reports/scheduled', name: 'reports.scheduled', component: () => import('@/views/reports/ScheduledReportsView.vue') },
         ],

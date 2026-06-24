@@ -2,7 +2,9 @@
 
 namespace Tests\Feature\Finance;
 
+use App\Models\Finance\Account;
 use App\Models\Finance\Budget;
+use App\Models\Finance\BudgetLine;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -166,5 +168,211 @@ class BudgetTest extends TestCase
         $response = $this->getJson('/api/v1/finance/budgets');
 
         $response->assertUnauthorized();
+    }
+
+    // ===== BUDGET APPROVAL WORKFLOW =====
+
+    public function test_can_approve_draft_budget(): void
+    {
+        $budget = Budget::factory()->create([
+            'status' => 'draft',
+            'created_by' => $this->user->id,
+        ]);
+
+        $response = $this->postJson("/api/v1/finance/budgets/{$budget->id}/approve", [], $this->auth());
+
+        $response->assertOk()->assertJson(['success' => true]);
+        $this->assertDatabaseHas('finance_budgets', ['id' => $budget->id, 'status' => 'active']);
+    }
+
+    public function test_cannot_approve_non_draft_budget(): void
+    {
+        $budget = Budget::factory()->create([
+            'status' => 'active',
+            'created_by' => $this->user->id,
+        ]);
+
+        $response = $this->postJson("/api/v1/finance/budgets/{$budget->id}/approve", [], $this->auth());
+
+        $response->assertStatus(422)->assertJson(['success' => false]);
+    }
+
+    public function test_can_close_active_budget(): void
+    {
+        $budget = Budget::factory()->create([
+            'status' => 'active',
+            'created_by' => $this->user->id,
+        ]);
+
+        $response = $this->postJson("/api/v1/finance/budgets/{$budget->id}/close", [], $this->auth());
+
+        $response->assertOk()->assertJson(['success' => true]);
+        $this->assertDatabaseHas('finance_budgets', ['id' => $budget->id, 'status' => 'closed']);
+    }
+
+    public function test_cannot_close_draft_budget(): void
+    {
+        $budget = Budget::factory()->create([
+            'status' => 'draft',
+            'created_by' => $this->user->id,
+        ]);
+
+        $response = $this->postJson("/api/v1/finance/budgets/{$budget->id}/close", [], $this->auth());
+
+        $response->assertStatus(422)->assertJson(['success' => false]);
+    }
+
+    // ===== BUDGET LINES =====
+
+    public function test_can_list_budget_lines(): void
+    {
+        $budget = Budget::factory()->create(['created_by' => $this->user->id]);
+        $account = Account::factory()->create();
+        BudgetLine::factory()->create(['budget_id' => $budget->id, 'account_id' => $account->id]);
+
+        $response = $this->getJson("/api/v1/finance/budgets/{$budget->id}/lines", $this->auth());
+
+        $response->assertOk()
+            ->assertJson(['success' => true])
+            ->assertJsonStructure(['data']);
+    }
+
+    public function test_can_create_budget_line(): void
+    {
+        $budget = Budget::factory()->create([
+            'status' => 'draft',
+            'created_by' => $this->user->id,
+        ]);
+        $account = Account::factory()->create();
+
+        $response = $this->postJson("/api/v1/finance/budgets/{$budget->id}/lines", [
+            'account_id' => $account->id,
+            'budgeted_amount' => 10000,
+            'notes' => 'Test line',
+        ], $this->auth());
+
+        $response->assertCreated()->assertJson(['success' => true]);
+        $this->assertDatabaseHas('budget_lines', [
+            'budget_id' => $budget->id,
+            'account_id' => $account->id,
+        ]);
+    }
+
+    public function test_cannot_add_duplicate_account_line_to_budget(): void
+    {
+        $budget = Budget::factory()->create(['created_by' => $this->user->id]);
+        $account = Account::factory()->create();
+        BudgetLine::factory()->create(['budget_id' => $budget->id, 'account_id' => $account->id]);
+
+        $response = $this->postJson("/api/v1/finance/budgets/{$budget->id}/lines", [
+            'account_id' => $account->id,
+            'budgeted_amount' => 5000,
+        ], $this->auth());
+
+        $response->assertStatus(422)->assertJson(['success' => false]);
+    }
+
+    public function test_cannot_add_line_to_closed_budget(): void
+    {
+        $budget = Budget::factory()->create([
+            'status' => 'closed',
+            'created_by' => $this->user->id,
+        ]);
+        $account = Account::factory()->create();
+
+        $response = $this->postJson("/api/v1/finance/budgets/{$budget->id}/lines", [
+            'account_id' => $account->id,
+            'budgeted_amount' => 5000,
+        ], $this->auth());
+
+        $response->assertStatus(422);
+    }
+
+    public function test_can_update_budget_line(): void
+    {
+        $budget = Budget::factory()->create([
+            'status' => 'draft',
+            'created_by' => $this->user->id,
+        ]);
+        $account = Account::factory()->create();
+        $line = BudgetLine::factory()->create([
+            'budget_id' => $budget->id,
+            'account_id' => $account->id,
+            'budgeted_amount' => 1000,
+        ]);
+
+        $response = $this->putJson(
+            "/api/v1/finance/budgets/{$budget->id}/lines/{$line->id}",
+            ['budgeted_amount' => 2500],
+            $this->auth()
+        );
+
+        $response->assertOk()->assertJson(['success' => true]);
+        $this->assertDatabaseHas('budget_lines', ['id' => $line->id, 'budgeted_amount' => 2500]);
+    }
+
+    public function test_can_delete_budget_line(): void
+    {
+        $budget = Budget::factory()->create([
+            'status' => 'draft',
+            'created_by' => $this->user->id,
+        ]);
+        $account = Account::factory()->create();
+        $line = BudgetLine::factory()->create([
+            'budget_id' => $budget->id,
+            'account_id' => $account->id,
+        ]);
+
+        $response = $this->deleteJson(
+            "/api/v1/finance/budgets/{$budget->id}/lines/{$line->id}",
+            [],
+            $this->auth()
+        );
+
+        $response->assertOk()->assertJson(['success' => true]);
+        $this->assertDatabaseMissing('budget_lines', ['id' => $line->id]);
+    }
+
+    // ===== BUDGET VARIANCE =====
+
+    public function test_variance_endpoint_returns_correct_structure(): void
+    {
+        $budget = Budget::factory()->create(['created_by' => $this->user->id]);
+        $account = Account::factory()->create();
+        BudgetLine::factory()->create([
+            'budget_id' => $budget->id,
+            'account_id' => $account->id,
+            'budgeted_amount' => 10000,
+            'actual_amount' => 7500,
+        ]);
+
+        $response = $this->getJson("/api/v1/finance/budgets/{$budget->id}/variance", $this->auth());
+
+        $response->assertOk()
+            ->assertJsonStructure(['data' => [
+                'budget_id', 'budget_name', 'status',
+                'total_budgeted', 'total_actual', 'total_variance',
+                'utilization_percent', 'lines',
+            ]]);
+    }
+
+    public function test_variance_calculates_correctly(): void
+    {
+        $budget = Budget::factory()->create(['created_by' => $this->user->id]);
+        $account = Account::factory()->create();
+        BudgetLine::factory()->create([
+            'budget_id' => $budget->id,
+            'account_id' => $account->id,
+            'budgeted_amount' => 10000,
+            'actual_amount' => 6000,
+        ]);
+
+        $response = $this->getJson("/api/v1/finance/budgets/{$budget->id}/variance", $this->auth());
+
+        $data = $response->json('data');
+        $this->assertEquals(10000, $data['total_budgeted']);
+        $this->assertEquals(6000, $data['total_actual']);
+        $this->assertEquals(4000, $data['total_variance']);
+        $this->assertEquals(60.0, $data['utilization_percent']);
     }
 }

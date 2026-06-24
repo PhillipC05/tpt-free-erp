@@ -7,6 +7,29 @@
         </div>
 
         <div v-else class="space-y-6">
+            <!-- Avatar upload -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">Profile Photo</h2>
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center text-white text-xl font-bold overflow-hidden flex-shrink-0">
+                        <img v-if="avatarPreview || form.avatar_path" :src="avatarPreview || avatarStorageUrl" class="w-16 h-16 object-cover" />
+                        <span v-else>{{ initials }}</span>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onAvatarSelected" />
+                        <button type="button" @click="($refs.fileInput as HTMLInputElement)?.click()"
+                            class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700">
+                            Choose Photo
+                        </button>
+                        <button v-if="selectedFile" type="button" @click="uploadAvatar" :disabled="uploadingAvatar"
+                            class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50">
+                            {{ uploadingAvatar ? 'Uploading…' : 'Upload' }}
+                        </button>
+                    </div>
+                    <p v-if="selectedFile" class="text-xs text-gray-500 dark:text-gray-400">{{ selectedFile.name }}</p>
+                </div>
+            </div>
+
             <!-- Profile form -->
             <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
                 <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">Profile Details</h2>
@@ -115,7 +138,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import apiClient from '@/api/axios';
 import { useNotificationStore } from '@/stores/notification';
 
@@ -123,6 +146,9 @@ const notify = useNotificationStore();
 
 const loading = ref(false);
 const saving = ref(false);
+const uploadingAvatar = ref(false);
+const selectedFile = ref<File | null>(null);
+const avatarPreview = ref<string | null>(null);
 
 const form = reactive({
     headline: '',
@@ -134,7 +160,44 @@ const form = reactive({
     discoverable: false,
     open_to: [] as string[],
     interests: [] as { type: string; value: string }[],
+    avatar_path: '' as string | null,
 });
+
+const initials = computed(() => {
+    const words = (form.headline || '').split(' ');
+    return words.map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
+});
+
+const avatarStorageUrl = computed(() =>
+    form.avatar_path ? `/storage/${form.avatar_path.replace(/^public\//, '')}` : null
+);
+
+function onAvatarSelected(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    selectedFile.value = file;
+    avatarPreview.value = URL.createObjectURL(file);
+}
+
+async function uploadAvatar() {
+    if (!selectedFile.value) return;
+    uploadingAvatar.value = true;
+    try {
+        const fd = new FormData();
+        fd.append('avatar', selectedFile.value);
+        const res = await apiClient.post('/v1/network/profile/avatar', fd, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        form.avatar_path = res.data?.data?.avatar_path ?? form.avatar_path;
+        selectedFile.value = null;
+        notify.success('Avatar uploaded');
+    } catch {
+        notify.error('Failed to upload avatar');
+    } finally {
+        uploadingAvatar.value = false;
+    }
+}
 
 const newInterest = reactive({ type: 'industry', value: '' });
 

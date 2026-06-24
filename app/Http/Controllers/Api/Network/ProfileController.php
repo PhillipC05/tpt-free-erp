@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\BaseApiController;
 use App\Models\Network\UserProfile;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends BaseApiController
 {
@@ -122,6 +123,38 @@ class ProfileController extends BaseApiController
         $this->cacheFlush();
 
         return $this->respondSuccess('You are now discoverable in the network', $profile);
+    }
+
+    public function uploadAvatar(Request $request): JsonResponse
+    {
+        $error = $this->validate($request->all(), [
+            'avatar' => 'required|image|mimes:jpeg,png,gif,webp|max:2048',
+        ]);
+
+        if ($error) {
+            return $error;
+        }
+
+        $profile = UserProfile::firstOrCreate(
+            ['user_id' => $request->user()->id],
+            ['is_discoverable' => false]
+        );
+
+        // Delete old avatar if one exists
+        if ($profile->avatar_path && Storage::exists($profile->avatar_path)) {
+            Storage::delete($profile->avatar_path);
+        }
+
+        $path = $request->file('avatar')->store('public/avatars');
+
+        $profile->update(['avatar_path' => $path]);
+
+        $this->cacheFlush();
+
+        return $this->respondSuccess('Avatar uploaded successfully', [
+            'avatar_path' => $path,
+            'avatar_url'  => Storage::url($path),
+        ]);
     }
 
     public function optOut(Request $request): JsonResponse

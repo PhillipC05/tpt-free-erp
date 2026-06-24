@@ -124,4 +124,40 @@ class BudgetController extends BaseApiController
 
         return $this->respondSuccess('Budget deleted successfully');
     }
+
+    public function approve(int $id): JsonResponse
+    {
+        $budget = Budget::find($id);
+
+        if (!$budget) {
+            return $this->respondNotFound('Budget not found');
+        }
+
+        if ($budget->status !== 'draft') {
+            return $this->respondError('Only draft budgets can be approved', 422);
+        }
+
+        $budget->update(['status' => 'active']);
+        $this->cacheFlush();
+
+        return $this->respondSuccess('Budget approved and activated', $budget);
+    }
+
+    public function close(int $id): JsonResponse
+    {
+        $budget = Budget::find($id);
+
+        if (!$budget) {
+            return $this->respondNotFound('Budget not found');
+        }
+
+        if ($budget->status !== 'active') {
+            return $this->respondError('Only active budgets can be closed', 422);
+        }
+
+        $budget->update(['status' => 'closed']);
+        $this->cacheFlush();
+
+        return $this->respondSuccess('Budget closed', $budget);
+    }
 }

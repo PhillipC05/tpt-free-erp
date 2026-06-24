@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api\Marketing;
 
 use App\Http\Controllers\Api\BaseApiController;
+use App\Mail\CampaignEmail;
 use App\Models\Marketing\Campaign;
 use App\Models\Marketing\CampaignAnalytic;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class CampaignController extends BaseApiController
 {
@@ -120,6 +122,64 @@ class CampaignController extends BaseApiController
         $this->cacheFlush();
 
         return $this->respondSuccess('Campaign deleted successfully');
+    }
+
+    public function send(Request $request, int $id): JsonResponse
+    {
+        $campaign = Campaign::find($id);
+
+        if (!$campaign) {
+            return $this->respondNotFound('Campaign not found');
+        }
+
+        if ($campaign->type !== 'email') {
+            return $this->respondError('Only email campaigns can be sent via this endpoint', 422);
+        }
+
+        if (!in_array($campaign->status, ['draft', 'active'])) {
+            return $this->respondError('Cannot send a ' . $campaign->status . ' campaign', 422);
+        }
+
+        $error = $this->validate($request->all(), [
+            'subject' => 'required|string|max:255',
+            'html_body' => 'required|string',
+            'recipients' => 'required|array|min:1|max:1000',
+            'recipients.*' => 'email',
+        ]);
+
+        if ($error) {
+            return $error;
+        }
+
+        $recipients = $request->input('recipients');
+        $mailable = new CampaignEmail(
+            subject: $request->input('subject'),
+            htmlBody: $request->input('html_body'),
+            campaignName: $campaign->name,
+        );
+
+        $sent = 0;
+        $failed = [];
+
+        foreach ($recipients as $email) {
+            try {
+                Mail::to($email)->queue($mailable);
+                $sent++;
+            } catch (\Throwable $e) {
+                $failed[] = $email;
+            }
+        }
+
+        if ($campaign->status === 'draft') {
+            $campaign->update(['status' => 'active']);
+            $this->cacheFlush();
+        }
+
+        return $this->respondSuccess('Campaign queued for sending', [
+            'queued' => $sent,
+            'failed' => $failed,
+            'total_recipients' => count($recipients),
+        ]);
     }
 
     public function roi(int $id): JsonResponse

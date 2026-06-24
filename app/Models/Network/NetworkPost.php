@@ -17,6 +17,7 @@ class NetworkPost extends Model
 
     protected $fillable = [
         'user_id', 'body', 'type', 'visibility', 'likes_count', 'comments_count',
+        'attachment_path', 'attachment_name', 'attachment_mime', 'attachment_size',
     ];
 
     protected $casts = [

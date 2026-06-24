@@ -33,6 +33,9 @@ use OpenApi\Attributes as OA;
 #[OA\Tag(name: 'LMS',           description: 'Courses and enrollments')]
 #[OA\Tag(name: 'Reports',       description: 'Async report generation, scheduling, and download')]
 #[OA\Tag(name: 'Agents',        description: 'AI agent profiles, skill assignments, executions, and schedules')]
+#[OA\Tag(name: 'Marketing',     description: 'Campaigns, leads, analytics, ROI')]
+#[OA\Tag(name: 'Network',       description: 'User profiles, discovery, follows, connections, feed')]
+#[OA\Tag(name: 'Webhooks',      description: 'Manage outbound webhooks with event filtering and delivery history')]
 class OpenApiSpec
 {
     // ── Reusable response schemas ───────────────────────────────────────────
@@ -932,4 +935,117 @@ class OpenApiSpec
         responses: [new OA\Response(response: 200, description: 'Deleted')]
     )]
     public function agentScheduleDestroy(): void {}
+
+    // ── Marketing ────────────────────────────────────────────────────────────
+
+    #[OA\Get(path: '/v1/marketing/campaigns/{id}/roi', tags: ['Marketing'], summary: 'Campaign ROI summary',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [new OA\Response(response: 200, description: 'ROI metrics', content: new OA\JsonContent(properties: [
+            new OA\Property(property: 'success', type: 'boolean'),
+            new OA\Property(property: 'data', type: 'object', properties: [
+                new OA\Property(property: 'campaign_id',          type: 'integer'),
+                new OA\Property(property: 'campaign_name',        type: 'string'),
+                new OA\Property(property: 'budget',               type: 'number'),
+                new OA\Property(property: 'total_cost',           type: 'number'),
+                new OA\Property(property: 'total_revenue',        type: 'number'),
+                new OA\Property(property: 'roi_percent',          type: 'number', nullable: true),
+                new OA\Property(property: 'roas',                 type: 'number', nullable: true),
+                new OA\Property(property: 'cost_per_click',       type: 'number', nullable: true),
+                new OA\Property(property: 'cost_per_acquisition', type: 'number', nullable: true),
+                new OA\Property(property: 'total_conversions',    type: 'integer'),
+                new OA\Property(property: 'total_clicks',         type: 'integer'),
+            ]),
+        ]))]
+    )]
+    public function campaignRoi(): void {}
+
+    // ── Network / Profile ─────────────────────────────────────────────────────
+
+    #[OA\Post(path: '/v1/network/profile/avatar', tags: ['Network'], summary: 'Upload profile avatar',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\MediaType(mediaType: 'multipart/form-data',
+            schema: new OA\Schema(required: ['avatar'], properties: [
+                new OA\Property(property: 'avatar', type: 'string', format: 'binary', description: 'Image file (jpeg/png/gif/webp, max 2MB)'),
+            ])
+        )),
+        responses: [
+            new OA\Response(response: 200, description: 'Avatar uploaded'),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ]
+    )]
+    public function networkAvatarUpload(): void {}
+
+    #[OA\Get(path: '/v1/network/profiles/{id}', tags: ['Network'], summary: 'View a public network profile',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [
+            new OA\Response(response: 200, description: 'Profile data'),
+            new OA\Response(response: 404, description: 'Not found or private'),
+        ]
+    )]
+    public function networkProfileShow(): void {}
+
+    // ── Webhooks ──────────────────────────────────────────────────────────────
+
+    #[OA\Get(path: '/v1/webhooks', tags: ['Webhooks'], summary: 'List webhooks',
+        security: [['bearerAuth' => []]],
+        responses: [new OA\Response(response: 200, description: 'Webhook list')]
+    )]
+    public function webhookIndex(): void {}
+
+    #[OA\Post(path: '/v1/webhooks', tags: ['Webhooks'], summary: 'Create a webhook',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['url', 'events'],
+            properties: [
+                new OA\Property(property: 'url',       type: 'string', format: 'uri'),
+                new OA\Property(property: 'secret',    type: 'string'),
+                new OA\Property(property: 'events',    type: 'array', items: new OA\Items(type: 'string'), example: ['sales.*']),
+                new OA\Property(property: 'is_active', type: 'boolean', default: true),
+            ]
+        )),
+        responses: [new OA\Response(response: 201, description: 'Webhook created')]
+    )]
+    public function webhookStore(): void {}
+
+    #[OA\Get(path: '/v1/webhooks/{id}', tags: ['Webhooks'], summary: 'Get a webhook',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [new OA\Response(response: 200, description: 'Webhook detail')]
+    )]
+    public function webhookShow(): void {}
+
+    #[OA\Put(path: '/v1/webhooks/{id}', tags: ['Webhooks'], summary: 'Update a webhook',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        requestBody: new OA\RequestBody(required: false, content: new OA\JsonContent(properties: [
+            new OA\Property(property: 'url',       type: 'string', format: 'uri'),
+            new OA\Property(property: 'events',    type: 'array', items: new OA\Items(type: 'string')),
+            new OA\Property(property: 'is_active', type: 'boolean'),
+        ])),
+        responses: [new OA\Response(response: 200, description: 'Updated')]
+    )]
+    public function webhookUpdate(): void {}
+
+    #[OA\Delete(path: '/v1/webhooks/{id}', tags: ['Webhooks'], summary: 'Delete a webhook',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [new OA\Response(response: 200, description: 'Deleted')]
+    )]
+    public function webhookDestroy(): void {}
+
+    #[OA\Post(path: '/v1/webhooks/{id}/test', tags: ['Webhooks'], summary: 'Send a test delivery',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [new OA\Response(response: 200, description: 'Test delivery sent')]
+    )]
+    public function webhookTest(): void {}
+
+    #[OA\Get(path: '/v1/webhooks/{id}/deliveries', tags: ['Webhooks'], summary: 'List delivery history for a webhook',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [new OA\Response(response: 200, description: 'Delivery history')]
+    )]
+    public function webhookDeliveries(): void {}
 }

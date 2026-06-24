@@ -326,9 +326,9 @@
 - [x] Create `app/Http/Controllers/Api/RoleController.php` — admin CRUD + sync permissions + assign/revoke user roles
 - [x] Apply `permission:module.action` middleware to all module route groups in `routes/api.php`
 - [x] Add `/api/v1/roles` admin-only routes in `routes/api.php`
-- [ ] Add permission indexes to `role_permissions` and `user_roles` tables for query performance
-- [ ] Write tests for role expiration enforcement (expired `user_roles.expires_at` should deny access)
-- [ ] Consider adding a `PermissionSeeder` that can be run standalone to top-up permissions after new module additions
+- [x] Add permission indexes to `role_permissions` and `user_roles` tables for query performance — `2026_06_24_000001_add_permission_indexes.php` (role_id, permission_id, user_id, expires_at, deleted_at)
+- [x] Write tests for role expiration enforcement — `tests/Feature/RoleExpirationTest.php` (9 tests; also fixed `RoleMiddleware` which was not checking `expires_at`)
+- [x] Add standalone `PermissionSeeder` — `database/seeders/PermissionSeeder.php`; run via `php artisan db:seed --class=PermissionSeeder`
 
 ### API Versioning & Webhooks
 - [x] Wrap all module routes in `Route::prefix('v1')` group — all endpoints now at `/api/v1/`
@@ -338,10 +338,10 @@
 - [x] Create `app/Jobs/WebhookDeliveryJob.php` — HMAC-SHA256 signed POST, exponential backoff, auto-disable after 10 failures
 - [x] Create `app/Http/Controllers/Api/WebhookController.php` — user manages their own webhooks + test-fire endpoint
 - [x] Add webhook routes to `routes/api.php` — `/api/v1/webhooks`
-- [ ] Wire `WebhookService::dispatch()` calls into key model events (Finance, Inventory, Sales mutations)
-- [ ] Add webhook event filtering UI in frontend
-- [ ] Write tests for `WebhookDeliveryJob` (delivered, retry, failed, auto-disable)
-- [ ] Complete OpenAPI spec coverage for all new endpoints in `app/Http/Controllers/Api/OpenApiSpec.php`
+- [x] Wire `WebhookService::dispatch()` calls into key model events — Eloquent observers for `Transaction`, `Product`, `StockMovement`, `Order`, `Invoice`; registered in `AppServiceProvider`
+- [x] Add webhook event filtering UI in frontend — `resources/js/views/WebhooksView.vue` (CRUD + checkbox event picker + test-fire); route `webhooks` added
+- [x] Write tests for `WebhookDeliveryJob` — `tests/Feature/WebhookDeliveryJobTest.php` (8 tests: delivered, retry, max-attempts fail, auto-disable, inactive skip, already-delivered skip, failed() hook, HMAC header)
+- [x] Complete OpenAPI spec coverage for all new endpoints — Marketing, Network, Webhooks tags added; 10 new endpoint annotations (campaign ROI, avatar upload, public profile, webhook CRUD + test + deliveries)
 
 ### Marketing Module
 - [x] Migration: `marketing_campaigns`, `marketing_leads`, `campaign_analytics` tables
@@ -353,8 +353,8 @@
 - [x] Frontend: `resources/js/views/marketing/CampaignsView.vue` + `LeadsView.vue`
 - [x] Router + sidebar nav updated
 - [x] Feature tests: `tests/Feature/Marketing/MarketingTest.php`
-- [ ] Add `CampaignAnalytic` seeding via a daily scheduled job
-- [ ] Add campaign ROI calculation endpoint (`GET /api/v1/marketing/campaigns/{id}/roi`)
+- [x] Add `CampaignAnalytic` seeding via a daily scheduled job — `app/Console/Commands/SeedCampaignAnalytics.php` (`marketing:seed-analytics`), runs daily at 01:00; supports `--date` for backfill
+- [x] Add campaign ROI calculation endpoint — `GET /api/v1/marketing/campaigns/{id}/roi` returns `roi_percent`, `roas`, `cost_per_click`, `cost_per_acquisition`
 - [ ] Email integration: campaign send via SMTP/Mailgun (Phase 7)
 
 ### Network Module (Professional Networking)
@@ -366,11 +366,11 @@
 - [x] CRM bridge: `DiscoveryController::addToCrm()` + `addToLead()`
 - [x] Frontend: NetworkFeedView, NetworkDiscoveryView, MyProfileView, ConnectionsView, FollowingView
 - [x] Feature tests: `tests/Feature/Network/NetworkTest.php`
-- [ ] Add profile avatar upload endpoint (store in `storage/app/public/avatars/`)
-- [ ] Add `ProfileView.vue` (view someone else's public profile)
+- [x] Add profile avatar upload endpoint — `POST /api/v1/network/profile/avatar` (multipart, stores in `storage/app/public/avatars/`); avatar picker UI added to `MyProfileView.vue`
+- [x] Add `ProfileView.vue` (view someone else's public profile) — `resources/js/views/network/PublicProfileView.vue`; route `network.profile.public` at `/network/profiles/:id`; linked from Discovery cards
 - [ ] Add post image/attachment support (Phase 7)
-- [ ] Add notification on connection request / new follower
-- [ ] Privacy: ensure non-discoverable profiles never appear in Discovery or Feed to non-connections
+- [x] Add notification on connection request / new follower — `ConnectionController` and `FollowController` insert into `notifications` table with type `connection_request` / `new_follower`
+- [x] Privacy: ensure non-discoverable profiles never appear in Discovery or Feed to non-connections — `FeedController` now filters to own posts + accepted connections + discoverable-followed users only
 
 ### Expense Management Module
 - [x] Migration: `expense_categories`, `expense_reports`, `expense_items` tables

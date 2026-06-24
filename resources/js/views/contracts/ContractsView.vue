@@ -24,9 +24,19 @@
                         @click="signContract(row as any)"
                         class="text-xs text-green-600 dark:text-green-400 hover:underline"
                     >Sign</button>
+                    <button @click="openDocs(row as any)" class="text-xs text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400">Docs</button>
                 </div>
             </template>
         </DataTable>
+
+        <!-- Document Attachment Modal -->
+        <ModalDialog v-model="showDocsModal" :title="`Documents — ${selectedContractTitle}`">
+            <DocumentAttachmentPanel
+                v-if="selectedContractId"
+                documentable-type="App\Models\Contracts\Contract"
+                :documentable-id="selectedContractId"
+            />
+        </ModalDialog>
 
         <ModalDialog v-model="showModal" :title="editingId ? 'Edit Contract' : 'New Contract'">
             <form @submit.prevent="saveContract" class="space-y-4">
@@ -98,6 +108,7 @@
 import { ref, reactive, onMounted } from 'vue';
 import DataTable from '@/components/DataTable.vue';
 import ModalDialog from '@/components/ModalDialog.vue';
+import DocumentAttachmentPanel from '@/components/DocumentAttachmentPanel.vue';
 import apiClient from '@/api/axios';
 import { useNotificationStore } from '@/stores/notification';
 
@@ -120,6 +131,16 @@ const contracts = ref<Contract[]>([]);
 const showModal = ref(false);
 const saving = ref(false);
 const editingId = ref<number | null>(null);
+
+const showDocsModal = ref(false);
+const selectedContractId = ref<number | null>(null);
+const selectedContractTitle = ref('');
+
+function openDocs(row: any) {
+    selectedContractId.value = row.id;
+    selectedContractTitle.value = row.title ?? row.contract_number ?? String(row.id);
+    showDocsModal.value = true;
+}
 
 const defaultForm = () => ({
     title: '', contract_number: '', type: 'sale', status: 'draft',

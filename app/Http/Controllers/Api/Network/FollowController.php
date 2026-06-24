@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api\Network;
 
 use App\Http\Controllers\Api\BaseApiController;
 use App\Models\Network\UserFollow;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class FollowController extends BaseApiController
 {
@@ -67,6 +69,21 @@ class FollowController extends BaseApiController
         $follow = UserFollow::create([
             'follower_id' => $request->user()->id,
             'following_id' => $userId,
+        ]);
+
+        // Notify the followed user
+        DB::table('notifications')->insert([
+            'id'              => \Illuminate\Support\Str::uuid(),
+            'type'            => 'new_follower',
+            'notifiable_type' => User::class,
+            'notifiable_id'   => $userId,
+            'data'            => json_encode([
+                'type'          => 'new_follower',
+                'follower_id'   => $request->user()->id,
+                'follower_name' => $request->user()->name,
+            ]),
+            'created_at'      => now(),
+            'updated_at'      => now(),
         ]);
 
         return $this->respondSuccess('User followed successfully', $follow);

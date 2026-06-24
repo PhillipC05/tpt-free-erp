@@ -13,6 +13,9 @@
             <template #cell-salary="{ value }">
                 ${{ Number(value).toLocaleString() }}
             </template>
+            <template #cell-actions="{ row }">
+                <button @click="openDocs(row as any)" class="text-xs text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400">Docs</button>
+            </template>
         </DataTable>
 
         <ModalDialog v-model="showCreateModal" title="Add Employee">
@@ -64,6 +67,15 @@
                 </div>
             </form>
         </ModalDialog>
+
+        <!-- Document Attachment Modal -->
+        <ModalDialog v-model="showDocsModal" :title="`Documents — ${selectedEmployeeName}`">
+            <DocumentAttachmentPanel
+                v-if="selectedEmployeeId"
+                documentable-type="App\Models\HR\Employee"
+                :documentable-id="selectedEmployeeId"
+            />
+        </ModalDialog>
     </div>
 </template>
 
@@ -71,6 +83,7 @@
 import { ref, reactive, onMounted } from 'vue';
 import DataTable from '@/components/DataTable.vue';
 import ModalDialog from '@/components/ModalDialog.vue';
+import DocumentAttachmentPanel from '@/components/DocumentAttachmentPanel.vue';
 import apiClient from '@/api/axios';
 import type { Employee } from '@/types';
 import { useNotificationStore } from '@/stores/notification';
@@ -80,6 +93,16 @@ const employees = ref<Employee[]>([]);
 const showCreateModal = ref(false);
 const form = reactive({ first_name: '', last_name: '', employee_code: '', email: '', position: '', hire_date: '', salary: 0, employment_type: 'full_time' });
 
+const showDocsModal = ref(false);
+const selectedEmployeeId = ref<number | null>(null);
+const selectedEmployeeName = ref('');
+
+function openDocs(row: any) {
+    selectedEmployeeId.value = row.id;
+    selectedEmployeeName.value = `${row.first_name ?? ''} ${row.last_name ?? ''}`.trim() || String(row.id);
+    showDocsModal.value = true;
+}
+
 const columns = [
     { key: 'employee_code', label: 'Code', sortable: true },
     { key: 'first_name', label: 'First Name', sortable: true },
@@ -88,6 +111,7 @@ const columns = [
     { key: 'position', label: 'Position', sortable: true },
     { key: 'salary', label: 'Salary', sortable: true },
     { key: 'is_active', label: 'Status', sortable: true },
+    { key: 'actions', label: '' },
 ];
 
 async function loadEmployees() {

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CampaignAnalytic extends Model
 {
-    protected $table = 'marketing_campaign_analytics';
+    protected $table = 'campaign_analytics';
 
     protected $fillable = [
         'campaign_id', 'date', 'impressions', 'clicks', 'conversions', 'cost', 'revenue',

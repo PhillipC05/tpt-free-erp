@@ -4,6 +4,7 @@ namespace App\Console;
 
 use App\Console\Commands\CleanExpiredReports;
 use App\Console\Commands\RunScheduledReports;
+use App\Console\Commands\SeedCampaignAnalytics;
 use App\Console\Commands\SyncSkills;
 use App\Console\Commands\RunAgentSchedules;
 use Illuminate\Console\Scheduling\Schedule;
@@ -14,6 +15,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         CleanExpiredReports::class,
         RunScheduledReports::class,
+        SeedCampaignAnalytics::class,
         SyncSkills::class,
         RunAgentSchedules::class,
     ];
@@ -26,6 +28,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('agents:run-schedules')->everyMinute();
         // Clean up expired generated reports daily
         $schedule->command('reports:clean-expired')->daily();
+        // Seed yesterday's campaign analytics rows for all active campaigns
+        $schedule->command('marketing:seed-analytics')->dailyAt('01:00');
     }
 
     protected function commands(): void

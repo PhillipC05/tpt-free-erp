@@ -69,6 +69,18 @@
   ],
   "shortcuts": [
     {
+      "name": "POS Register",
+      "short_name": "Register",
+      "description": "Open the Point of Sale register",
+      "url": "/pos/register",
+      "icons": [
+        {
+          "src": "/assets/icons/shortcut-dashboard.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
       "name": "Dashboard",
       "short_name": "Dashboard",
       "description": "View main dashboard",

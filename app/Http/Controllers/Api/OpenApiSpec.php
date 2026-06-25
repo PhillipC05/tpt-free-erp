@@ -35,6 +35,8 @@ use OpenApi\Attributes as OA;
 #[OA\Tag(name: 'Agents',        description: 'AI agent profiles, skill assignments, executions, and schedules')]
 #[OA\Tag(name: 'Marketing',     description: 'Campaigns, leads, analytics, ROI')]
 #[OA\Tag(name: 'Network',       description: 'User profiles, discovery, follows, connections, feed')]
+#[OA\Tag(name: 'POS',           description: 'Point of Sale — terminals, transactions, payments, checkout')]
+#[OA\Tag(name: 'Fleet',         description: 'Fleet management — vehicles, drivers, trips, fuel logs, maintenance')]
 #[OA\Tag(name: 'Webhooks',      description: 'Manage outbound webhooks with event filtering and delivery history')]
 class OpenApiSpec
 {
@@ -1048,4 +1050,320 @@ class OpenApiSpec
         responses: [new OA\Response(response: 200, description: 'Delivery history')]
     )]
     public function webhookDeliveries(): void {}
+
+    // ── POS — Terminals ─────────────────────────────────────────────────────
+
+    #[OA\Get(path: '/v1/pos/terminals', tags: ['POS'], summary: 'List POS terminals',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'status',  in: 'query', schema: new OA\Schema(type: 'string', enum: ['active', 'inactive', 'maintenance'])),
+            new OA\Parameter(name: 'search',  in: 'query', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'per_page', in: 'query', schema: new OA\Schema(type: 'integer', default: 15)),
+        ],
+        responses: [new OA\Response(response: 200, description: 'Paginated terminal list')])]
+    public function posTerminalIndex(): void {}
+
+    #[OA\Post(path: '/v1/pos/terminals', tags: ['POS'], summary: 'Create POS terminal',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['terminal_code', 'name'],
+            properties: [
+                new OA\Property(property: 'terminal_code', type: 'string'),
+                new OA\Property(property: 'name',          type: 'string'),
+                new OA\Property(property: 'warehouse_id',  type: 'integer'),
+                new OA\Property(property: 'assigned_to',   type: 'integer'),
+                new OA\Property(property: 'status',        type: 'string', enum: ['active', 'inactive', 'maintenance']),
+            ]
+        )),
+        responses: [new OA\Response(response: 201, description: 'Created')])]
+    public function posTerminalStore(): void {}
+
+    #[OA\Get(path: '/v1/pos/terminals/{id}', tags: ['POS'], summary: 'Get terminal',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [new OA\Response(response: 200, description: 'Terminal'), new OA\Response(response: 404, description: 'Not found')])]
+    public function posTerminalShow(): void {}
+
+    #[OA\Put(path: '/v1/pos/terminals/{id}', tags: ['POS'], summary: 'Update terminal',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(type: 'object')),
+        responses: [new OA\Response(response: 200, description: 'Updated'), new OA\Response(response: 404, description: 'Not found')])]
+    public function posTerminalUpdate(): void {}
+
+    #[OA\Delete(path: '/v1/pos/terminals/{id}', tags: ['POS'], summary: 'Delete terminal',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [new OA\Response(response: 200, description: 'Deleted')])]
+    public function posTerminalDestroy(): void {}
+
+    // ── POS — Transactions ──────────────────────────────────────────────────
+
+    #[OA\Get(path: '/v1/pos/transactions', tags: ['POS'], summary: 'List POS transactions',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'terminal_id', in: 'query', schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'status',      in: 'query', schema: new OA\Schema(type: 'string', enum: ['open', 'completed', 'voided', 'refunded'])),
+            new OA\Parameter(name: 'customer_id', in: 'query', schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'start_date',  in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'end_date',    in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'per_page',    in: 'query', schema: new OA\Schema(type: 'integer', default: 15)),
+        ],
+        responses: [new OA\Response(response: 200, description: 'Paginated transaction list')])]
+    public function posTransactionIndex(): void {}
+
+    #[OA\Post(path: '/v1/pos/transactions', tags: ['POS'], summary: 'Open a new POS transaction',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['terminal_id'],
+            properties: [
+                new OA\Property(property: 'terminal_id', type: 'integer'),
+                new OA\Property(property: 'customer_id', type: 'integer'),
+                new OA\Property(property: 'employee_id', type: 'integer'),
+                new OA\Property(property: 'currency',    type: 'string', example: 'USD'),
+            ]
+        )),
+        responses: [new OA\Response(response: 201, description: 'Transaction opened')])]
+    public function posTransactionStore(): void {}
+
+    #[OA\Get(path: '/v1/pos/transactions/{id}', tags: ['POS'], summary: 'Get transaction with items and payments',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [new OA\Response(response: 200, description: 'Transaction'), new OA\Response(response: 404, description: 'Not found')])]
+    public function posTransactionShow(): void {}
+
+    #[OA\Post(path: '/v1/pos/transactions/{id}/items', tags: ['POS'], summary: 'Add item to open transaction',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['description', 'quantity', 'unit_price'],
+            properties: [
+                new OA\Property(property: 'product_id',      type: 'integer'),
+                new OA\Property(property: 'description',     type: 'string'),
+                new OA\Property(property: 'quantity',         type: 'number'),
+                new OA\Property(property: 'unit_price',      type: 'number'),
+                new OA\Property(property: 'discount_percent', type: 'number', default: 0),
+                new OA\Property(property: 'tax_percent',     type: 'number', default: 0),
+            ]
+        )),
+        responses: [new OA\Response(response: 201, description: 'Item added'), new OA\Response(response: 422, description: 'Transaction not open')])]
+    public function posTransactionAddItem(): void {}
+
+    #[OA\Post(path: '/v1/pos/transactions/{id}/checkout', tags: ['POS'], summary: 'Complete checkout with payments',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['payments'],
+            properties: [
+                new OA\Property(property: 'payments', type: 'array', items: new OA\Items(
+                    properties: [
+                        new OA\Property(property: 'method',    type: 'string', enum: ['cash', 'card', 'bank_transfer', 'digital_wallet', 'other']),
+                        new OA\Property(property: 'amount',    type: 'number'),
+                        new OA\Property(property: 'reference', type: 'string'),
+                    ]
+                )),
+            ]
+        )),
+        responses: [new OA\Response(response: 200, description: 'Checkout completed'), new OA\Response(response: 422, description: 'Validation error')])]
+    public function posTransactionCheckout(): void {}
+
+    #[OA\Get(path: '/v1/pos/transactions/summary', tags: ['POS'], summary: 'POS sales summary',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'terminal_id', in: 'query', schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'start_date',  in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'end_date',    in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+        ],
+        responses: [new OA\Response(response: 200, description: 'Summary metrics')])]
+    public function posTransactionSummary(): void {}
+
+    #[OA\Post(path: '/v1/pos/transactions/{id}/void', tags: ['POS'], summary: 'Void a completed transaction',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['reason'],
+            properties: [new OA\Property(property: 'reason', type: 'string')]
+        )),
+        responses: [new OA\Response(response: 200, description: 'Voided'), new OA\Response(response: 422, description: 'Cannot void')])]
+    public function posTransactionVoid(): void {}
+
+    #[OA\Post(path: '/v1/pos/transactions/{id}/refund', tags: ['POS'], summary: 'Refund a completed transaction',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['amount', 'method', 'reason'],
+            properties: [
+                new OA\Property(property: 'amount', type: 'number'),
+                new OA\Property(property: 'method', type: 'string', enum: ['cash', 'card', 'bank_transfer', 'digital_wallet', 'other']),
+                new OA\Property(property: 'reason', type: 'string'),
+            ]
+        )),
+        responses: [new OA\Response(response: 200, description: 'Refunded'), new OA\Response(response: 422, description: 'Cannot refund')])]
+    public function posTransactionRefund(): void {}
+
+    // ── FLEET — Vehicles ───────────────────────────────────────────────────
+
+    #[OA\Get(path: '/v1/fleet/vehicles', tags: ['Fleet'], summary: 'List fleet vehicles',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'status',  in: 'query', schema: new OA\Schema(type: 'string', enum: ['active', 'inactive', 'maintenance', 'retired'])),
+            new OA\Parameter(name: 'type',    in: 'query', schema: new OA\Schema(type: 'string', enum: ['car', 'truck', 'van', 'motorcycle', 'bus', 'trailer', 'other'])),
+            new OA\Parameter(name: 'search',  in: 'query', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'per_page', in: 'query', schema: new OA\Schema(type: 'integer', default: 15)),
+        ],
+        responses: [new OA\Response(response: 200, description: 'Paginated vehicle list')])]
+    public function fleetVehicleIndex(): void {}
+
+    #[OA\Post(path: '/v1/fleet/vehicles', tags: ['Fleet'], summary: 'Register a vehicle',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['vehicle_code', 'make', 'model', 'year', 'license_plate'],
+            properties: [
+                new OA\Property(property: 'vehicle_code', type: 'string'),
+                new OA\Property(property: 'make',         type: 'string'),
+                new OA\Property(property: 'model',        type: 'string'),
+                new OA\Property(property: 'year',         type: 'integer'),
+                new OA\Property(property: 'license_plate', type: 'string'),
+                new OA\Property(property: 'vin',          type: 'string'),
+                new OA\Property(property: 'type',         type: 'string', enum: ['car', 'truck', 'van', 'motorcycle', 'bus', 'trailer', 'other']),
+                new OA\Property(property: 'fuel_type',    type: 'string', enum: ['gasoline', 'diesel', 'electric', 'hybrid', 'other']),
+            ]
+        )),
+        responses: [new OA\Response(response: 201, description: 'Created')])]
+    public function fleetVehicleStore(): void {}
+
+    #[OA\Get(path: '/v1/fleet/vehicles/{id}', tags: ['Fleet'], summary: 'Get vehicle with history',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [new OA\Response(response: 200, description: 'Vehicle'), new OA\Response(response: 404, description: 'Not found')])]
+    public function fleetVehicleShow(): void {}
+
+    // ── FLEET — Drivers ────────────────────────────────────────────────────
+
+    #[OA\Get(path: '/v1/fleet/drivers', tags: ['Fleet'], summary: 'List registered drivers',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'status',        in: 'query', schema: new OA\Schema(type: 'string', enum: ['active', 'inactive', 'suspended'])),
+            new OA\Parameter(name: 'expiring_soon', in: 'query', schema: new OA\Schema(type: 'integer', description: 'Days until license expiry')),
+        ],
+        responses: [new OA\Response(response: 200, description: 'Paginated driver list')])]
+    public function fleetDriverIndex(): void {}
+
+    #[OA\Post(path: '/v1/fleet/drivers', tags: ['Fleet'], summary: 'Register a driver',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['employee_id', 'license_number', 'license_expiry'],
+            properties: [
+                new OA\Property(property: 'employee_id',    type: 'integer'),
+                new OA\Property(property: 'license_number', type: 'string'),
+                new OA\Property(property: 'license_class',  type: 'string'),
+                new OA\Property(property: 'license_expiry', type: 'string', format: 'date'),
+            ]
+        )),
+        responses: [new OA\Response(response: 201, description: 'Created')])]
+    public function fleetDriverStore(): void {}
+
+    // ── FLEET — Trips ──────────────────────────────────────────────────────
+
+    #[OA\Get(path: '/v1/fleet/trips', tags: ['Fleet'], summary: 'List trips',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'vehicle_id', in: 'query', schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'driver_id',  in: 'query', schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'status',     in: 'query', schema: new OA\Schema(type: 'string', enum: ['scheduled', 'in_progress', 'completed', 'cancelled'])),
+            new OA\Parameter(name: 'start_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'end_date',   in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+        ],
+        responses: [new OA\Response(response: 200, description: 'Paginated trip list')])]
+    public function fleetTripIndex(): void {}
+
+    #[OA\Post(path: '/v1/fleet/trips', tags: ['Fleet'], summary: 'Create a trip',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['vehicle_id', 'driver_id', 'start_location', 'start_odometer', 'start_time'],
+            properties: [
+                new OA\Property(property: 'vehicle_id',      type: 'integer'),
+                new OA\Property(property: 'driver_id',       type: 'integer'),
+                new OA\Property(property: 'start_location',  type: 'string'),
+                new OA\Property(property: 'start_odometer',  type: 'number'),
+                new OA\Property(property: 'start_time',      type: 'string', format: 'date-time'),
+                new OA\Property(property: 'purpose',         type: 'string'),
+            ]
+        )),
+        responses: [new OA\Response(response: 201, description: 'Created')])]
+    public function fleetTripStore(): void {}
+
+    #[OA\Post(path: '/v1/fleet/trips/{id}/start', tags: ['Fleet'], summary: 'Start a scheduled trip',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [new OA\Response(response: 200, description: 'Started'), new OA\Response(response: 422, description: 'Cannot start')])]
+    public function fleetTripStart(): void {}
+
+    #[OA\Post(path: '/v1/fleet/trips/{id}/complete', tags: ['Fleet'], summary: 'Complete an in-progress trip',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['end_location', 'end_odometer'],
+            properties: [
+                new OA\Property(property: 'end_location', type: 'string'),
+                new OA\Property(property: 'end_odometer', type: 'number'),
+            ]
+        )),
+        responses: [new OA\Response(response: 200, description: 'Completed')])]
+    public function fleetTripComplete(): void {}
+
+    // ── FLEET — Fuel Logs ──────────────────────────────────────────────────
+
+    #[OA\Get(path: '/v1/fleet/fuel-logs', tags: ['Fleet'], summary: 'List fuel logs',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'vehicle_id', in: 'query', schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'fuel_type',  in: 'query', schema: new OA\Schema(type: 'string', enum: ['gasoline', 'diesel', 'electric', 'hybrid', 'other'])),
+            new OA\Parameter(name: 'start_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'end_date',   in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+        ],
+        responses: [new OA\Response(response: 200, description: 'Paginated fuel log list')])]
+    public function fleetFuelLogIndex(): void {}
+
+    #[OA\Post(path: '/v1/fleet/fuel-logs', tags: ['Fleet'], summary: 'Record a fuel purchase',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['vehicle_id', 'date', 'quantity', 'unit_cost', 'fuel_type', 'odometer'],
+            properties: [
+                new OA\Property(property: 'vehicle_id', type: 'integer'),
+                new OA\Property(property: 'date',       type: 'string', format: 'date'),
+                new OA\Property(property: 'quantity',   type: 'number'),
+                new OA\Property(property: 'unit_cost',  type: 'number'),
+                new OA\Property(property: 'fuel_type',  type: 'string', enum: ['gasoline', 'diesel', 'electric', 'hybrid', 'other']),
+                new OA\Property(property: 'odometer',   type: 'number'),
+            ]
+        )),
+        responses: [new OA\Response(response: 201, description: 'Recorded')])]
+    public function fleetFuelLogStore(): void {}
+
+    // ── FLEET — Maintenance ────────────────────────────────────────────────
+
+    #[OA\Get(path: '/v1/fleet/maintenance', tags: ['Fleet'], summary: 'List maintenance records',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'vehicle_id', in: 'query', schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'status',     in: 'query', schema: new OA\Schema(type: 'string', enum: ['scheduled', 'in_progress', 'completed', 'cancelled'])),
+            new OA\Parameter(name: 'type',       in: 'query', schema: new OA\Schema(type: 'string', enum: ['preventive', 'corrective', 'emergency', 'inspection'])),
+        ],
+        responses: [new OA\Response(response: 200, description: 'Paginated maintenance list')])]
+    public function fleetMaintenanceIndex(): void {}
+
+    #[OA\Post(path: '/v1/fleet/maintenance', tags: ['Fleet'], summary: 'Schedule maintenance',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['vehicle_id', 'type', 'title'],
+            properties: [
+                new OA\Property(property: 'vehicle_id',     type: 'integer'),
+                new OA\Property(property: 'type',           type: 'string', enum: ['preventive', 'corrective', 'emergency', 'inspection']),
+                new OA\Property(property: 'title',          type: 'string'),
+                new OA\Property(property: 'scheduled_date', type: 'string', format: 'date'),
+            ]
+        )),
+        responses: [new OA\Response(response: 201, description: 'Scheduled')])]
+    public function fleetMaintenanceStore(): void {}
 }

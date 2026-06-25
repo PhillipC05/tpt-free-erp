@@ -48,6 +48,8 @@ return new class extends Migration
         });
 
         // ===== BUDGETS =====
+        // Drop the earlier minimal version created in 2026_05_28_000000
+        Schema::dropIfExists('finance_budgets');
         Schema::create('finance_budgets', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -92,14 +94,12 @@ return new class extends Migration
             $table->string('mime_type');
             $table->unsignedBigInteger('file_size');
             $table->foreignId('folder_id')->nullable()->constrained('document_folders')->nullOnDelete();
-            $table->morphs('documentable'); // polymorphic: link to any entity
+            $table->morphs('documentable'); // polymorphic: link to any entity — index created by morphs()
             $table->text('description')->nullable();
             $table->json('tags')->nullable();
             $table->foreignId('uploaded_by')->constrained('users');
             $table->timestamps();
             $table->softDeletes();
-
-            $table->index(['documentable_type', 'documentable_id']);
         });
 
         // ===== CONTRACTS =====

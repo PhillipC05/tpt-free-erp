@@ -28,7 +28,7 @@ class AgentSkillController extends BaseApiController
     }
 
     // GET /agents/{id}/skills
-    public function index(int $agentId): JsonResponse
+    public function listSkills(int $agentId): JsonResponse
     {
         $agent = AgentProfile::find($agentId);
         if (!$agent) return $this->respondNotFound();
@@ -45,7 +45,7 @@ class AgentSkillController extends BaseApiController
     }
 
     // PUT /agents/{id}/skills/{slug}
-    public function update(Request $request, int $agentId, string $slug): JsonResponse
+    public function updateSkill(Request $request, int $agentId, string $slug): JsonResponse
     {
         $agent = AgentProfile::find($agentId);
         if (!$agent) return $this->respondNotFound();

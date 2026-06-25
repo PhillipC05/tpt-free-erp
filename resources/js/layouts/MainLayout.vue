@@ -1,7 +1,7 @@
 <template>
     <div class="flex h-screen bg-gray-50 dark:bg-gray-900">
         <!-- Sidebar -->
-        <aside :class="[
+        <aside v-if="!isFullscreen" :class="[
             'fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto flex flex-col',
             sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         ]">
@@ -77,15 +77,15 @@
 
         <!-- Overlay for mobile -->
         <div
-            v-if="sidebarOpen"
+            v-if="sidebarOpen && !isFullscreen"
             @click="toggleSidebar"
             class="fixed inset-0 z-20 bg-black bg-opacity-50 lg:hidden"
         />
 
         <!-- Main content area -->
         <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-            <!-- Top navbar -->
-            <header class="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 lg:px-6 flex-shrink-0">
+            <!-- Top navbar (hidden in fullscreen mode) -->
+            <header v-if="!isFullscreen" class="h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 lg:px-6 flex-shrink-0">
                 <div class="flex items-center gap-4">
                     <button @click="toggleSidebar" class="lg:hidden text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -169,11 +169,11 @@
             </header>
 
             <!-- Page content -->
-            <main class="flex-1 overflow-y-auto p-4 lg:p-6">
-                <div class="max-w-7xl mx-auto">
+            <main :class="isFullscreen ? 'flex-1 overflow-hidden' : 'flex-1 overflow-y-auto p-4 lg:p-6'">
+                <div v-if="!isFullscreen" class="max-w-7xl mx-auto">
                     <router-view />
                 </div>
-            </main>
+                <router-view v-else class="h-full" /></main>
         </div>
     </div>
 </template>
@@ -188,6 +188,8 @@ import api from '@/api/axios';
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+
+const isFullscreen = computed(() => !!route.meta.fullscreen);
 
 // ── Sidebar ─────────────────────────────────────────────────────────────────
 const sidebarOpen = ref(false);
@@ -266,6 +268,17 @@ const navigationGroups: NavGroup[] = [
             { to: '/sales/orders', label: 'Orders' },
             { to: '/sales/invoices', label: 'Invoices' },
             { to: '/sales/crm', label: 'CRM Pipeline' },
+        ],
+    },
+    {
+        label: 'Point of Sale',
+        prefix: '/pos',
+        roles: ['pos', 'cashier', 'retail', 'sales', 'sales_manager'],
+        icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>',
+        children: [
+            { to: '/pos/register', label: 'Register' },
+            { to: '/pos/transactions', label: 'Transactions' },
+            { to: '/pos/terminals', label: 'Terminals' },
         ],
     },
     {

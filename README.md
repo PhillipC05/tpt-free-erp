@@ -10,7 +10,7 @@ Open-source Enterprise Resource Planning system built on **Laravel 13.8** (PHP 8
 
 | Tool | Version | Download |
 |------|---------|----------|
-| PHP | 8.3+ | [Laravel Herd](https://herd.laravel.com/) (Windows/macOS) or [php.net](https://windows.php.net/) |
+| PHP | 8.3+ | [php.net](https://windows.php.net/) (Windows) or [php.net/downloads](https://www.php.net/downloads) |
 | Composer | 2.x | [getcomposer.org](https://getcomposer.org/) |
 | Node.js | 18+ | [nodejs.org](https://nodejs.org/) |
 | Git | any | [git-scm.com](https://git-scm.com/) |
@@ -37,9 +37,7 @@ Opens four concurrent processes (PHP server, queue, log viewer, Vite). Visit **h
 
 ## Windows Installation (Step by Step)
 
-The fastest path on Windows is [**Laravel Herd**](https://herd.laravel.com/) — a free installer that gives you PHP 8.3, Composer, and a zero-config web server in one click.
-
-1. **Install Laravel Herd** from [herd.laravel.com](https://herd.laravel.com/) (free tier is sufficient)
+1. **Install PHP 8.3+** from [windows.php.net](https://windows.php.net/download/) and **Composer** from [getcomposer.org](https://getcomposer.org/)
 2. **Install Node.js** from [nodejs.org](https://nodejs.org/) (LTS)
 3. Open **PowerShell** and run:
 
@@ -56,7 +54,7 @@ composer run dev
 
 ### Alternative: install script
 
-A PowerShell script is included for environments without Herd:
+A PowerShell script is included that checks prerequisites for you:
 
 ```powershell
 .\install.ps1

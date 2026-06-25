@@ -239,6 +239,14 @@ const routes: RouteRecordRaw[] = [
             { path: 'webhooks', name: 'webhooks', component: () => import('@/views/WebhooksView.vue') },
             // Scheduled Reports
             { path: 'reports/scheduled', name: 'reports.scheduled', component: () => import('@/views/reports/ScheduledReportsView.vue') },
+            // POS
+            { path: 'pos/terminals', name: 'pos.terminals', component: () => import('@/views/pos/TerminalsView.vue') },
+            { path: 'pos/transactions', name: 'pos.transactions', component: () => import('@/views/pos/TransactionsView.vue') },
+            { path: 'pos/register', name: 'pos.register', component: () => import('@/views/pos/RegisterView.vue'), meta: { fullscreen: true } },
+            // Fleet Management
+            { path: 'fleet/vehicles', name: 'fleet.vehicles', component: () => import('@/views/fleet/VehiclesView.vue') },
+            { path: 'fleet/drivers', name: 'fleet.drivers', component: () => import('@/views/fleet/DriversView.vue') },
+            { path: 'fleet/trips', name: 'fleet.trips', component: () => import('@/views/fleet/TripsView.vue') },
         ],
     },
     {

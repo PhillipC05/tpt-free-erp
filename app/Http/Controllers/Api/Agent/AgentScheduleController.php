@@ -17,7 +17,7 @@ class AgentScheduleController extends BaseApiController
     }
 
     // GET /agents/{id}/schedules
-    public function index(int $agentId): JsonResponse
+    public function listSchedules(int $agentId): JsonResponse
     {
         $agent = AgentProfile::find($agentId);
         if (!$agent) return $this->respondNotFound();
@@ -31,7 +31,7 @@ class AgentScheduleController extends BaseApiController
     }
 
     // POST /agents/{id}/schedules
-    public function store(Request $request, int $agentId): JsonResponse
+    public function createSchedule(Request $request, int $agentId): JsonResponse
     {
         $agent = AgentProfile::find($agentId);
         if (!$agent) return $this->respondNotFound();
@@ -60,7 +60,7 @@ class AgentScheduleController extends BaseApiController
     }
 
     // DELETE /agents/{id}/schedules/{schedId}
-    public function destroy(int $agentId, int $schedId): JsonResponse
+    public function deleteSchedule(int $agentId, int $schedId): JsonResponse
     {
         $schedule = AgentSchedule::where('agent_profile_id', $agentId)->where('id', $schedId)->first();
         if (!$schedule) return $this->respondNotFound();

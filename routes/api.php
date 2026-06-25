@@ -62,6 +62,13 @@ use App\Http\Controllers\Api\Agent\AgentSkillController;
 use App\Http\Controllers\Api\Agent\AgentExecutionController;
 use App\Http\Controllers\Api\Agent\AgentScheduleController;
 use App\Http\Controllers\Api\ESignature\ESignatureController;
+use App\Http\Controllers\Api\Pos\TerminalController;
+use App\Http\Controllers\Api\Pos\TransactionController as PosTransactionController;
+use App\Http\Controllers\Api\Fleet\VehicleController;
+use App\Http\Controllers\Api\Fleet\DriverController;
+use App\Http\Controllers\Api\Fleet\TripController;
+use App\Http\Controllers\Api\Fleet\FuelLogController;
+use App\Http\Controllers\Api\Fleet\MaintenanceController as FleetMaintenanceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -99,7 +106,7 @@ Route::get('/health', function () {
             'finance', 'inventory', 'hr', 'sales', 'procurement',
             'manufacturing', 'projects', 'quality', 'assets',
             'field_service', 'lms', 'marketing', 'network',
-            'expenses', 'budgets', 'documents', 'contracts',
+            'expenses', 'budgets', 'documents', 'contracts', 'pos', 'fleet',
         ],
     ]);
 });
@@ -149,8 +156,8 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
             Route::get('reports/trial-balance', [FinanceReportController::class, 'trialBalance']);
             Route::get('budgets', [BudgetController::class, 'index']);
             Route::get('budgets/{budget}', [BudgetController::class, 'show']);
-            Route::get('budgets/{budget}/lines', [BudgetLineController::class, 'index']);
-            Route::get('budgets/{budget}/lines/{line}', [BudgetLineController::class, 'show']);
+            Route::get('budgets/{budget}/lines', [BudgetLineController::class, 'listLines']);
+            Route::get('budgets/{budget}/lines/{line}', [BudgetLineController::class, 'getLine']);
             Route::get('budgets/{budget}/variance', [BudgetLineController::class, 'variance']);
         });
         Route::middleware('permission:finance.create')->group(function () {
@@ -158,7 +165,7 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
             Route::post('transactions', [TransactionController::class, 'store']);
             Route::post('journal-entries', [JournalEntryController::class, 'store']);
             Route::post('budgets', [BudgetController::class, 'store']);
-            Route::post('budgets/{budget}/lines', [BudgetLineController::class, 'store']);
+            Route::post('budgets/{budget}/lines', [BudgetLineController::class, 'createLine']);
         });
         Route::middleware('permission:finance.edit')->group(function () {
             Route::put('accounts/{account}', [AccountController::class, 'update']);
@@ -168,8 +175,8 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
             Route::put('journal-entries/{entry}', [JournalEntryController::class, 'update']);
             Route::patch('journal-entries/{entry}', [JournalEntryController::class, 'update']);
             Route::put('budgets/{budget}', [BudgetController::class, 'update']);
-            Route::put('budgets/{budget}/lines/{line}', [BudgetLineController::class, 'update']);
-            Route::patch('budgets/{budget}/lines/{line}', [BudgetLineController::class, 'update']);
+            Route::put('budgets/{budget}/lines/{line}', [BudgetLineController::class, 'updateLine']);
+            Route::patch('budgets/{budget}/lines/{line}', [BudgetLineController::class, 'updateLine']);
         });
         Route::middleware('permission:finance.approve')->group(function () {
             Route::post('transactions/{transaction}/approve', [TransactionController::class, 'approve']);
@@ -182,7 +189,7 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
             Route::delete('transactions/{transaction}', [TransactionController::class, 'destroy']);
             Route::delete('journal-entries/{entry}', [JournalEntryController::class, 'destroy']);
             Route::delete('budgets/{budget}', [BudgetController::class, 'destroy']);
-            Route::delete('budgets/{budget}/lines/{line}', [BudgetLineController::class, 'destroy']);
+            Route::delete('budgets/{budget}/lines/{line}', [BudgetLineController::class, 'deleteLine']);
         });
     });
 
@@ -560,19 +567,19 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
             Route::get('/', [ExpenseController::class, 'index']);
             Route::get('/summary', [ExpenseController::class, 'summary']);
             Route::get('/{expense}', [ExpenseController::class, 'show']);
-            Route::get('/{expense}/items', [ExpenseItemController::class, 'index']);
-            Route::get('/{expense}/items/{item}', [ExpenseItemController::class, 'show']);
+            Route::get('/{expense}/items', [ExpenseItemController::class, 'listItems']);
+            Route::get('/{expense}/items/{item}', [ExpenseItemController::class, 'getItem']);
         });
         Route::middleware('permission:expenses.create')->group(function () {
             Route::post('/', [ExpenseController::class, 'store']);
-            Route::post('/{expense}/items', [ExpenseItemController::class, 'store']);
+            Route::post('/{expense}/items', [ExpenseItemController::class, 'createItem']);
             Route::post('/{expense}/items/{item}/receipt', [ExpenseItemController::class, 'uploadReceipt']);
         });
         Route::middleware('permission:expenses.edit')->group(function () {
             Route::put('/{expense}', [ExpenseController::class, 'update']);
             Route::patch('/{expense}', [ExpenseController::class, 'update']);
-            Route::put('/{expense}/items/{item}', [ExpenseItemController::class, 'update']);
-            Route::patch('/{expense}/items/{item}', [ExpenseItemController::class, 'update']);
+            Route::put('/{expense}/items/{item}', [ExpenseItemController::class, 'updateItem']);
+            Route::patch('/{expense}/items/{item}', [ExpenseItemController::class, 'updateItem']);
         });
         Route::middleware('permission:expenses.approve')->group(function () {
             Route::post('/{expense}/approve', [ExpenseController::class, 'approve']);
@@ -580,7 +587,7 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
         });
         Route::middleware('permission:expenses.delete')->group(function () {
             Route::delete('/{expense}', [ExpenseController::class, 'destroy']);
-            Route::delete('/{expense}/items/{item}', [ExpenseItemController::class, 'destroy']);
+            Route::delete('/{expense}/items/{item}', [ExpenseItemController::class, 'deleteItem']);
         });
     });
 
@@ -631,19 +638,87 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
 
         // Milestones
         Route::middleware('permission:contracts.view')->group(function () {
-            Route::get('/{contract}/milestones', [ContractMilestoneController::class, 'index']);
-            Route::get('/{contract}/milestones/{milestone}', [ContractMilestoneController::class, 'show']);
+            Route::get('/{contract}/milestones', [ContractMilestoneController::class, 'listMilestones']);
+            Route::get('/{contract}/milestones/{milestone}', [ContractMilestoneController::class, 'getMilestone']);
         });
         Route::middleware('permission:contracts.create')->group(function () {
-            Route::post('/{contract}/milestones', [ContractMilestoneController::class, 'store']);
+            Route::post('/{contract}/milestones', [ContractMilestoneController::class, 'createMilestone']);
         });
         Route::middleware('permission:contracts.edit')->group(function () {
-            Route::put('/{contract}/milestones/{milestone}', [ContractMilestoneController::class, 'update']);
-            Route::patch('/{contract}/milestones/{milestone}', [ContractMilestoneController::class, 'update']);
-            Route::patch('/{contract}/milestones/{milestone}/complete', [ContractMilestoneController::class, 'complete']);
+            Route::put('/{contract}/milestones/{milestone}', [ContractMilestoneController::class, 'updateMilestone']);
+            Route::patch('/{contract}/milestones/{milestone}', [ContractMilestoneController::class, 'updateMilestone']);
+            Route::patch('/{contract}/milestones/{milestone}/complete', [ContractMilestoneController::class, 'completeMilestone']);
         });
         Route::middleware('permission:contracts.delete')->group(function () {
-            Route::delete('/{contract}/milestones/{milestone}', [ContractMilestoneController::class, 'destroy']);
+            Route::delete('/{contract}/milestones/{milestone}', [ContractMilestoneController::class, 'deleteMilestone']);
+        });
+    });
+
+    // ===== POS MODULE =====
+    Route::prefix('pos')->group(function () {
+        Route::middleware('permission:pos.view')->group(function () {
+            Route::get('terminals', [TerminalController::class, 'index']);
+            Route::get('terminals/{terminal}', [TerminalController::class, 'show']);
+            Route::get('transactions/summary', [PosTransactionController::class, 'summary']);
+            Route::get('transactions', [PosTransactionController::class, 'index']);
+            Route::get('transactions/{transaction}', [PosTransactionController::class, 'show']);
+        });
+        Route::middleware('permission:pos.create')->group(function () {
+            Route::post('terminals', [TerminalController::class, 'store']);
+            Route::post('transactions', [PosTransactionController::class, 'store']);
+            Route::post('transactions/{transaction}/items', [PosTransactionController::class, 'addItem']);
+            Route::post('transactions/{transaction}/checkout', [PosTransactionController::class, 'checkout']);
+        });
+        Route::middleware('permission:pos.edit')->group(function () {
+            Route::put('terminals/{terminal}', [TerminalController::class, 'update']);
+            Route::put('transactions/{transaction}', [PosTransactionController::class, 'update']);
+            Route::delete('transactions/{transaction}/items/{item}', [PosTransactionController::class, 'removeItem']);
+        });
+        Route::middleware('permission:pos.delete')->group(function () {
+            Route::delete('terminals/{terminal}', [TerminalController::class, 'destroy']);
+            Route::delete('transactions/{transaction}', [PosTransactionController::class, 'destroy']);
+            Route::post('transactions/{transaction}/void', [PosTransactionController::class, 'void']);
+            Route::post('transactions/{transaction}/refund', [PosTransactionController::class, 'refund']);
+        });
+    });
+
+    // ===== FLEET MANAGEMENT MODULE =====
+    Route::prefix('fleet')->group(function () {
+        Route::middleware('permission:fleet.view')->group(function () {
+            Route::get('vehicles', [VehicleController::class, 'index']);
+            Route::get('vehicles/{vehicle}', [VehicleController::class, 'show']);
+            Route::get('drivers', [DriverController::class, 'index']);
+            Route::get('drivers/{driver}', [DriverController::class, 'show']);
+            Route::get('trips', [TripController::class, 'index']);
+            Route::get('trips/{trip}', [TripController::class, 'show']);
+            Route::get('fuel-logs', [FuelLogController::class, 'index']);
+            Route::get('fuel-logs/{fuelLog}', [FuelLogController::class, 'show']);
+            Route::get('maintenance', [FleetMaintenanceController::class, 'index']);
+            Route::get('maintenance/{record}', [FleetMaintenanceController::class, 'show']);
+        });
+        Route::middleware('permission:fleet.create')->group(function () {
+            Route::post('vehicles', [VehicleController::class, 'store']);
+            Route::post('drivers', [DriverController::class, 'store']);
+            Route::post('trips', [TripController::class, 'store']);
+            Route::post('fuel-logs', [FuelLogController::class, 'store']);
+            Route::post('maintenance', [FleetMaintenanceController::class, 'store']);
+        });
+        Route::middleware('permission:fleet.edit')->group(function () {
+            Route::put('vehicles/{vehicle}', [VehicleController::class, 'update']);
+            Route::put('drivers/{driver}', [DriverController::class, 'update']);
+            Route::put('trips/{trip}', [TripController::class, 'update']);
+            Route::post('trips/{trip}/start', [TripController::class, 'start']);
+            Route::post('trips/{trip}/complete', [TripController::class, 'complete']);
+            Route::put('maintenance/{record}', [FleetMaintenanceController::class, 'update']);
+            Route::post('maintenance/{record}/complete', [FleetMaintenanceController::class, 'complete']);
+        });
+        Route::middleware('permission:fleet.delete')->group(function () {
+            Route::delete('vehicles/{vehicle}', [VehicleController::class, 'destroy']);
+            Route::delete('drivers/{driver}', [DriverController::class, 'destroy']);
+            Route::delete('trips/{trip}', [TripController::class, 'destroy']);
+            Route::delete('fuel-logs/{fuelLog}', [FuelLogController::class, 'destroy']);
+            Route::delete('maintenance/{record}', [FleetMaintenanceController::class, 'destroy']);
+            Route::post('trips/{trip}/cancel', [TripController::class, 'cancel']);
         });
     });
 
@@ -708,22 +783,22 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
         Route::delete('/{id}', [AgentController::class, 'destroy']);
 
         // Tokens
-        Route::post('/{id}/tokens', [AgentTokenController::class, 'store']);
-        Route::delete('/{id}/tokens/{tokenId}', [AgentTokenController::class, 'destroy']);
+        Route::post('/{id}/tokens', [AgentTokenController::class, 'createToken']);
+        Route::delete('/{id}/tokens/{tokenId}', [AgentTokenController::class, 'deleteToken']);
 
         // Skills per agent
-        Route::get('/{id}/skills', [AgentSkillController::class, 'index']);
-        Route::put('/{id}/skills/{slug}', [AgentSkillController::class, 'update']);
+        Route::get('/{id}/skills', [AgentSkillController::class, 'listSkills']);
+        Route::put('/{id}/skills/{slug}', [AgentSkillController::class, 'updateSkill']);
         Route::post('/{id}/skills/{slug}/run', [AgentSkillController::class, 'run']);
 
         // Executions (audit log)
-        Route::get('/{id}/executions', [AgentExecutionController::class, 'index']);
-        Route::get('/{id}/executions/{execId}', [AgentExecutionController::class, 'show']);
+        Route::get('/{id}/executions', [AgentExecutionController::class, 'listExecutions']);
+        Route::get('/{id}/executions/{execId}', [AgentExecutionController::class, 'getExecution']);
 
         // Schedules
-        Route::get('/{id}/schedules', [AgentScheduleController::class, 'index']);
-        Route::post('/{id}/schedules', [AgentScheduleController::class, 'store']);
-        Route::delete('/{id}/schedules/{schedId}', [AgentScheduleController::class, 'destroy']);
+        Route::get('/{id}/schedules', [AgentScheduleController::class, 'listSchedules']);
+        Route::post('/{id}/schedules', [AgentScheduleController::class, 'createSchedule']);
+        Route::delete('/{id}/schedules/{schedId}', [AgentScheduleController::class, 'deleteSchedule']);
     });
 
     // ===== GDPR =====

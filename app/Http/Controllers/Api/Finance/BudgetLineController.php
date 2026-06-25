@@ -17,7 +17,7 @@ class BudgetLineController extends BaseApiController
         parent::__construct();
     }
 
-    public function index(int $budgetId): JsonResponse
+    public function listLines(int $budgetId): JsonResponse
     {
         $budget = Budget::find($budgetId);
 
@@ -30,7 +30,7 @@ class BudgetLineController extends BaseApiController
         return $this->respond(['success' => true, 'data' => $lines]);
     }
 
-    public function store(Request $request, int $budgetId): JsonResponse
+    public function createLine(Request $request, int $budgetId): JsonResponse
     {
         $budget = Budget::find($budgetId);
 
@@ -73,7 +73,7 @@ class BudgetLineController extends BaseApiController
         return $this->respondCreated($line);
     }
 
-    public function show(int $budgetId, int $lineId): JsonResponse
+    public function getLine(int $budgetId, int $lineId): JsonResponse
     {
         $line = BudgetLine::where('budget_id', $budgetId)->find($lineId);
 
@@ -84,7 +84,7 @@ class BudgetLineController extends BaseApiController
         return $this->respond(['success' => true, 'data' => $line]);
     }
 
-    public function update(Request $request, int $budgetId, int $lineId): JsonResponse
+    public function updateLine(Request $request, int $budgetId, int $lineId): JsonResponse
     {
         $budget = Budget::find($budgetId);
 
@@ -119,7 +119,7 @@ class BudgetLineController extends BaseApiController
         return $this->respondSuccess('Budget line updated', $line);
     }
 
-    public function destroy(int $budgetId, int $lineId): JsonResponse
+    public function deleteLine(int $budgetId, int $lineId): JsonResponse
     {
         $budget = Budget::find($budgetId);
 

@@ -102,6 +102,8 @@ $this->getJson('/api/...', ['Authorization' => "Bearer {$token}"]);
 | Assets | AssetController, MaintenanceController | ✅ | `/api/assets/` |
 | FieldService | TicketController | ✅ | `/api/field-service/` |
 | LMS | CourseController, EnrollmentController | ✅ | `/api/lms/` |
+| POS | TerminalController, TransactionController | ✅ | `/api/pos/` |
+| Fleet | VehicleController, DriverController, TripController, FuelLogController, MaintenanceController | ✅ | `/api/fleet/` |
 
 ## Adding a New Module
 
@@ -140,3 +142,14 @@ SQLite enforces CHECK constraints that match the migration enums exactly. Use th
 | sales_orders | status | `draft` `confirmed` `processing` `shipped` `delivered` `cancelled` |
 | sales_invoices | status | `draft` `sent` `paid` `overdue` `cancelled` |
 | manufacturing_work_orders | status | `planned` `in_progress` `completed` `cancelled` |
+| pos_terminals | status | `active` `inactive` `maintenance` |
+| pos_transactions | status | `open` `completed` `voided` `refunded` |
+| pos_payments | method | `cash` `card` `bank_transfer` `digital_wallet` `other` |
+| fleet_vehicles | type | `car` `truck` `van` `motorcycle` `bus` `trailer` `other` |
+| fleet_vehicles | fuel_type | `gasoline` `diesel` `electric` `hybrid` `other` |
+| fleet_vehicles | status | `active` `inactive` `maintenance` `retired` |
+| fleet_drivers | status | `active` `inactive` `suspended` |
+| fleet_trips | status | `scheduled` `in_progress` `completed` `cancelled` |
+| fleet_fuel_logs | fuel_type | `gasoline` `diesel` `electric` `hybrid` `other` |
+| fleet_maintenance_records | type | `preventive` `corrective` `emergency` `inspection` |
+| fleet_maintenance_records | status | `scheduled` `in_progress` `completed` `cancelled` |

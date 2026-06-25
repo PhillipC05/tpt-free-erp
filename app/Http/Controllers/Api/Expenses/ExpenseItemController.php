@@ -18,7 +18,7 @@ class ExpenseItemController extends BaseApiController
         parent::__construct();
     }
 
-    public function index(int $expenseId): JsonResponse
+    public function listItems(int $expenseId): JsonResponse
     {
         $report = ExpenseReport::find($expenseId);
 
@@ -33,7 +33,7 @@ class ExpenseItemController extends BaseApiController
         return $this->respond(['success' => true, 'data' => $items]);
     }
 
-    public function store(Request $request, int $expenseId): JsonResponse
+    public function createItem(Request $request, int $expenseId): JsonResponse
     {
         $report = ExpenseReport::find($expenseId);
 
@@ -73,7 +73,7 @@ class ExpenseItemController extends BaseApiController
         return $this->respondCreated($item);
     }
 
-    public function show(int $expenseId, int $itemId): JsonResponse
+    public function getItem(int $expenseId, int $itemId): JsonResponse
     {
         $item = ExpenseItem::where('expense_report_id', $expenseId)->find($itemId);
 
@@ -84,7 +84,7 @@ class ExpenseItemController extends BaseApiController
         return $this->respond(['success' => true, 'data' => $item]);
     }
 
-    public function update(Request $request, int $expenseId, int $itemId): JsonResponse
+    public function updateItem(Request $request, int $expenseId, int $itemId): JsonResponse
     {
         $report = ExpenseReport::find($expenseId);
 
@@ -125,7 +125,7 @@ class ExpenseItemController extends BaseApiController
         return $this->respondSuccess('Expense item updated', $item);
     }
 
-    public function destroy(int $expenseId, int $itemId): JsonResponse
+    public function deleteItem(int $expenseId, int $itemId): JsonResponse
     {
         $report = ExpenseReport::find($expenseId);
 

@@ -30,8 +30,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->index(['signable_type', 'signable_id']);
-            $table->index('status');
+            $table->index('status'); // signable composite index already created by morphs()
             $table->index('signer_email');
         });
     }

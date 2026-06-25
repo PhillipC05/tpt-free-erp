@@ -28,11 +28,11 @@ try {
     if ($LASTEXITCODE -ne 0) { throw }
     $major, $minor = $phpVer.Split('.')[0,1]
     if ([int]$major -lt 8 -or ([int]$major -eq 8 -and [int]$minor -lt 3)) {
-        Write-Fail "PHP 8.3+ required. Found $phpVer. Install Laravel Herd: https://herd.laravel.com/"
+        Write-Fail "PHP 8.3+ required. Found $phpVer. Download from https://windows.php.net/"
     }
     Write-Ok "PHP $phpVer"
 } catch {
-    Write-Fail "PHP not found. Install Laravel Herd (includes PHP 8.3): https://herd.laravel.com/"
+    Write-Fail "PHP not found. Download PHP 8.3+ from https://windows.php.net/"
 }
 
 # Composer

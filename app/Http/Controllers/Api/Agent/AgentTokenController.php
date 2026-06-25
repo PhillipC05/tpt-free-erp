@@ -16,7 +16,7 @@ class AgentTokenController extends BaseApiController
         parent::__construct();
     }
 
-    public function store(Request $request, int $agentId): JsonResponse
+    public function createToken(Request $request, int $agentId): JsonResponse
     {
         $agent = AgentProfile::find($agentId);
         if (!$agent) return $this->respondNotFound();
@@ -51,7 +51,7 @@ class AgentTokenController extends BaseApiController
         ]));
     }
 
-    public function destroy(int $agentId, int $tokenId): JsonResponse
+    public function deleteToken(int $agentId, int $tokenId): JsonResponse
     {
         $token = AgentToken::where('agent_profile_id', $agentId)->where('id', $tokenId)->first();
         if (!$token) return $this->respondNotFound();

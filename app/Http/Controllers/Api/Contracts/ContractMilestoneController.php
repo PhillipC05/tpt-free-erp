@@ -17,22 +17,22 @@ class ContractMilestoneController extends BaseApiController
         parent::__construct();
     }
 
-    public function index(int $contractId): JsonResponse
+    public function listMilestones(int $contract): JsonResponse
     {
-        $contract = Contract::find($contractId);
-        if (!$contract) {
+        $contractModel = Contract::find($contract);
+        if (!$contractModel) {
             return $this->respondNotFound('Contract not found');
         }
 
-        $milestones = $contract->milestones()->orderBy('due_date')->get();
+        $milestones = $contractModel->milestones()->orderBy('due_date')->get();
 
         return $this->respond(['success' => true, 'data' => $milestones]);
     }
 
-    public function store(Request $request, int $contractId): JsonResponse
+    public function createMilestone(Request $request, int $contract): JsonResponse
     {
-        $contract = Contract::find($contractId);
-        if (!$contract) {
+        $contractModel = Contract::find($contract);
+        if (!$contractModel) {
             return $this->respondNotFound('Contract not found');
         }
 
@@ -48,7 +48,7 @@ class ContractMilestoneController extends BaseApiController
             return $error;
         }
 
-        $milestone = $contract->milestones()->create($request->only([
+        $milestone = $contractModel->milestones()->create($request->only([
             'title', 'description', 'due_date', 'payment_amount', 'is_completed',
         ]));
 
@@ -57,20 +57,20 @@ class ContractMilestoneController extends BaseApiController
         return $this->respondCreated($milestone);
     }
 
-    public function show(int $contractId, int $milestoneId): JsonResponse
+    public function getMilestone(int $contract, int $milestone): JsonResponse
     {
-        $milestone = ContractMilestone::where('contract_id', $contractId)->find($milestoneId);
-        if (!$milestone) {
+        $record = ContractMilestone::where('contract_id', $contract)->find($milestone);
+        if (!$record) {
             return $this->respondNotFound('Milestone not found');
         }
 
-        return $this->respond(['success' => true, 'data' => $milestone]);
+        return $this->respond(['success' => true, 'data' => $record]);
     }
 
-    public function update(Request $request, int $contractId, int $milestoneId): JsonResponse
+    public function updateMilestone(Request $request, int $contract, int $milestone): JsonResponse
     {
-        $milestone = ContractMilestone::where('contract_id', $contractId)->find($milestoneId);
-        if (!$milestone) {
+        $record = ContractMilestone::where('contract_id', $contract)->find($milestone);
+        if (!$record) {
             return $this->respondNotFound('Milestone not found');
         }
 
@@ -86,44 +86,44 @@ class ContractMilestoneController extends BaseApiController
             return $error;
         }
 
-        $milestone->update($request->only([
+        $record->update($request->only([
             'title', 'description', 'due_date', 'payment_amount', 'is_completed',
         ]));
 
-        if ($request->boolean('is_completed') && !$milestone->wasChanged('completed_at')) {
-            $milestone->update(['completed_at' => now()]);
+        if ($request->boolean('is_completed') && !$record->completed_at) {
+            $record->update(['completed_at' => now()]);
         }
 
         $this->cacheFlush();
 
-        return $this->respondSuccess('Milestone updated successfully', $milestone->fresh());
+        return $this->respondSuccess('Milestone updated successfully', $record->fresh());
     }
 
-    public function complete(int $contractId, int $milestoneId): JsonResponse
+    public function completeMilestone(int $contract, int $milestone): JsonResponse
     {
-        $milestone = ContractMilestone::where('contract_id', $contractId)->find($milestoneId);
-        if (!$milestone) {
+        $record = ContractMilestone::where('contract_id', $contract)->find($milestone);
+        if (!$record) {
             return $this->respondNotFound('Milestone not found');
         }
 
-        $milestone->update([
+        $record->update([
             'is_completed' => true,
-            'completed_at' => $milestone->completed_at ?? now(),
+            'completed_at' => $record->completed_at ?? now(),
         ]);
 
         $this->cacheFlush();
 
-        return $this->respondSuccess('Milestone marked as complete', $milestone->fresh());
+        return $this->respondSuccess('Milestone marked as complete', $record->fresh());
     }
 
-    public function destroy(int $contractId, int $milestoneId): JsonResponse
+    public function deleteMilestone(int $contract, int $milestone): JsonResponse
     {
-        $milestone = ContractMilestone::where('contract_id', $contractId)->find($milestoneId);
-        if (!$milestone) {
+        $record = ContractMilestone::where('contract_id', $contract)->find($milestone);
+        if (!$record) {
             return $this->respondNotFound('Milestone not found');
         }
 
-        $milestone->delete();
+        $record->delete();
         $this->cacheFlush();
 
         return $this->respondSuccess('Milestone deleted successfully');

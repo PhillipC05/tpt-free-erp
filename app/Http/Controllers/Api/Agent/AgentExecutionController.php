@@ -16,7 +16,7 @@ class AgentExecutionController extends BaseApiController
     }
 
     // GET /agents/{id}/executions
-    public function index(Request $request, int $agentId): JsonResponse
+    public function listExecutions(Request $request, int $agentId): JsonResponse
     {
         $agent = AgentProfile::find($agentId);
         if (!$agent) return $this->respondNotFound();
@@ -35,7 +35,7 @@ class AgentExecutionController extends BaseApiController
     }
 
     // GET /agents/{id}/executions/{execId}
-    public function show(int $agentId, int $execId): JsonResponse
+    public function getExecution(int $agentId, int $execId): JsonResponse
     {
         $execution = AgentExecution::where('agent_profile_id', $agentId)
             ->where('id', $execId)

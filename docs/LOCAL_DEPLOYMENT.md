@@ -32,11 +32,9 @@ Open **http://localhost:8000** — API docs at **http://localhost:8000/api/docum
 
 ## Windows
 
-### Option A — Laravel Herd (recommended, one-click)
+### Option A — PHP + Composer (recommended)
 
-[Laravel Herd](https://herd.laravel.com/) is the official tool from the Laravel team. The free tier gives you PHP 8.3, a zero-config PHP server, and automatic virtual hosts.
-
-1. Download and install **Laravel Herd** from [herd.laravel.com](https://herd.laravel.com/)
+1. Download **PHP 8.3+** from [windows.php.net](https://windows.php.net/download/) and **Composer** from [getcomposer.org](https://getcomposer.org/)
 2. Install **Node.js** from [nodejs.org](https://nodejs.org/) (LTS)
 3. Open PowerShell and run:
 
@@ -81,13 +79,10 @@ php artisan serve   # or use the WAMP virtual host
 
 ## macOS / Linux
 
-### macOS — Laravel Herd or Valet
+### macOS — Homebrew or Valet
 
 ```bash
-# Laravel Herd (GUI app, easiest)
-# Download from https://herd.laravel.com/
-
-# Or Valet (CLI)
+# Install PHP and Composer via Homebrew
 brew install php@8.3 composer
 composer global require laravel/valet
 valet install
@@ -276,7 +271,7 @@ php artisan route:list --path=api
 # Ubuntu/Debian
 sudo apt install php8.3-sqlite3
 
-# Windows (Herd auto-enables this; for manual PHP, uncomment in php.ini)
+# Windows (uncomment in C:\PHP\php.ini)
 # extension=pdo_sqlite
 ```
 

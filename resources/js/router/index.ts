@@ -247,6 +247,9 @@ const routes: RouteRecordRaw[] = [
             { path: 'fleet/vehicles', name: 'fleet.vehicles', component: () => import('@/views/fleet/VehiclesView.vue') },
             { path: 'fleet/drivers', name: 'fleet.drivers', component: () => import('@/views/fleet/DriversView.vue') },
             { path: 'fleet/trips', name: 'fleet.trips', component: () => import('@/views/fleet/TripsView.vue') },
+            { path: 'fleet/parts', name: 'fleet.parts', component: () => import('@/views/fleet/PartsView.vue') },
+            { path: 'fleet/fuel-tracking', name: 'fleet.fuel-tracking', component: () => import('@/views/fleet/FuelTrackingView.vue') },
+            { path: 'fleet/maintenance-tracking', name: 'fleet.maintenance-tracking', component: () => import('@/views/fleet/MaintenanceTrackingView.vue') },
         ],
     },
     {

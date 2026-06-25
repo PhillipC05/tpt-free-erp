@@ -587,3 +587,259 @@ export interface FleetMaintenanceRecord {
     created_at: string;
     updated_at: string;
 }
+
+export interface FleetPartCategory {
+    id: number;
+    name: string;
+    slug: string;
+    description: string | null;
+    parent_id: number | null;
+    parent: FleetPartCategory | null;
+    children: FleetPartCategory[];
+    parts_count: number;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface FleetPart {
+    id: number;
+    part_number: string;
+    name: string;
+    description: string | null;
+    category_id: number | null;
+    category: FleetPartCategory | null;
+    manufacturer: string | null;
+    supplier: string | null;
+    unit: string;
+    unit_cost: number;
+    sell_price: number | null;
+    quantity_on_hand: number;
+    reorder_level: number;
+    reorder_quantity: number;
+    bin_location: string | null;
+    compatible_vehicles: string | null;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface FleetPartUsage {
+    id: number;
+    part_id: number;
+    part: FleetPart;
+    vehicle_id: number;
+    vehicle: FleetVehicle;
+    maintenance_id: number | null;
+    maintenance: FleetMaintenanceRecord | null;
+    trip_id: number | null;
+    trip: FleetTrip | null;
+    quantity: number;
+    unit_cost: number;
+    total_cost: number;
+    used_date: string;
+    used_by: number | null;
+    user: User | null;
+    notes: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface FleetPartUsageSummary {
+    total_cost: number;
+    total_quantity: number;
+    usage_count: number;
+    top_parts: Array<{ part_id: number; total_qty: number; total_cost: number; part: FleetPart }>;
+    cost_by_vehicle: Array<{ vehicle_id: number; total_cost: number; vehicle: FleetVehicle }>;
+}
+
+export interface FuelTrackingDashboard {
+    summary: {
+        total_cost: number;
+        total_quantity: number;
+        total_refuels: number;
+        avg_cost_per_liter: number;
+        period: { start: string; end: string };
+    };
+    monthly_trend: Array<{ month: string; cost: number; quantity: number; refuels: number }>;
+    cost_by_fuel_type: Array<{ fuel_type: string; cost: number; quantity: number }>;
+    top_stations: Array<{ station: string; visits: number; total_spent: number; avg_price: number }>;
+    recent_logs: FleetFuelLog[];
+}
+
+export interface FuelEfficiencyRecord {
+    date: string;
+    odometer: number;
+    distance_km: number;
+    fuel_used: number;
+    cost: number;
+    km_per_liter: number;
+    liters_per_100km: number;
+    cost_per_km: number;
+}
+
+export interface FuelEfficiencyData {
+    vehicle: FleetVehicle;
+    efficiency_records: FuelEfficiencyRecord[];
+    average_efficiency: {
+        km_per_liter: number | null;
+        liters_per_100km: number | null;
+        cost_per_km: number | null;
+    } | null;
+    total_fuel_cost: number;
+    total_fuel_quantity: number;
+    total_distance_km: number;
+}
+
+export interface FuelConsumptionByVehicle {
+    vehicle_id: number;
+    vehicle: FleetVehicle;
+    total_fuel: number;
+    total_cost: number;
+    refuel_count: number;
+}
+
+export interface FuelPriceHistory {
+    fuel_type: string;
+    overall: { avg_price: number; min_price: number; max_price: number } | null;
+    daily_prices: Array<{ date: string; avg_price: number; min_price: number; max_price: number; samples: number }>;
+}
+
+export interface MaintenanceTrackingDashboard {
+    summary: {
+        overdue_count: number;
+        upcoming_count: number;
+        in_progress_count: number;
+        total_spent_year: number;
+    };
+    overdue_records: FleetMaintenanceRecord[];
+    upcoming_records: FleetMaintenanceRecord[];
+    recent_completed: FleetMaintenanceRecord[];
+    cost_by_type: Array<{ type: string; count: number; total_cost: number; avg_cost: number }>;
+    cost_by_vehicle: Array<{ vehicle_id: number; count: number; total_cost: number; vehicle: FleetVehicle }>;
+    monthly_cost: Array<{ month: string; cost: number; count: number }>;
+}
+
+export interface MaintenanceVehicleHistory {
+    vehicle: FleetVehicle;
+    records: FleetMaintenanceRecord[];
+    total_cost: number;
+    last_service_date: string | null;
+    last_service_odometer: number | null;
+    avg_interval_days: number | null;
+    type_breakdown: Record<string, { count: number; total_cost: number }>;
+}
+
+export interface MaintenanceCostReport {
+    summary: {
+        total_cost: number;
+        total_records: number;
+        avg_cost_per_service: number;
+        period: { start: string; end: string };
+    };
+    by_type: Array<{ type: string; count: number; total_cost: number; avg_cost: number }>;
+    by_vehicle: Array<{ vehicle_id: number; count: number; total_cost: number; vehicle: FleetVehicle }>;
+    by_provider: Array<{ service_provider: string; count: number; total_cost: number }>;
+    by_month: Array<{ month: string; cost: number; count: number }>;
+}
+
+export interface SubscriptionPlan {
+    id: number;
+    code: string;
+    name: string;
+    description: string | null;
+    price: number;
+    currency: string;
+    billing_interval: 'monthly' | 'quarterly' | 'annually';
+    trial_days: number | null;
+    max_users: number | null;
+    included_usage: number | null;
+    usage_overage_rate: number | null;
+    features: string[] | null;
+    is_active: boolean;
+    sort_order: number;
+    subscriptions_count?: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface SubscriptionRecord {
+    id: number;
+    subscription_number: string;
+    customer_id: number;
+    customer: Customer;
+    plan_id: number;
+    plan: SubscriptionPlan;
+    status: 'trialing' | 'active' | 'past_due' | 'cancelled' | 'suspended';
+    trial_ends_at: string | null;
+    current_period_start: string;
+    current_period_end: string;
+    cancelled_at: string | null;
+    cancellation_reason: string | null;
+    quantity: number;
+    discount_percent: number;
+    notes: string | null;
+    created_by: number;
+    invoices?: SubscriptionInvoice[];
+    usage_records?: SubscriptionUsageRecord[];
+    plan_changes?: SubscriptionPlanChange[];
+    created_at: string;
+    updated_at: string;
+}
+
+export interface SubscriptionInvoice {
+    id: number;
+    invoice_number: string;
+    subscription_id: number;
+    amount: number;
+    tax_amount: number;
+    discount_amount: number;
+    total_amount: number;
+    status: 'draft' | 'sent' | 'paid' | 'overdue' | 'void';
+    period_start: string;
+    period_end: string;
+    due_date: string;
+    paid_at: string | null;
+    payment_method: string | null;
+    notes: string | null;
+    created_at: string;
+}
+
+export interface SubscriptionUsageRecord {
+    id: number;
+    subscription_id: number;
+    usage_type: string;
+    quantity: number;
+    unit_price: number;
+    total_cost: number;
+    recorded_at: string;
+    period_start: string;
+    period_end: string;
+    notes: string | null;
+    created_at: string;
+}
+
+export interface SubscriptionPlanChange {
+    id: number;
+    subscription_id: number;
+    from_plan_id: number | null;
+    from_plan: SubscriptionPlan | null;
+    to_plan_id: number;
+    to_plan: SubscriptionPlan;
+    change_type: 'upgrade' | 'downgrade' | 'initial';
+    effective_date: string;
+    proration_amount: number;
+    reason: string | null;
+    created_at: string;
+}
+
+export interface SubscriptionDashboard {
+    mrr: number;
+    active_count: number;
+    trialing_count: number;
+    cancelled_recent: number;
+    churn_rate_percent: number;
+    plan_distribution: Array<{ plan_id: number; count: number; plan: SubscriptionPlan }>;
+    recent_changes: SubscriptionRecord[];
+    expiring_trials: SubscriptionRecord[];
+}

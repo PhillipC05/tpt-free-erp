@@ -61,6 +61,9 @@ use App\Http\Controllers\Api\Agent\AgentTokenController;
 use App\Http\Controllers\Api\Agent\AgentSkillController;
 use App\Http\Controllers\Api\Agent\AgentExecutionController;
 use App\Http\Controllers\Api\Agent\AgentScheduleController;
+use App\Http\Controllers\Api\Subscription\PlanController;
+use App\Http\Controllers\Api\Subscription\SubscriptionController;
+use App\Http\Controllers\Api\Subscription\UsageController;
 use App\Http\Controllers\Api\ESignature\ESignatureController;
 use App\Http\Controllers\Api\Pos\TerminalController;
 use App\Http\Controllers\Api\Pos\TransactionController as PosTransactionController;
@@ -69,6 +72,11 @@ use App\Http\Controllers\Api\Fleet\DriverController;
 use App\Http\Controllers\Api\Fleet\TripController;
 use App\Http\Controllers\Api\Fleet\FuelLogController;
 use App\Http\Controllers\Api\Fleet\MaintenanceController as FleetMaintenanceController;
+use App\Http\Controllers\Api\Fleet\PartCategoryController;
+use App\Http\Controllers\Api\Fleet\PartController;
+use App\Http\Controllers\Api\Fleet\PartUsageController;
+use App\Http\Controllers\Api\Fleet\FuelTrackingController;
+use App\Http\Controllers\Api\Fleet\MaintenanceTrackingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -693,8 +701,16 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
             Route::get('trips/{trip}', [TripController::class, 'show']);
             Route::get('fuel-logs', [FuelLogController::class, 'index']);
             Route::get('fuel-logs/{fuelLog}', [FuelLogController::class, 'show']);
+            Route::get('fuel-tracking/dashboard', [FuelTrackingController::class, 'dashboard']);
+            Route::get('fuel-tracking/efficiency', [FuelTrackingController::class, 'vehicleEfficiency']);
+            Route::get('fuel-tracking/consumption', [FuelTrackingController::class, 'consumptionByVehicle']);
+            Route::get('fuel-tracking/price-history', [FuelTrackingController::class, 'priceHistory']);
             Route::get('maintenance', [FleetMaintenanceController::class, 'index']);
             Route::get('maintenance/{record}', [FleetMaintenanceController::class, 'show']);
+            Route::get('maintenance-tracking/dashboard', [MaintenanceTrackingController::class, 'dashboard']);
+            Route::get('maintenance-tracking/history', [MaintenanceTrackingController::class, 'vehicleHistory']);
+            Route::get('maintenance-tracking/overdue', [MaintenanceTrackingController::class, 'overdue']);
+            Route::get('maintenance-tracking/cost-report', [MaintenanceTrackingController::class, 'costReport']);
         });
         Route::middleware('permission:fleet.create')->group(function () {
             Route::post('vehicles', [VehicleController::class, 'store']);
@@ -719,6 +735,60 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
             Route::delete('fuel-logs/{fuelLog}', [FuelLogController::class, 'destroy']);
             Route::delete('maintenance/{record}', [FleetMaintenanceController::class, 'destroy']);
             Route::post('trips/{trip}/cancel', [TripController::class, 'cancel']);
+        });
+
+        // Parts sub-routes
+        Route::middleware('permission:fleet.view')->group(function () {
+            Route::get('part-categories', [PartCategoryController::class, 'index']);
+            Route::get('part-categories/{category}', [PartCategoryController::class, 'show']);
+            Route::get('parts', [PartController::class, 'index']);
+            Route::get('parts/low-stock', [PartController::class, 'lowStock']);
+            Route::get('parts/usage', [PartUsageController::class, 'index']);
+            Route::get('parts/usage/summary', [PartUsageController::class, 'summary']);
+            Route::get('parts/usage/{usage}', [PartUsageController::class, 'show']);
+            Route::get('parts/{part}', [PartController::class, 'show']);
+        });
+        Route::middleware('permission:fleet.create')->group(function () {
+            Route::post('part-categories', [PartCategoryController::class, 'store']);
+            Route::post('parts', [PartController::class, 'store']);
+            Route::post('parts/usage', [PartUsageController::class, 'store']);
+        });
+        Route::middleware('permission:fleet.edit')->group(function () {
+            Route::put('part-categories/{category}', [PartCategoryController::class, 'update']);
+            Route::put('parts/{part}', [PartController::class, 'update']);
+            Route::post('parts/{part}/adjust-stock', [PartController::class, 'adjustStock']);
+        });
+        Route::middleware('permission:fleet.delete')->group(function () {
+            Route::delete('part-categories/{category}', [PartCategoryController::class, 'destroy']);
+            Route::delete('parts/{part}', [PartController::class, 'destroy']);
+        });
+    });
+
+    // ===== SUBSCRIPTION / RECURRING BILLING MODULE =====
+    Route::prefix('subscription')->group(function () {
+        Route::middleware('permission:subscription.view')->group(function () {
+            Route::get('plans', [PlanController::class, 'index']);
+            Route::get('plans/{plan}', [PlanController::class, 'show']);
+            Route::get('subscriptions', [SubscriptionController::class, 'index']);
+            Route::get('subscriptions/{subscription}', [SubscriptionController::class, 'show']);
+            Route::get('subscriptions/{subscription}/usage', [SubscriptionController::class, 'usage']);
+            Route::get('subscriptions/dashboard', [SubscriptionController::class, 'dashboard']);
+            Route::get('usage', [UsageController::class, 'index']);
+        });
+        Route::middleware('permission:subscription.create')->group(function () {
+            Route::post('plans', [PlanController::class, 'store']);
+            Route::post('subscriptions', [SubscriptionController::class, 'store']);
+            Route::post('usage', [UsageController::class, 'store']);
+            Route::post('usage/batch', [UsageController::class, 'batch']);
+        });
+        Route::middleware('permission:subscription.edit')->group(function () {
+            Route::put('plans/{plan}', [PlanController::class, 'update']);
+            Route::post('subscriptions/{subscription}/change-plan', [SubscriptionController::class, 'changePlan']);
+            Route::post('subscriptions/{subscription}/reactivate', [SubscriptionController::class, 'reactivate']);
+        });
+        Route::middleware('permission:subscription.delete')->group(function () {
+            Route::delete('plans/{plan}', [PlanController::class, 'destroy']);
+            Route::post('subscriptions/{subscription}/cancel', [SubscriptionController::class, 'cancel']);
         });
     });
 

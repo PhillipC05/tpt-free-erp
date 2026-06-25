@@ -1341,6 +1341,44 @@ class OpenApiSpec
         responses: [new OA\Response(response: 201, description: 'Recorded')])]
     public function fleetFuelLogStore(): void {}
 
+    // ── FLEET — Fuel Tracking Analytics ────────────────────────────────────
+
+    #[OA\Get(path: '/v1/fleet/fuel-tracking/dashboard', tags: ['Fleet'], summary: 'Fuel tracking dashboard with summary, trends, and top stations',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'start_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'end_date',   in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+        ],
+        responses: [new OA\Response(response: 200, description: 'Dashboard data')])]
+    public function fuelTrackingDashboard(): void {}
+
+    #[OA\Get(path: '/v1/fleet/fuel-tracking/efficiency', tags: ['Fleet'], summary: 'Fuel efficiency metrics for a specific vehicle',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'vehicle_id', in: 'query', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [new OA\Response(response: 200, description: 'Efficiency records with km/L and cost/km'), new OA\Response(response: 422, description: 'Missing vehicle_id')])]
+    public function fuelTrackingEfficiency(): void {}
+
+    #[OA\Get(path: '/v1/fleet/fuel-tracking/consumption', tags: ['Fleet'], summary: 'Fuel consumption breakdown by vehicle',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'start_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'end_date',   in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+        ],
+        responses: [new OA\Response(response: 200, description: 'Consumption per vehicle')])]
+    public function fuelTrackingConsumption(): void {}
+
+    #[OA\Get(path: '/v1/fleet/fuel-tracking/price-history', tags: ['Fleet'], summary: 'Fuel price history over time',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'fuel_type',  in: 'query', schema: new OA\Schema(type: 'string', enum: ['gasoline', 'diesel', 'electric', 'hybrid', 'other'], default: 'gasoline')),
+            new OA\Parameter(name: 'start_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'end_date',   in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+        ],
+        responses: [new OA\Response(response: 200, description: 'Daily price trend with min/max/avg')])]
+    public function fuelTrackingPriceHistory(): void {}
+
     // ── FLEET — Maintenance ────────────────────────────────────────────────
 
     #[OA\Get(path: '/v1/fleet/maintenance', tags: ['Fleet'], summary: 'List maintenance records',
@@ -1366,4 +1404,114 @@ class OpenApiSpec
         )),
         responses: [new OA\Response(response: 201, description: 'Scheduled')])]
     public function fleetMaintenanceStore(): void {}
+
+    // ── FLEET — Maintenance Tracking Analytics ─────────────────────────────
+
+    #[OA\Get(path: '/v1/fleet/maintenance-tracking/dashboard', tags: ['Fleet'], summary: 'Maintenance dashboard with overdue, upcoming, and cost summary',
+        security: [['bearerAuth' => []]],
+        responses: [new OA\Response(response: 200, description: 'Dashboard data')])]
+    public function maintenanceTrackingDashboard(): void {}
+
+    #[OA\Get(path: '/v1/fleet/maintenance-tracking/history', tags: ['Fleet'], summary: 'Full maintenance history for a vehicle',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'vehicle_id', in: 'query', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [new OA\Response(response: 200, description: 'Vehicle maintenance history with cost and interval stats'), new OA\Response(response: 422, description: 'Missing vehicle_id')])]
+    public function maintenanceTrackingHistory(): void {}
+
+    #[OA\Get(path: '/v1/fleet/maintenance-tracking/overdue', tags: ['Fleet'], summary: 'List overdue maintenance records',
+        security: [['bearerAuth' => []]],
+        responses: [new OA\Response(response: 200, description: 'Overdue maintenance records')])]
+    public function maintenanceTrackingOverdue(): void {}
+
+    #[OA\Get(path: '/v1/fleet/maintenance-tracking/cost-report', tags: ['Fleet'], summary: 'Maintenance cost report with breakdowns',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'start_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'end_date',   in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+        ],
+        responses: [new OA\Response(response: 200, description: 'Cost report with breakdowns by type, vehicle, provider, and month')])]
+    public function maintenanceTrackingCostReport(): void {}
+
+    // ── FLEET — Parts ─────────────────────────────────────────────────────
+
+    #[OA\Get(path: '/v1/fleet/parts', tags: ['Fleet'], summary: 'List fleet parts inventory',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'category_id', in: 'query', schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'search',      in: 'query', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'low_stock',   in: 'query', schema: new OA\Schema(type: 'string', enum: ['true', 'false'])),
+            new OA\Parameter(name: 'per_page',    in: 'query', schema: new OA\Schema(type: 'integer', default: 15)),
+        ],
+        responses: [new OA\Response(response: 200, description: 'Paginated parts list')])]
+    public function fleetPartIndex(): void {}
+
+    #[OA\Post(path: '/v1/fleet/parts', tags: ['Fleet'], summary: 'Add a part to inventory',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['part_number', 'name', 'unit_cost'],
+            properties: [
+                new OA\Property(property: 'part_number', type: 'string'),
+                new OA\Property(property: 'name',        type: 'string'),
+                new OA\Property(property: 'category_id', type: 'integer'),
+                new OA\Property(property: 'unit_cost',   type: 'number'),
+                new OA\Property(property: 'quantity_on_hand', type: 'number', default: 0),
+                new OA\Property(property: 'reorder_level',    type: 'number', default: 0),
+            ]
+        )),
+        responses: [new OA\Response(response: 201, description: 'Created')])]
+    public function fleetPartStore(): void {}
+
+    #[OA\Get(path: '/v1/fleet/parts/low-stock', tags: ['Fleet'], summary: 'List parts below reorder level',
+        security: [['bearerAuth' => []]],
+        responses: [new OA\Response(response: 200, description: 'Low stock parts')])]
+    public function fleetPartLowStock(): void {}
+
+    #[OA\Post(path: '/v1/fleet/parts/{id}/adjust-stock', tags: ['Fleet'], summary: 'Adjust part stock level',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['adjustment', 'reason'],
+            properties: [
+                new OA\Property(property: 'adjustment', type: 'number', description: 'Positive to add, negative to subtract'),
+                new OA\Property(property: 'reason',     type: 'string'),
+            ]
+        )),
+        responses: [new OA\Response(response: 200, description: 'Adjusted'), new OA\Response(response: 422, description: 'Would result in negative stock')])]
+    public function fleetPartAdjustStock(): void {}
+
+    #[OA\Post(path: '/v1/fleet/parts/usage', tags: ['Fleet'], summary: 'Record part usage against a vehicle',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['part_id', 'vehicle_id', 'quantity', 'used_date'],
+            properties: [
+                new OA\Property(property: 'part_id',       type: 'integer'),
+                new OA\Property(property: 'vehicle_id',    type: 'integer'),
+                new OA\Property(property: 'maintenance_id', type: 'integer'),
+                new OA\Property(property: 'quantity',      type: 'number'),
+                new OA\Property(property: 'unit_cost',     type: 'number'),
+                new OA\Property(property: 'used_date',     type: 'string', format: 'date'),
+            ]
+        )),
+        responses: [new OA\Response(response: 201, description: 'Recorded'), new OA\Response(response: 422, description: 'Insufficient stock')])]
+    public function fleetPartUsageStore(): void {}
+
+    #[OA\Get(path: '/v1/fleet/parts/usage', tags: ['Fleet'], summary: 'List part usage records',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'part_id',    in: 'query', schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'vehicle_id', in: 'query', schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'start_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'end_date',   in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+        ],
+        responses: [new OA\Response(response: 200, description: 'Paginated usage list')])]
+    public function fleetPartUsageIndex(): void {}
+
+    #[OA\Get(path: '/v1/fleet/parts/usage/summary', tags: ['Fleet'], summary: 'Part usage cost summary',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'start_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'end_date',   in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+        ],
+        responses: [new OA\Response(response: 200, description: 'Usage summary with top parts and cost by vehicle')])]
+    public function fleetPartUsageSummary(): void {}
 }

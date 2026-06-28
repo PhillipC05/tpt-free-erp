@@ -37,6 +37,7 @@ use OpenApi\Attributes as OA;
 #[OA\Tag(name: 'Network',       description: 'User profiles, discovery, follows, connections, feed')]
 #[OA\Tag(name: 'POS',           description: 'Point of Sale — terminals, transactions, payments, checkout')]
 #[OA\Tag(name: 'Fleet',         description: 'Fleet management — vehicles, drivers, trips, fuel logs, maintenance')]
+#[OA\Tag(name: 'Subscription',  description: 'SaaS subscriptions — plans, billing, usage metering, upgrades/downgrades')]
 #[OA\Tag(name: 'Webhooks',      description: 'Manage outbound webhooks with event filtering and delivery history')]
 class OpenApiSpec
 {
@@ -1514,4 +1515,104 @@ class OpenApiSpec
         ],
         responses: [new OA\Response(response: 200, description: 'Usage summary with top parts and cost by vehicle')])]
     public function fleetPartUsageSummary(): void {}
+
+    // ── SUBSCRIPTION — Plans ───────────────────────────────────────────────
+
+    #[OA\Get(path: '/v1/subscription/plans', tags: ['Subscription'], summary: 'List all subscription plans',
+        security: [['bearerAuth' => []]],
+        responses: [new OA\Response(response: 200, description: 'Plan list')])]
+    public function subscriptionPlanIndex(): void {}
+
+    #[OA\Post(path: '/v1/subscription/plans', tags: ['Subscription'], summary: 'Create a plan',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['code', 'name', 'price', 'billing_interval'],
+            properties: [
+                new OA\Property(property: 'code', type: 'string'),
+                new OA\Property(property: 'name', type: 'string'),
+                new OA\Property(property: 'price', type: 'number'),
+                new OA\Property(property: 'billing_interval', type: 'string', enum: ['monthly', 'quarterly', 'annually']),
+                new OA\Property(property: 'trial_days', type: 'integer'),
+                new OA\Property(property: 'max_users', type: 'integer'),
+            ]
+        )),
+        responses: [new OA\Response(response: 201, description: 'Created')])]
+    public function subscriptionPlanStore(): void {}
+
+    // ── SUBSCRIPTION — Subscriptions ───────────────────────────────────────
+
+    #[OA\Get(path: '/v1/subscription/subscriptions', tags: ['Subscription'], summary: 'List subscriptions',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'status', in: 'query', schema: new OA\Schema(type: 'string', enum: ['trialing', 'active', 'past_due', 'cancelled', 'suspended'])),
+            new OA\Parameter(name: 'customer_id', in: 'query', schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [new OA\Response(response: 200, description: 'Paginated list')])]
+    public function subscriptionIndex(): void {}
+
+    #[OA\Post(path: '/v1/subscription/subscriptions', tags: ['Subscription'], summary: 'Create a subscription',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['customer_id', 'plan_id'],
+            properties: [
+                new OA\Property(property: 'customer_id', type: 'integer'),
+                new OA\Property(property: 'plan_id', type: 'integer'),
+                new OA\Property(property: 'quantity', type: 'integer', default: 1),
+            ]
+        )),
+        responses: [new OA\Response(response: 201, description: 'Created')])]
+    public function subscriptionStore(): void {}
+
+    #[OA\Post(path: '/v1/subscription/subscriptions/{id}/change-plan', tags: ['Subscription'], summary: 'Upgrade or downgrade plan',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['plan_id', 'reason'],
+            properties: [new OA\Property(property: 'plan_id', type: 'integer'), new OA\Property(property: 'reason', type: 'string')]
+        )),
+        responses: [new OA\Response(response: 200, description: 'Plan changed'), new OA\Response(response: 422, description: 'Cannot change')])]
+    public function subscriptionChangePlan(): void {}
+
+    #[OA\Post(path: '/v1/subscription/subscriptions/{id}/cancel', tags: ['Subscription'], summary: 'Cancel subscription',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(required: ['reason'], properties: [new OA\Property(property: 'reason', type: 'string')])),
+        responses: [new OA\Response(response: 200, description: 'Cancelled')])]
+    public function subscriptionCancel(): void {}
+
+    #[OA\Get(path: '/v1/subscription/subscriptions/dashboard', tags: ['Subscription'], summary: 'Subscription dashboard metrics',
+        security: [['bearerAuth' => []]],
+        responses: [new OA\Response(response: 200, description: 'MRR, churn, plan distribution')])]
+    public function subscriptionDashboard(): void {}
+
+    #[OA\Get(path: '/v1/subscription/subscriptions/{id}/usage', tags: ['Subscription'], summary: 'Usage records for a subscription',
+        security: [['bearerAuth' => []]],
+        parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
+        responses: [new OA\Response(response: 200, description: 'Usage records')])]
+    public function subscriptionUsage(): void {}
+
+    // ── SUBSCRIPTION — Usage Metering ──────────────────────────────────────
+
+    #[OA\Post(path: '/v1/subscription/usage', tags: ['Subscription'], summary: 'Record usage for a subscription',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['subscription_id', 'usage_type', 'quantity'],
+            properties: [
+                new OA\Property(property: 'subscription_id', type: 'integer'),
+                new OA\Property(property: 'usage_type', type: 'string'),
+                new OA\Property(property: 'quantity', type: 'number'),
+                new OA\Property(property: 'unit_price', type: 'number'),
+            ]
+        )),
+        responses: [new OA\Response(response: 201, description: 'Recorded')])]
+    public function subscriptionUsageStore(): void {}
+
+    #[OA\Post(path: '/v1/subscription/usage/batch', tags: ['Subscription'], summary: 'Batch record usage',
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
+            required: ['records'],
+            properties: [new OA\Property(property: 'records', type: 'array', items: new OA\Items(type: 'object'))]
+        )),
+        responses: [new OA\Response(response: 201, description: 'Batch recorded')])]
+    public function subscriptionUsageBatch(): void {}
 }

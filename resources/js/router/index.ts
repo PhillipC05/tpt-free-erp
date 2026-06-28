@@ -93,6 +93,11 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/views/hr/EmployeesView.vue'),
             },
             {
+                path: 'hr/employees/:id',
+                name: 'hr.employee-profile',
+                component: () => import('@/views/hr/EmployeeProfileView.vue'),
+            },
+            {
                 path: 'hr/departments',
                 name: 'hr.departments',
                 component: () => import('@/views/hr/DepartmentsView.vue'),
@@ -111,6 +116,37 @@ const routes: RouteRecordRaw[] = [
                 path: 'hr/payroll',
                 name: 'hr.payroll',
                 component: () => import('@/views/hr/PayrollView.vue'),
+            },
+            {
+                path: 'hr/tracking',
+                name: 'hr.tracking',
+                component: () => import('@/views/hr/HRTrackingView.vue'),
+            },
+            {
+                path: 'hr/my-dashboard',
+                name: 'hr.self-service',
+                component: () => import('@/views/hr/SelfServiceView.vue'),
+            },
+            {
+                path: 'hr/my-documents',
+                name: 'hr.documents',
+                component: () => import('@/views/hr/DocumentsView.vue'),
+            },
+            {
+                path: 'hr/directory',
+                name: 'hr.directory',
+                component: () => import('@/views/hr/DirectoryView.vue'),
+            },
+            // Recruitment
+            {
+                path: 'recruitment',
+                name: 'recruitment',
+                component: () => import('@/views/recruitment/RecruitmentView.vue'),
+            },
+            {
+                path: 'training',
+                name: 'training',
+                component: () => import('@/views/training/TrainingView.vue'),
             },
             {
                 path: 'sales/customers',
@@ -250,6 +286,10 @@ const routes: RouteRecordRaw[] = [
             { path: 'fleet/parts', name: 'fleet.parts', component: () => import('@/views/fleet/PartsView.vue') },
             { path: 'fleet/fuel-tracking', name: 'fleet.fuel-tracking', component: () => import('@/views/fleet/FuelTrackingView.vue') },
             { path: 'fleet/maintenance-tracking', name: 'fleet.maintenance-tracking', component: () => import('@/views/fleet/MaintenanceTrackingView.vue') },
+            // Subscriptions
+            { path: 'subscription', name: 'subscription', component: () => import('@/views/subscription/SubscriptionsView.vue') },
+            // Notifications
+            { path: 'notifications-center', name: 'notifications-center', component: () => import('@/views/notifications/NotificationsView.vue') },
         ],
     },
     {

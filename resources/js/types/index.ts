@@ -843,3 +843,255 @@ export interface SubscriptionDashboard {
     recent_changes: SubscriptionRecord[];
     expiring_trials: SubscriptionRecord[];
 }
+
+export interface NotificationTemplateRecord {
+    id: number;
+    code: string;
+    name: string;
+    subject: string | null;
+    body: string;
+    html_body: string | null;
+    default_channels: string[];
+    variables: string[] | null;
+    category: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface NotificationMessageRecord {
+    id: number;
+    user_id: number | null;
+    template_id: number | null;
+    template: NotificationTemplateRecord | null;
+    channel: 'email' | 'in_app' | 'webhook';
+    subject: string | null;
+    body: string;
+    data: Record<string, unknown> | null;
+    status: 'pending' | 'sent' | 'failed';
+    error_message: string | null;
+    sent_at: string | null;
+    read_at: string | null;
+    created_at: string;
+}
+
+export interface NotificationPreferenceRecord {
+    id: number;
+    user_id: number;
+    template_code: string | null;
+    channels: string[];
+    email_enabled: boolean;
+    in_app_enabled: boolean;
+    webhook_enabled: boolean;
+    email_address: string | null;
+    created_at: string;
+}
+
+export interface KpiData {
+    revenue: { current: number; trend: number };
+    orders: { current: number; trend: number };
+    new_customers: number;
+    pending_orders: number;
+    fleet_costs: number;
+    fleet_distance_km: number;
+    trips_completed: number;
+    mrr: number;
+    active_subscriptions: number;
+    active_vehicles: number;
+    vehicles_in_maintenance: number;
+    period: string;
+}
+
+export interface ChartData {
+    revenue_trend: Array<{ month: string; value: number }>;
+    orders_trend: Array<{ month: string; value: number }>;
+    fleet_fuel_cost_trend: Array<{ month: string; value: number }>;
+    fleet_maintenance_cost_trend: Array<{ month: string; value: number }>;
+    subscription_mrr: Array<{ period: string; value: number }>;
+    top_products: Array<{ name: string; total_quantity: number; total_revenue: number }>;
+    fleet_cost_by_type: Array<{ type: string; value: number }>;
+}
+
+export interface ActivityItem {
+    type: 'order' | 'trip' | 'maintenance' | 'notification';
+    label: string;
+    detail: string;
+    created_at: string;
+}
+
+export interface ModuleSummary {
+    finance: { total_assets: number; total_liabilities: number; total_revenue: number; total_expenses: number };
+    inventory: { total_products: number; total_stock_value: number };
+    sales: { total_customers: number; total_orders: number; pending_orders: number; total_revenue: number };
+    fleet: { active_vehicles: number; total_vehicles: number; pending_maintenance: number };
+    hr: { active_employees: number; pending_leave: number };
+    subscription: { active_count: number; mrr: number };
+}
+
+export interface HRDashboard {
+    summary: {
+        total_employees: number;
+        active_employees: number;
+        new_this_month: number;
+        terminated_this_month: number;
+        turnover_rate: number;
+    };
+    attendance: {
+        present_today: number;
+        absent_today: number;
+        late_today: number;
+        attendance_rate: number;
+    };
+    leave: {
+        pending_requests: number;
+        on_leave_today: number;
+    };
+    department_breakdown: Array<{ id: number; name: string; employee_count: number }>;
+    employment_type_breakdown: Array<{ employment_type: string; count: number }>;
+    monthly_hires: Array<{ month: string; count: number }>;
+    leave_by_type: Array<{ leave_type: string; count: number; total_days: number }>;
+    recent_leave_requests: LeaveRequest[];
+}
+
+export interface HRAttendanceReport {
+    overall_rate: number;
+    total_days: number;
+    daily_stats: Array<{ date: string; present: number; absent: number; late: number; total: number }>;
+    by_employee: Array<{ employee_id: number; days: number; present_days: number; late_days: number; absent_days: number; employee: Employee }>;
+}
+
+export interface HRLeaveReport {
+    by_status: Array<{ status: string; count: number; total_days: number }>;
+    by_type: Array<{ leave_type: string; count: number; total_days: number }>;
+    by_department: Array<{ department_name: string; count: number; total_days: number }>;
+    monthly_trend: Array<{ month: string; count: number; days: number }>;
+}
+
+export interface HRPayrollReport {
+    summary: { total_records: number; total_basic: number; total_allowances: number; total_deductions: number; total_net: number };
+    by_status: Array<{ status: string; count: number; total_net: number }>;
+    monthly_trend: Array<{ month: string; total: number; count: number }>;
+    top_earners: Array<{ first_name: string; last_name: string; employee_code: string; net_salary: number }>;
+}
+
+export interface RecruitmentJob {
+    id: number;
+    job_code: string;
+    title: string;
+    description: string | null;
+    requirements: string | null;
+    department_id: number | null;
+    department: Department | null;
+    location: string | null;
+    employment_type: string;
+    salary_min: number | null;
+    salary_max: number | null;
+    currency: string;
+    positions: number;
+    status: 'draft' | 'open' | 'on_hold' | 'closed' | 'filled';
+    posted_date: string | null;
+    closing_date: string | null;
+    applications_count?: number;
+    applications?: RecruitmentApplication[];
+    created_at: string;
+    updated_at: string;
+}
+
+export interface RecruitmentApplication {
+    id: number;
+    application_number: string;
+    job_id: number;
+    job: RecruitmentJob;
+    candidate_name: string;
+    candidate_email: string;
+    candidate_phone: string | null;
+    resume_path: string | null;
+    cover_letter: string | null;
+    expected_salary: number | null;
+    status: 'new' | 'screening' | 'interview' | 'offer' | 'hired' | 'rejected';
+    rejection_reason: string | null;
+    reviewed_by: number | null;
+    reviewer: User | null;
+    reviewed_at: string | null;
+    interviews: RecruitmentInterview[];
+    created_at: string;
+    updated_at: string;
+}
+
+export interface RecruitmentInterview {
+    id: number;
+    application_id: number;
+    interview_type: 'phone' | 'video' | 'onsite' | 'panel';
+    scheduled_at: string;
+    duration_minutes: number;
+    location: string | null;
+    interviewer_id: number | null;
+    interviewer: Employee | null;
+    status: 'scheduled' | 'completed' | 'cancelled' | 'no_show';
+    score: number | null;
+    feedback: string | null;
+    notes: string | null;
+    created_at: string;
+}
+
+export interface TrainingProgram {
+    id: number;
+    code: string;
+    name: string;
+    description: string | null;
+    course_id: number | null;
+    course: Course | null;
+    type: 'onboarding' | 'compliance' | 'skill' | 'safety' | 'leadership' | 'other';
+    duration_hours: number | null;
+    cost: number | null;
+    is_mandatory: boolean;
+    is_active: boolean;
+    sessions_count?: number;
+    enrollments_count?: number;
+    created_at: string;
+}
+
+export interface TrainingSession {
+    id: number;
+    program_id: number;
+    program: TrainingProgram;
+    title: string;
+    description: string | null;
+    starts_at: string;
+    ends_at: string | null;
+    location: string | null;
+    instructor_id: number | null;
+    instructor: Employee | null;
+    max_participants: number | null;
+    status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+    enrollments?: TrainingEnrollment[];
+    created_at: string;
+}
+
+export interface TrainingEnrollment {
+    id: number;
+    session_id: number;
+    employee_id: number;
+    employee: Employee;
+    status: 'enrolled' | 'attended' | 'completed' | 'no_show';
+    score: number | null;
+    feedback: string | null;
+    completed_at: string | null;
+    created_at: string;
+}
+
+export interface TrainingCertification {
+    id: number;
+    employee_id: number;
+    employee: Employee;
+    program_id: number | null;
+    program: TrainingProgram | null;
+    certification_name: string;
+    issuing_body: string | null;
+    certificate_number: string | null;
+    issued_date: string;
+    expiry_date: string | null;
+    status: 'active' | 'expired' | 'revoked';
+    notes: string | null;
+    created_at: string;
+}

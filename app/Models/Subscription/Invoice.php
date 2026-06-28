@@ -36,13 +36,13 @@ class Invoice extends Model
 
     public static function generateNumber(): string
     {
-        $prefix = 'SINV-' . date('Ymd') . '-';
-        $last = static::where('invoice_number', 'like', $prefix . '%')
+        $prefix = 'SINV-'.date('Ymd').'-';
+        $last = static::where('invoice_number', 'like', $prefix.'%')
             ->orderByDesc('invoice_number')
             ->value('invoice_number');
 
         $seq = $last ? (int) substr($last, -5) + 1 : 1;
 
-        return $prefix . str_pad($seq, 5, '0', STR_PAD_LEFT);
+        return $prefix.str_pad($seq, 5, '0', STR_PAD_LEFT);
     }
 }

@@ -17,6 +17,12 @@ use App\Http\Controllers\Api\HR\EmployeeController;
 use App\Http\Controllers\Api\HR\DepartmentController;
 use App\Http\Controllers\Api\HR\LeaveRequestController;
 use App\Http\Controllers\Api\HR\AttendanceController;
+use App\Http\Controllers\Api\HR\HRTrackingController;
+use App\Http\Controllers\Api\HR\SelfServiceController;
+use App\Http\Controllers\Api\HR\EmployeeDocumentController;
+use App\Http\Controllers\Api\HR\DirectoryController;
+use App\Http\Controllers\Api\Recruitment\RecruitmentController;
+use App\Http\Controllers\Api\Training\TrainingController;
 use App\Http\Controllers\Api\Sales\CustomerController;
 use App\Http\Controllers\Api\Sales\OrderController;
 use App\Http\Controllers\Api\Sales\InvoiceController;
@@ -37,8 +43,11 @@ use App\Http\Controllers\Api\FieldService\TicketController;
 use App\Http\Controllers\Api\LMS\CourseController;
 use App\Http\Controllers\Api\LMS\EnrollmentController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\NotificationTemplateController;
+use App\Http\Controllers\Api\NotificationEnhancedController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\Marketing\CampaignController;
@@ -114,7 +123,7 @@ Route::get('/health', function () {
             'finance', 'inventory', 'hr', 'sales', 'procurement',
             'manufacturing', 'projects', 'quality', 'assets',
             'field_service', 'lms', 'marketing', 'network',
-            'expenses', 'budgets', 'documents', 'contracts', 'pos', 'fleet',
+            'expenses', 'budgets', 'documents', 'contracts', 'pos', 'fleet', 'subscription',
         ],
     ]);
 });
@@ -138,6 +147,12 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
     Route::get('/dashboard/inventory', [DashboardController::class, 'inventory']);
     Route::get('/dashboard/hr', [DashboardController::class, 'hr']);
     Route::get('/dashboard/sales', [DashboardController::class, 'sales']);
+
+    // ----- Analytics -----
+    Route::get('/analytics/kpis', [AnalyticsController::class, 'kpis']);
+    Route::get('/analytics/charts', [AnalyticsController::class, 'charts']);
+    Route::get('/analytics/activity', [AnalyticsController::class, 'activity']);
+    Route::get('/analytics/modules', [AnalyticsController::class, 'moduleSummary']);
 
     // ----- Onboarding -----
     Route::prefix('onboarding')->group(function () {
@@ -242,18 +257,35 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
         Route::middleware('permission:hr.view')->group(function () {
             Route::get('employees', [EmployeeController::class, 'index']);
             Route::get('employees/{employee}', [EmployeeController::class, 'show']);
+            Route::get('employees/{employee}/profile', [EmployeeController::class, 'profile']);
             Route::get('employees/{employee}/attendance', [AttendanceController::class, 'byEmployee']);
             Route::get('employees/{employee}/leave-history', [LeaveRequestController::class, 'byEmployee']);
             Route::get('departments', [DepartmentController::class, 'index']);
             Route::get('departments/{department}', [DepartmentController::class, 'show']);
             Route::get('leave-requests', [LeaveRequestController::class, 'index']);
+            Route::get('leave-requests/balance', [LeaveRequestController::class, 'balance']);
+            Route::get('leave-requests/team-pending', [LeaveRequestController::class, 'teamPending']);
+            Route::get('leave-requests/calendar', [LeaveRequestController::class, 'calendar']);
             Route::get('leave-requests/{request}', [LeaveRequestController::class, 'show']);
             Route::get('attendance', [AttendanceController::class, 'index']);
+            Route::get('attendance/daily-log', [AttendanceController::class, 'dailyLog']);
+            Route::get('attendance/today-status', [AttendanceController::class, 'todayStatus']);
+            Route::get('attendance/summary', [AttendanceController::class, 'summary']);
+            Route::get('attendance/overtime-report', [AttendanceController::class, 'overtimeReport']);
             Route::get('attendance/{record}', [AttendanceController::class, 'show']);
             Route::get('payroll', [PayrollController::class, 'index']);
+            Route::get('payroll/summary', [PayrollController::class, 'summary']);
             Route::get('payroll/{payroll}', [PayrollController::class, 'show']);
+            Route::get('directory', [DirectoryController::class, 'index']);
+            Route::get('directory/org-chart', [DirectoryController::class, 'orgChart']);
+            Route::get('directory/org-chart-full', [DirectoryController::class, 'orgChartFull']);
+            Route::get('directory/{id}', [DirectoryController::class, 'profile']);
             Route::get('reports/attendance', [ReportController::class, 'attendance']);
             Route::get('reports/payroll', [ReportController::class, 'payroll']);
+            Route::get('tracking/dashboard', [HRTrackingController::class, 'dashboard']);
+            Route::get('tracking/attendance-report', [HRTrackingController::class, 'attendanceReport']);
+            Route::get('tracking/leave-report', [HRTrackingController::class, 'leaveReport']);
+            Route::get('tracking/payroll-report', [HRTrackingController::class, 'payrollReport']);
         });
         Route::middleware('permission:hr.create')->group(function () {
             Route::post('employees', [EmployeeController::class, 'store']);
@@ -262,6 +294,7 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
             Route::post('attendance', [AttendanceController::class, 'store']);
             Route::post('attendance/clock-in', [AttendanceController::class, 'clockIn']);
             Route::post('attendance/clock-out', [AttendanceController::class, 'clockOut']);
+            Route::post('attendance/mark-absent', [AttendanceController::class, 'markAbsent']);
             Route::post('payroll', [PayrollController::class, 'store']);
         });
         Route::middleware('permission:hr.edit')->group(function () {
@@ -269,18 +302,39 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
             Route::patch('employees/{employee}', [EmployeeController::class, 'update']);
             Route::put('departments/{department}', [DepartmentController::class, 'update']);
             Route::put('leave-requests/{request}', [LeaveRequestController::class, 'update']);
+            Route::post('leave-requests/{request}/approve', [LeaveRequestController::class, 'approve']);
+            Route::post('leave-requests/{request}/reject', [LeaveRequestController::class, 'reject']);
+            Route::post('leave-requests/{request}/cancel', [LeaveRequestController::class, 'cancel']);
             Route::put('attendance/{record}', [AttendanceController::class, 'update']);
         });
         Route::middleware('permission:hr.approve')->group(function () {
             Route::post('payroll/{payroll}/process', [PayrollController::class, 'process']);
             Route::post('payroll/{payroll}/approve', [PayrollController::class, 'approve']);
             Route::post('payroll/{payroll}/mark-paid', [PayrollController::class, 'markPaid']);
+            Route::post('payroll/batch-generate', [PayrollController::class, 'batchGenerate']);
+            Route::get('payroll/summary', [PayrollController::class, 'summary']);
         });
         Route::middleware('permission:hr.delete')->group(function () {
             Route::delete('employees/{employee}', [EmployeeController::class, 'destroy']);
             Route::delete('departments/{department}', [DepartmentController::class, 'destroy']);
             Route::delete('leave-requests/{request}', [LeaveRequestController::class, 'destroy']);
+            Route::delete('attendance/{record}', [AttendanceController::class, 'destroy']);
         });
+    });
+
+    Route::prefix('self-service')->group(function () {
+        Route::get('profile', [SelfServiceController::class, 'profile']);
+        Route::get('payslips', [SelfServiceController::class, 'payslips']);
+        Route::get('leave-balance', [SelfServiceController::class, 'leaveBalance']);
+        Route::get('attendance', [SelfServiceController::class, 'attendance']);
+        Route::post('leave', [SelfServiceController::class, 'submitLeave']);
+        Route::post('leave/{id}/cancel', [SelfServiceController::class, 'cancelLeave']);
+        Route::get('documents', [EmployeeDocumentController::class, 'index']);
+        Route::get('documents/categories', [EmployeeDocumentController::class, 'categories']);
+        Route::post('documents', [EmployeeDocumentController::class, 'upload']);
+        Route::get('documents/{id}', [EmployeeDocumentController::class, 'show']);
+        Route::get('documents/{id}/download', [EmployeeDocumentController::class, 'download']);
+        Route::delete('documents/{id}', [EmployeeDocumentController::class, 'destroy']);
     });
 
     // ===== SALES MODULE =====
@@ -599,6 +653,61 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
         });
     });
 
+    // ===== RECRUITMENT MODULE =====
+    Route::prefix('recruitment')->group(function () {
+        Route::middleware('permission:hr.view')->group(function () {
+            Route::get('jobs', [RecruitmentController::class, 'listJobs']);
+            Route::get('jobs/{job}', [RecruitmentController::class, 'showJob']);
+            Route::get('applications', [RecruitmentController::class, 'listApplications']);
+            Route::get('applications/{application}', [RecruitmentController::class, 'showApplication']);
+            Route::get('pipeline', [RecruitmentController::class, 'pipeline']);
+            Route::get('dashboard', [RecruitmentController::class, 'dashboard']);
+        });
+        Route::middleware('permission:hr.create')->group(function () {
+            Route::post('jobs', [RecruitmentController::class, 'storeJob']);
+            Route::post('applications', [RecruitmentController::class, 'storeApplication']);
+            Route::post('applications/{application}/interviews', [RecruitmentController::class, 'scheduleInterview']);
+        });
+        Route::middleware('permission:hr.edit')->group(function () {
+            Route::put('jobs/{job}', [RecruitmentController::class, 'updateJob']);
+            Route::post('jobs/{job}/publish', [RecruitmentController::class, 'publishJob']);
+            Route::post('jobs/{job}/close', [RecruitmentController::class, 'closeJob']);
+            Route::put('applications/{application}/status', [RecruitmentController::class, 'updateApplicationStatus']);
+            Route::put('interviews/{interview}', [RecruitmentController::class, 'updateInterview']);
+        });
+        Route::middleware('permission:hr.delete')->group(function () {
+            Route::delete('jobs/{job}', [RecruitmentController::class, 'destroyJob']);
+        });
+    });
+
+    // ===== TRAINING MODULE =====
+    Route::prefix('training')->group(function () {
+        Route::middleware('permission:hr.view')->group(function () {
+            Route::get('programs', [TrainingController::class, 'listPrograms']);
+            Route::get('programs/{program}', [TrainingController::class, 'showProgram']);
+            Route::get('sessions', [TrainingController::class, 'listSessions']);
+            Route::get('sessions/{session}', [TrainingController::class, 'showSession']);
+            Route::get('certifications', [TrainingController::class, 'listCertifications']);
+            Route::get('dashboard', [TrainingController::class, 'dashboard']);
+        });
+        Route::middleware('permission:hr.create')->group(function () {
+            Route::post('programs', [TrainingController::class, 'storeProgram']);
+            Route::post('sessions', [TrainingController::class, 'storeSession']);
+            Route::post('sessions/{session}/enroll', [TrainingController::class, 'enrollEmployee']);
+            Route::post('certifications', [TrainingController::class, 'storeCertification']);
+        });
+        Route::middleware('permission:hr.edit')->group(function () {
+            Route::put('programs/{program}', [TrainingController::class, 'updateProgram']);
+            Route::post('sessions/{session}/start', [TrainingController::class, 'startSession']);
+            Route::post('sessions/{session}/complete', [TrainingController::class, 'completeSession']);
+            Route::post('sessions/{session}/enrollments/{enrollment}/complete', [TrainingController::class, 'completeEnrollment']);
+            Route::post('certifications/{certification}/renew', [TrainingController::class, 'renewCertification']);
+        });
+        Route::middleware('permission:hr.delete')->group(function () {
+            Route::delete('programs/{program}', [TrainingController::class, 'destroyProgram']);
+        });
+    });
+
     // ===== DOCUMENTS MODULE =====
     // Public shared-link download (no auth required)
     Route::get('documents/shared/{token}', [DocumentController::class, 'sharedDownload']);
@@ -769,10 +878,10 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
         Route::middleware('permission:subscription.view')->group(function () {
             Route::get('plans', [PlanController::class, 'index']);
             Route::get('plans/{plan}', [PlanController::class, 'show']);
+            Route::get('subscriptions/dashboard', [SubscriptionController::class, 'dashboard']);
             Route::get('subscriptions', [SubscriptionController::class, 'index']);
             Route::get('subscriptions/{subscription}', [SubscriptionController::class, 'show']);
             Route::get('subscriptions/{subscription}/usage', [SubscriptionController::class, 'usage']);
-            Route::get('subscriptions/dashboard', [SubscriptionController::class, 'dashboard']);
             Route::get('usage', [UsageController::class, 'index']);
         });
         Route::middleware('permission:subscription.create')->group(function () {
@@ -828,6 +937,25 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
         Route::delete('/{id}', [NotificationController::class, 'destroy']);
         Route::put('/preferences', [NotificationController::class, 'updatePreferences']);
     });
+
+    // ===== NOTIFICATION TEMPLATES =====
+    Route::get('notification-templates', [NotificationTemplateController::class, 'index']);
+    Route::get('notification-templates/{template}', [NotificationTemplateController::class, 'show']);
+    Route::post('notification-templates', [NotificationTemplateController::class, 'store']);
+    Route::put('notification-templates/{template}', [NotificationTemplateController::class, 'update']);
+    Route::delete('notification-templates/{template}', [NotificationTemplateController::class, 'destroy']);
+    Route::post('notification-templates/{template}/preview', [NotificationTemplateController::class, 'preview']);
+
+    // ===== ENHANCED NOTIFICATIONS =====
+    Route::get('notifications-enhanced/unread-count', [NotificationEnhancedController::class, 'unreadCount']);
+    Route::get('notifications-enhanced', [NotificationEnhancedController::class, 'index']);
+    Route::get('notifications-enhanced/{notification}', [NotificationEnhancedController::class, 'show']);
+    Route::put('notifications-enhanced/{notification}/read', [NotificationEnhancedController::class, 'markRead']);
+    Route::put('notifications-enhanced/read-all', [NotificationEnhancedController::class, 'markAllRead']);
+    Route::delete('notifications-enhanced/{notification}', [NotificationEnhancedController::class, 'destroy']);
+    Route::get('notifications-enhanced/preferences', [NotificationEnhancedController::class, 'preferences']);
+    Route::post('notifications-enhanced/preferences', [NotificationEnhancedController::class, 'savePreferences']);
+    Route::post('notifications-enhanced/send', [NotificationEnhancedController::class, 'send']);
 
     // ===== REPORTS =====
     Route::prefix('reports')->group(function () {

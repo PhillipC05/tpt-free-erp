@@ -15,7 +15,7 @@ class SubscriptionController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new Subscription());
+        parent::__construct(new Subscription);
     }
 
     public function store(Request $request): JsonResponse
@@ -27,9 +27,11 @@ class SubscriptionController extends BaseApiController
             'discount_percent' => 'nullable|numeric|min:0|max:100',
             'notes' => 'nullable|string',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
-        $service = new SubscriptionService();
+        $service = new SubscriptionService;
         $subscription = $service->createSubscription($request->all(), Auth::id());
 
         return $this->respondCreated($subscription->fresh(['plan', 'customer']), 'Subscription created');
@@ -38,19 +40,23 @@ class SubscriptionController extends BaseApiController
     public function changePlan(Request $request, int $id): JsonResponse
     {
         $subscription = Subscription::find($id);
-        if (!$subscription) return $this->respondNotFound();
+        if (! $subscription) {
+            return $this->respondNotFound();
+        }
 
-        if (!$subscription->isActive()) {
+        if (! $subscription->isActive()) {
             return $this->respondError('Only active subscriptions can change plans', 422);
         }
 
         $error = $this->validate($request->all(), [
-            'plan_id' => 'required|exists:subscription_plans,id|different:' . $subscription->plan_id,
+            'plan_id' => 'required|exists:subscription_plans,id|different:'.$subscription->plan_id,
             'reason' => 'required|string|max:500',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
-        $service = new SubscriptionService();
+        $service = new SubscriptionService;
         $subscription = $service->changePlan(
             $subscription,
             $request->input('plan_id'),
@@ -64,18 +70,22 @@ class SubscriptionController extends BaseApiController
     public function cancel(Request $request, int $id): JsonResponse
     {
         $subscription = Subscription::find($id);
-        if (!$subscription) return $this->respondNotFound();
+        if (! $subscription) {
+            return $this->respondNotFound();
+        }
 
-        if (!$subscription->isActive()) {
+        if (! $subscription->isActive()) {
             return $this->respondError('Subscription is not active', 422);
         }
 
         $error = $this->validate($request->all(), [
             'reason' => 'required|string|max:500',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
-        $service = new SubscriptionService();
+        $service = new SubscriptionService;
         $subscription = $service->cancelSubscription($subscription, $request->input('reason'));
 
         return $this->respondSuccess('Subscription cancelled', $subscription->fresh());
@@ -84,7 +94,9 @@ class SubscriptionController extends BaseApiController
     public function reactivate(int $id): JsonResponse
     {
         $subscription = Subscription::find($id);
-        if (!$subscription) return $this->respondNotFound();
+        if (! $subscription) {
+            return $this->respondNotFound();
+        }
 
         if ($subscription->status !== 'cancelled') {
             return $this->respondError('Only cancelled subscriptions can be reactivated', 422);
@@ -120,7 +132,7 @@ class SubscriptionController extends BaseApiController
             $search = $request->query('search');
             $query->where(function ($q) use ($search) {
                 $q->where('subscription_number', 'like', "%{$search}%")
-                  ->orWhereHas('customer', fn ($cq) => $cq->where('name', 'like', "%{$search}%"));
+                    ->orWhereHas('customer', fn ($cq) => $cq->where('name', 'like', "%{$search}%"));
             });
         }
 
@@ -142,7 +154,9 @@ class SubscriptionController extends BaseApiController
     public function show(int $id): JsonResponse
     {
         $subscription = Subscription::with(['plan', 'customer', 'invoices', 'usageRecords', 'planChanges.fromPlan', 'planChanges.toPlan'])->find($id);
-        if (!$subscription) return $this->respondNotFound();
+        if (! $subscription) {
+            return $this->respondNotFound();
+        }
 
         return $this->respond(['success' => true, 'data' => $subscription]);
     }
@@ -150,7 +164,9 @@ class SubscriptionController extends BaseApiController
     public function usage(Request $request, int $id): JsonResponse
     {
         $subscription = Subscription::find($id);
-        if (!$subscription) return $this->respondNotFound();
+        if (! $subscription) {
+            return $this->respondNotFound();
+        }
 
         $usageType = $request->query('usage_type');
         $query = $subscription->usageRecords()->orderByDesc('recorded_at');

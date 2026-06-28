@@ -3,7 +3,6 @@
 namespace Tests\Feature\Subscription;
 
 use App\Models\Subscription\Plan;
-use App\Models\Subscription\Subscription;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +13,7 @@ class PlanTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
 
     protected function setUp(): void

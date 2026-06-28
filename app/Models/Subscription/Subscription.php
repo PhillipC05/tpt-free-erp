@@ -2,6 +2,8 @@
 
 namespace App\Models\Subscription;
 
+use App\Models\Sales\Customer;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -39,12 +41,12 @@ class Subscription extends Model
 
     public function customer(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Sales\Customer::class);
+        return $this->belongsTo(Customer::class);
     }
 
     public function creator(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function invoices(): HasMany
@@ -64,14 +66,14 @@ class Subscription extends Model
 
     public static function generateNumber(): string
     {
-        $prefix = 'SUB-' . date('Ymd') . '-';
-        $last = static::where('subscription_number', 'like', $prefix . '%')
+        $prefix = 'SUB-'.date('Ymd').'-';
+        $last = static::where('subscription_number', 'like', $prefix.'%')
             ->orderByDesc('subscription_number')
             ->value('subscription_number');
 
         $seq = $last ? (int) substr($last, -5) + 1 : 1;
 
-        return $prefix . str_pad($seq, 5, '0', STR_PAD_LEFT);
+        return $prefix.str_pad($seq, 5, '0', STR_PAD_LEFT);
     }
 
     public function isActive(): bool

@@ -11,7 +11,7 @@ class Attendance extends Model
 
     protected $fillable = [
         'employee_id', 'date', 'clock_in', 'clock_out', 'break_start', 'break_end',
-        'total_hours', 'status', 'notes',
+        'total_hours', 'regular_hours', 'overtime_hours', 'status', 'notes',
     ];
 
     protected $casts = [
@@ -19,6 +19,8 @@ class Attendance extends Model
         'clock_in' => 'datetime:H:i:s',
         'clock_out' => 'datetime:H:i:s',
         'total_hours' => 'decimal:2',
+        'regular_hours' => 'decimal:2',
+        'overtime_hours' => 'decimal:2',
     ];
 
     public function employee(): BelongsTo

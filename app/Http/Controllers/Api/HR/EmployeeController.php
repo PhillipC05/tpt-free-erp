@@ -45,7 +45,7 @@ class EmployeeController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new Employee());
+        parent::__construct(new Employee);
     }
 
     public function store(Request $request): JsonResponse
@@ -54,26 +54,31 @@ class EmployeeController extends BaseApiController
             'employee_code' => 'required|string|max:20|unique:hr_employees,employee_code',
             'email' => 'required|email|max:200|unique:hr_employees,email',
         ]));
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $data = $request->all();
         $data['status'] = $data['status'] ?? 'active';
 
         $employee = Employee::create($data);
+
         return $this->respondCreated($employee, 'Employee created successfully');
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
         $employee = Employee::find($id);
-        if (!$employee) return $this->respondNotFound();
+        if (! $employee) {
+            return $this->respondNotFound();
+        }
 
         $error = $this->validate($request->all(), [
-            'employee_code' => 'required|string|max:20|unique:hr_employees,employee_code,' . $id,
+            'employee_code' => 'required|string|max:20|unique:hr_employees,employee_code,'.$id,
             'user_id' => 'nullable|exists:users,id',
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
-            'email' => 'required|email|max:200|unique:hr_employees,email,' . $id,
+            'email' => 'required|email|max:200|unique:hr_employees,email,'.$id,
             'phone' => 'nullable|string|max:20',
             'position' => 'nullable|string|max:200',
             'department_id' => 'nullable|exists:hr_departments,id',
@@ -88,9 +93,12 @@ class EmployeeController extends BaseApiController
             'emergency_contact' => 'nullable|string|max:200',
             'emergency_phone' => 'nullable|string|max:20',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $employee->update($request->all());
+
         return $this->respondSuccess('Employee updated', $employee->fresh());
     }
 
@@ -114,9 +122,9 @@ class EmployeeController extends BaseApiController
             $search = $request->query('search');
             $query->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('employee_code', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('employee_code', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -138,7 +146,9 @@ class EmployeeController extends BaseApiController
     public function subordinates(int $id): JsonResponse
     {
         $employee = Employee::with('subordinates')->find($id);
-        if (!$employee) return $this->respondNotFound();
+        if (! $employee) {
+            return $this->respondNotFound();
+        }
 
         return $this->respond([
             'success' => true,
@@ -149,8 +159,51 @@ class EmployeeController extends BaseApiController
     public function show(int $id): JsonResponse
     {
         $employee = Employee::with(['department', 'manager', 'subordinates'])->find($id);
-        if (!$employee) return $this->respondNotFound();
+        if (! $employee) {
+            return $this->respondNotFound();
+        }
 
         return $this->respond(['success' => true, 'data' => $employee]);
+    }
+
+    public function profile(int $id): JsonResponse
+    {
+        $employee = Employee::with([
+            'department',
+            'manager',
+            'subordinates',
+            'attendance' => fn ($q) => $q->orderByDesc('date')->limit(30),
+            'leaveRequests' => fn ($q) => $q->orderByDesc('created_at')->limit(10),
+        ])->find($id);
+
+        if (! $employee) {
+            return $this->respondNotFound();
+        }
+
+        $totalLeaveDays = $employee->leaveRequests()->where('status', 'approved')->sum('total_days');
+        $pendingLeave = $employee->leaveRequests()->where('status', 'pending')->count();
+        $attendanceRate = 0;
+        $totalDays = $employee->attendance()->where('date', '>=', now()->subMonths(3)->toDateString())->count();
+        if ($totalDays > 0) {
+            $presentDays = $employee->attendance()->where('date', '>=', now()->subMonths(3)->toDateString())
+                ->where('status', 'present')->count();
+            $attendanceRate = round(($presentDays / $totalDays) * 100, 1);
+        }
+
+        $tenure = $employee->hire_date ? now()->diffInYears($employee->hire_date) : 0;
+
+        return $this->respond([
+            'success' => true,
+            'data' => [
+                'employee' => $employee,
+                'stats' => [
+                    'tenure_years' => $tenure,
+                    'attendance_rate' => $attendanceRate,
+                    'total_leave_days' => $totalLeaveDays,
+                    'pending_leave' => $pendingLeave,
+                    'subordinates_count' => $employee->subordinates()->count(),
+                ],
+            ],
+        ]);
     }
 }

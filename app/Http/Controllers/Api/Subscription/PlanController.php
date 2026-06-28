@@ -37,28 +37,33 @@ class PlanController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new Plan());
+        parent::__construct(new Plan);
     }
 
     public function store(Request $request): JsonResponse
     {
         $error = $this->validate($request->all());
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $data = $request->all();
         $data['is_active'] = $data['is_active'] ?? true;
 
         $plan = Plan::create($data);
+
         return $this->respondCreated($plan, 'Plan created');
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
         $plan = Plan::find($id);
-        if (!$plan) return $this->respondNotFound();
+        if (! $plan) {
+            return $this->respondNotFound();
+        }
 
         $error = $this->validate($request->all(), [
-            'code' => 'required|string|max:50|unique:subscription_plans,code,' . $id,
+            'code' => 'required|string|max:50|unique:subscription_plans,code,'.$id,
             'name' => 'required|string|max:200',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
@@ -72,9 +77,12 @@ class PlanController extends BaseApiController
             'is_active' => 'nullable|boolean',
             'sort_order' => 'nullable|integer|min:0',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $plan->update($request->all());
+
         return $this->respondSuccess('Plan updated', $plan->fresh());
     }
 
@@ -97,7 +105,9 @@ class PlanController extends BaseApiController
     public function show(int $id): JsonResponse
     {
         $plan = Plan::withCount('subscriptions')->find($id);
-        if (!$plan) return $this->respondNotFound();
+        if (! $plan) {
+            return $this->respondNotFound();
+        }
 
         return $this->respond(['success' => true, 'data' => $plan]);
     }
@@ -105,13 +115,16 @@ class PlanController extends BaseApiController
     public function destroy(int $id): JsonResponse
     {
         $plan = Plan::find($id);
-        if (!$plan) return $this->respondNotFound();
+        if (! $plan) {
+            return $this->respondNotFound();
+        }
 
         if ($plan->subscriptions()->where('status', 'active')->count() > 0) {
             return $this->respondError('Cannot delete plan with active subscriptions', 422);
         }
 
         $plan->delete();
+
         return $this->respondSuccess('Plan deleted');
     }
 }

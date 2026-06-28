@@ -2,10 +2,11 @@
 
 namespace App\Services\Subscription;
 
-use App\Models\Subscription\Plan;
-use App\Models\Subscription\Subscription;
 use App\Models\Subscription\Invoice;
+use App\Models\Subscription\Plan;
 use App\Models\Subscription\PlanChange;
+use App\Models\Subscription\Subscription;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class SubscriptionService
@@ -124,7 +125,7 @@ class SubscriptionService
 
     private function calculatePeriodEnd($startDate, string $interval): string
     {
-        $date = \Carbon\Carbon::parse($startDate);
+        $date = Carbon::parse($startDate);
 
         return match ($interval) {
             'monthly' => $date->copy()->addMonthNoOverflow()->toDateString(),

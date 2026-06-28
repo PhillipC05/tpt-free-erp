@@ -104,6 +104,7 @@ $this->getJson('/api/...', ['Authorization' => "Bearer {$token}"]);
 | LMS | CourseController, EnrollmentController | ✅ | `/api/lms/` |
 | POS | TerminalController, TransactionController | ✅ | `/api/pos/` |
 | Fleet | VehicleController, DriverController, TripController, FuelLogController, MaintenanceController | ✅ | `/api/fleet/` |
+| Subscription | PlanController, SubscriptionController, UsageController | ✅ | `/api/subscription/` |
 
 ## Adding a New Module
 

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api\Subscription;
 
 use App\Http\Controllers\Api\BaseApiController;
-use App\Models\Subscription\UsageRecord;
 use App\Models\Subscription\Subscription;
+use App\Models\Subscription\UsageRecord;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -23,10 +23,12 @@ class UsageController extends BaseApiController
             'recorded_at' => 'nullable|date',
             'notes' => 'nullable|string',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $subscription = Subscription::find($request->input('subscription_id'));
-        if (!$subscription->isActive()) {
+        if (! $subscription->isActive()) {
             return $this->respondError('Cannot record usage for inactive subscription', 422);
         }
 
@@ -52,13 +54,15 @@ class UsageController extends BaseApiController
             'records.*.unit_price' => 'nullable|numeric|min:0',
             'records.*.recorded_at' => 'nullable|date',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $created = DB::transaction(function () use ($request) {
             $results = [];
             foreach ($request->input('records') as $recordData) {
                 $subscription = Subscription::find($recordData['subscription_id']);
-                if (!$subscription || !$subscription->isActive()) {
+                if (! $subscription || ! $subscription->isActive()) {
                     continue;
                 }
 
@@ -70,10 +74,11 @@ class UsageController extends BaseApiController
 
                 $results[] = UsageRecord::create($recordData);
             }
+
             return $results;
         });
 
-        return $this->respondCreated($created, count($created) . ' usage records created');
+        return $this->respondCreated($created, count($created).' usage records created');
     }
 
     public function index(Request $request): JsonResponse
@@ -93,7 +98,7 @@ class UsageController extends BaseApiController
         }
 
         if ($request->has('end_date')) {
-            $query->where('recorded_at', '<=', $request->query('end_date') . ' 23:59:59');
+            $query->where('recorded_at', '<=', $request->query('end_date').' 23:59:59');
         }
 
         $perPage = $request->query('per_page', 15);

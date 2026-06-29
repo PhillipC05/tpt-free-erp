@@ -86,6 +86,28 @@ class RBACTest extends TestCase
             'updated_at' => now(),
         ]);
     }
+    private function assignAdminRole(): void
+    {
+        DB::table('roles')->insertOrIgnore([
+            'name' => 'admin',
+            'display_name' => 'Admin',
+            'description' => 'Admin',
+            'is_system' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $adminId = DB::table('roles')->where('name', 'admin')->value('id');
+
+        DB::table('user_roles')->insertOrIgnore([
+            'user_id' => $this->user->id,
+            'role_id' => $adminId,
+            'assigned_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
 
     public function test_unauthenticated_user_cannot_access_finance_endpoints(): void
     {

@@ -7,6 +7,7 @@ use App\Models\Network\UserProfile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use Illuminate\Support\Facades\DB;
 
 class NetworkTest extends TestCase
 {
@@ -20,12 +21,35 @@ class NetworkTest extends TestCase
         parent::setUp();
         $this->user = User::factory()->create();
         $this->token = $this->user->createToken('test')->plainTextToken;
+        $this->assignAdminRole();
     }
 
     private function auth(): array
     {
         return ['Authorization' => "Bearer {$this->token}"];
     }
+    private function assignAdminRole(): void
+    {
+        DB::table('roles')->insertOrIgnore([
+            'name' => 'admin',
+            'display_name' => 'Admin',
+            'description' => 'Admin',
+            'is_system' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $adminId = DB::table('roles')->where('name', 'admin')->value('id');
+
+        DB::table('user_roles')->insertOrIgnore([
+            'user_id' => $this->user->id,
+            'role_id' => $adminId,
+            'assigned_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
 
     public function test_can_create_own_profile(): void
     {

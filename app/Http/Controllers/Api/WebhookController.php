@@ -48,7 +48,7 @@ class WebhookController extends BaseApiController
         return $this->respondCreated($webhook);
     }
 
-    public function show(Request $request, int $id): JsonResponse
+    public function show(int $id): JsonResponse
     {
         $webhook = Webhook::where('id', $id)->where('user_id', $request->user()->id)->first();
         if (!$webhook) return $this->respondNotFound();
@@ -72,7 +72,7 @@ class WebhookController extends BaseApiController
         return $this->respondSuccess('Webhook updated', $webhook);
     }
 
-    public function destroy(Request $request, int $id): JsonResponse
+    public function destroy(int $id): JsonResponse
     {
         $webhook = Webhook::where('id', $id)->where('user_id', $request->user()->id)->first();
         if (!$webhook) return $this->respondNotFound();

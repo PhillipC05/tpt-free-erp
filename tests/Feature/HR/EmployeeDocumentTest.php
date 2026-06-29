@@ -7,6 +7,7 @@ use App\Models\Documents\Document;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use Illuminate\Support\Facades\DB;
 
 class EmployeeDocumentTest extends TestCase
 {
@@ -21,6 +22,7 @@ class EmployeeDocumentTest extends TestCase
         parent::setUp();
         $this->user = User::factory()->create();
         $this->token = $this->user->createToken('test')->plainTextToken;
+        $this->assignAdminRole();
         $this->employee = Employee::factory()->create(['user_id' => $this->user->id]);
     }
 
@@ -42,6 +44,28 @@ class EmployeeDocumentTest extends TestCase
             'uploaded_by' => $this->user->id,
         ], $overrides));
     }
+    private function assignAdminRole(): void
+    {
+        DB::table('roles')->insertOrIgnore([
+            'name' => 'admin',
+            'display_name' => 'Admin',
+            'description' => 'Admin',
+            'is_system' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $adminId = DB::table('roles')->where('name', 'admin')->value('id');
+
+        DB::table('user_roles')->insertOrIgnore([
+            'user_id' => $this->user->id,
+            'role_id' => $adminId,
+            'assigned_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
 
     public function test_can_list_documents(): void
     {

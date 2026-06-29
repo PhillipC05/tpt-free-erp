@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 
 class RoleController extends BaseApiController
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         $roles = Role::withCount('users')->with('permissions')->get();
         return $this->respondSuccess('Roles retrieved', $roles);

@@ -60,7 +60,7 @@ class ProfileController extends BaseApiController
         return $this->respondCreated($profile);
     }
 
-    public function update(Request $request): JsonResponse
+    public function update(Request $request, int $id): JsonResponse
     {
         $profile = UserProfile::where('user_id', $request->user()->id)->first();
 

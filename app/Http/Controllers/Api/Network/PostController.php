@@ -136,10 +136,10 @@ class PostController extends BaseApiController
         return $this->respondSuccess('Post updated successfully', $post);
     }
 
-    public function destroy(Request $request, int $id): JsonResponse
+    public function destroy(int $id): JsonResponse
     {
         $post = NetworkPost::where('id', $id)
-            ->where('user_id', $request->user()->id)
+            ->where('user_id', request()->user()->id)
             ->first();
 
         if (!$post) {

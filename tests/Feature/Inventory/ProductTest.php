@@ -5,24 +5,40 @@ namespace Tests\Feature\Inventory;
 use App\Models\Inventory\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class ProductTest extends TestCase
 {
     use RefreshDatabase;
 
+    private User $user;
     private string $token;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $user = User::factory()->create();
-        $this->token = $user->createToken('test')->plainTextToken;
+        $this->user = User::factory()->create();
+        $this->token = $this->user->createToken('test')->plainTextToken;
+        $this->assignAdminRole();
     }
 
     private function auth(): array
     {
         return ['Authorization' => "Bearer {$this->token}"];
+    }
+
+    private function assignAdminRole(): void
+    {
+        DB::table('roles')->insertOrIgnore([
+            'name' => 'admin', 'display_name' => 'Admin', 'description' => 'Admin',
+            'is_system' => 1, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $adminId = DB::table('roles')->where('name', 'admin')->value('id');
+        DB::table('user_roles')->insertOrIgnore([
+            'user_id' => $this->user->id, 'role_id' => $adminId,
+            'assigned_at' => now(), 'created_at' => now(), 'updated_at' => now(),
+        ]);
     }
 
     private function validPayload(array $overrides = []): array

@@ -120,9 +120,9 @@ class ConnectionController extends BaseApiController
         return $this->respondSuccess('Connection declined');
     }
 
-    public function destroy(Request $request, int $connectionId): JsonResponse
+    public function destroy(int $connectionId): JsonResponse
     {
-        $userId = $request->user()->id;
+        $userId = request()->user()->id;
 
         $connection = UserConnection::where('id', $connectionId)
             ->where(function ($q) use ($userId) {

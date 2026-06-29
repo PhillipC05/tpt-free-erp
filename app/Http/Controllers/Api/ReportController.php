@@ -65,7 +65,7 @@ class ReportController extends BaseApiController
     }
 
     // GET /api/v1/reports/{id}
-    public function show(Request $request, int $id): JsonResponse
+    public function show(int $id): JsonResponse
     {
         $report = DB::table('generated_reports')
             ->where('id', $id)

@@ -30,7 +30,7 @@ class ProjectTest extends TestCase
     {
         Project::factory()->count(3)->create();
 
-        $response = $this->getJson('/api/projects/projects', $this->auth());
+        $response = $this->getJson('/api/v1/projects/projects', $this->auth());
 
         $response->assertOk()
             ->assertJsonStructure(['success', 'data', 'meta'])
@@ -39,7 +39,7 @@ class ProjectTest extends TestCase
 
     public function test_can_create_project(): void
     {
-        $response = $this->postJson('/api/projects/projects', [
+        $response = $this->postJson('/api/v1/projects/projects', [
             'code' => 'PROJ-001',
             'name' => 'New ERP Implementation',
             'start_date' => '2026-06-01',
@@ -53,7 +53,7 @@ class ProjectTest extends TestCase
 
     public function test_create_project_requires_mandatory_fields(): void
     {
-        $response = $this->postJson('/api/projects/projects', [], $this->auth());
+        $response = $this->postJson('/api/v1/projects/projects', [], $this->auth());
 
         $response->assertStatus(422)->assertJson(['success' => false]);
     }
@@ -62,7 +62,7 @@ class ProjectTest extends TestCase
     {
         Project::factory()->create(['code' => 'PROJ-001']);
 
-        $response = $this->postJson('/api/projects/projects', [
+        $response = $this->postJson('/api/v1/projects/projects', [
             'code' => 'PROJ-001',
             'name' => 'Duplicate',
             'start_date' => '2026-06-01',
@@ -76,7 +76,7 @@ class ProjectTest extends TestCase
     {
         $project = Project::factory()->create();
 
-        $response = $this->getJson("/api/projects/projects/{$project->id}", $this->auth());
+        $response = $this->getJson("/api/v1/projects/projects/{$project->id}", $this->auth());
 
         $response->assertOk()
             ->assertJson(['success' => true, 'data' => ['id' => $project->id]]);
@@ -84,7 +84,7 @@ class ProjectTest extends TestCase
 
     public function test_show_nonexistent_project_returns_404(): void
     {
-        $response = $this->getJson('/api/projects/projects/99999', $this->auth());
+        $response = $this->getJson('/api/v1/projects/projects/99999', $this->auth());
 
         $response->assertNotFound();
     }
@@ -93,7 +93,7 @@ class ProjectTest extends TestCase
     {
         $project = Project::factory()->create(['code' => 'PROJ-001']);
 
-        $response = $this->putJson("/api/projects/projects/{$project->id}", [
+        $response = $this->putJson("/api/v1/projects/projects/{$project->id}", [
             'code' => 'PROJ-001',
             'name' => 'Updated Project',
             'start_date' => '2026-06-01',
@@ -108,7 +108,7 @@ class ProjectTest extends TestCase
     {
         $project = Project::factory()->create();
 
-        $response = $this->deleteJson("/api/projects/projects/{$project->id}", [], $this->auth());
+        $response = $this->deleteJson("/api/v1/projects/projects/{$project->id}", [], $this->auth());
 
         $response->assertOk()->assertJson(['success' => true]);
         $this->assertSoftDeleted('projects', ['id' => $project->id]);
@@ -116,7 +116,7 @@ class ProjectTest extends TestCase
 
     public function test_requires_authentication(): void
     {
-        $response = $this->getJson('/api/projects/projects');
+        $response = $this->getJson('/api/v1/projects/projects');
 
         $response->assertUnauthorized();
     }

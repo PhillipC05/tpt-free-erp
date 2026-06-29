@@ -30,7 +30,7 @@ class CourseTest extends TestCase
     {
         Course::factory()->count(3)->create();
 
-        $response = $this->getJson('/api/lms/courses', $this->auth());
+        $response = $this->getJson('/api/v1/lms/courses', $this->auth());
 
         $response->assertOk()
             ->assertJsonStructure(['success', 'data', 'meta'])
@@ -39,7 +39,7 @@ class CourseTest extends TestCase
 
     public function test_can_create_course(): void
     {
-        $response = $this->postJson('/api/lms/courses', [
+        $response = $this->postJson('/api/v1/lms/courses', [
             'code' => 'CRS-001',
             'title' => 'Laravel Fundamentals',
             'type' => 'online',
@@ -53,7 +53,7 @@ class CourseTest extends TestCase
 
     public function test_create_course_requires_mandatory_fields(): void
     {
-        $response = $this->postJson('/api/lms/courses', [], $this->auth());
+        $response = $this->postJson('/api/v1/lms/courses', [], $this->auth());
 
         $response->assertStatus(422)->assertJson(['success' => false]);
     }
@@ -62,7 +62,7 @@ class CourseTest extends TestCase
     {
         Course::factory()->create(['code' => 'CRS-001']);
 
-        $response = $this->postJson('/api/lms/courses', [
+        $response = $this->postJson('/api/v1/lms/courses', [
             'code' => 'CRS-001',
             'title' => 'Duplicate',
             'type' => 'online',
@@ -76,7 +76,7 @@ class CourseTest extends TestCase
     {
         $course = Course::factory()->create();
 
-        $response = $this->getJson("/api/lms/courses/{$course->id}", $this->auth());
+        $response = $this->getJson("/api/v1/lms/courses/{$course->id}", $this->auth());
 
         $response->assertOk()
             ->assertJson(['success' => true, 'data' => ['id' => $course->id]]);
@@ -84,7 +84,7 @@ class CourseTest extends TestCase
 
     public function test_show_nonexistent_course_returns_404(): void
     {
-        $response = $this->getJson('/api/lms/courses/99999', $this->auth());
+        $response = $this->getJson('/api/v1/lms/courses/99999', $this->auth());
 
         $response->assertNotFound();
     }
@@ -93,7 +93,7 @@ class CourseTest extends TestCase
     {
         $course = Course::factory()->create(['code' => 'CRS-001']);
 
-        $response = $this->putJson("/api/lms/courses/{$course->id}", [
+        $response = $this->putJson("/api/v1/lms/courses/{$course->id}", [
             'code' => 'CRS-001',
             'title' => 'Updated Course',
             'type' => 'blended',
@@ -108,7 +108,7 @@ class CourseTest extends TestCase
     {
         $course = Course::factory()->create();
 
-        $response = $this->deleteJson("/api/lms/courses/{$course->id}", [], $this->auth());
+        $response = $this->deleteJson("/api/v1/lms/courses/{$course->id}", [], $this->auth());
 
         $response->assertOk()->assertJson(['success' => true]);
         $this->assertDatabaseMissing('lms_courses', ['id' => $course->id]);
@@ -116,7 +116,7 @@ class CourseTest extends TestCase
 
     public function test_requires_authentication(): void
     {
-        $response = $this->getJson('/api/lms/courses');
+        $response = $this->getJson('/api/v1/lms/courses');
 
         $response->assertUnauthorized();
     }

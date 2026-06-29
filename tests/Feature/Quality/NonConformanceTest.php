@@ -31,7 +31,7 @@ class NonConformanceTest extends TestCase
     {
         NonConformance::factory()->count(3)->create();
 
-        $response = $this->getJson('/api/quality/non-conformances', $this->auth());
+        $response = $this->getJson('/api/v1/quality/non-conformances', $this->auth());
 
         $response->assertOk()
             ->assertJsonStructure(['success', 'data', 'meta'])
@@ -42,7 +42,7 @@ class NonConformanceTest extends TestCase
     {
         $check = QualityCheck::factory()->create();
 
-        $response = $this->postJson('/api/quality/non-conformances', [
+        $response = $this->postJson('/api/v1/quality/non-conformances', [
             'nc_number' => 'NC-001',
             'check_id' => $check->id,
             'description' => 'Dimensional deviation found',
@@ -57,7 +57,7 @@ class NonConformanceTest extends TestCase
 
     public function test_create_nc_requires_mandatory_fields(): void
     {
-        $response = $this->postJson('/api/quality/non-conformances', [], $this->auth());
+        $response = $this->postJson('/api/v1/quality/non-conformances', [], $this->auth());
 
         $response->assertStatus(422)->assertJson(['success' => false]);
     }
@@ -66,7 +66,7 @@ class NonConformanceTest extends TestCase
     {
         $nc = NonConformance::factory()->create();
 
-        $response = $this->getJson("/api/quality/non-conformances/{$nc->id}", $this->auth());
+        $response = $this->getJson("/api/v1/quality/non-conformances/{$nc->id}", $this->auth());
 
         $response->assertOk()
             ->assertJson(['success' => true, 'data' => ['id' => $nc->id]]);
@@ -74,7 +74,7 @@ class NonConformanceTest extends TestCase
 
     public function test_show_nonexistent_nc_returns_404(): void
     {
-        $response = $this->getJson('/api/quality/non-conformances/99999', $this->auth());
+        $response = $this->getJson('/api/v1/quality/non-conformances/99999', $this->auth());
 
         $response->assertNotFound();
     }
@@ -83,7 +83,7 @@ class NonConformanceTest extends TestCase
     {
         $nc = NonConformance::factory()->create(['status' => 'open']);
 
-        $response = $this->putJson("/api/quality/non-conformances/{$nc->id}/status", [
+        $response = $this->putJson("/api/v1/quality/non-conformances/{$nc->id}/status", [
             'status' => 'investigating',
         ], $this->auth());
 
@@ -93,7 +93,7 @@ class NonConformanceTest extends TestCase
 
     public function test_requires_authentication(): void
     {
-        $response = $this->getJson('/api/quality/non-conformances');
+        $response = $this->getJson('/api/v1/quality/non-conformances');
 
         $response->assertUnauthorized();
     }

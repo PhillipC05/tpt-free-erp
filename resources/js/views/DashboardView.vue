@@ -113,18 +113,55 @@
             </div>
         </div>
 
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Recent Activity</h3>
-            <div class="divide-y divide-gray-100 dark:divide-gray-700">
-                <div v-for="(item, i) in activity.slice(0, 15)" :key="i" class="flex items-start gap-3 py-2">
-                    <span class="w-2 h-2 mt-2 rounded-full flex-shrink-0" :class="activityColor(item.type)"></span>
-                    <div class="flex-1 min-w-0">
-                        <div class="text-sm text-gray-900 dark:text-gray-100">{{ item.label }}</div>
-                        <div class="text-xs text-gray-500 truncate">{{ item.detail }}</div>
+        <div class="grid grid-cols-3 gap-6 mb-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Expense Summary</h3>
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">Total Submitted</span>
+                        <span class="font-medium text-gray-900 dark:text-gray-100">${{ expenseSummary?.total_submitted?.toLocaleString() ?? '0' }}</span>
                     </div>
-                    <span class="text-xs text-gray-400 flex-shrink-0">{{ timeAgo(item.created_at) }}</span>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">Pending Approval</span>
+                        <span class="font-medium text-yellow-600">${{ expenseSummary?.total_pending?.toLocaleString() ?? '0' }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">Total Approved</span>
+                        <span class="font-medium text-green-600">${{ expenseSummary?.total_approved?.toLocaleString() ?? '0' }}</span>
+                    </div>
+                    <div class="border-t border-gray-100 dark:border-gray-700 pt-2 mt-2">
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span>Draft: {{ expenseSummary?.count_by_status?.draft ?? 0 }}</span>
+                            <span>Submitted: {{ expenseSummary?.count_by_status?.submitted ?? 0 }}</span>
+                            <span>Approved: {{ expenseSummary?.count_by_status?.approved ?? 0 }}</span>
+                            <span>Rejected: {{ expenseSummary?.count_by_status?.rejected ?? 0 }}</span>
+                        </div>
+                    </div>
                 </div>
-                <div v-if="activity.length === 0" class="py-4 text-center text-gray-500 text-sm">No recent activity</div>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Contract Alerts</h3>
+                <div v-if="contractAlerts?.expiring_soon?.length" class="space-y-2">
+                    <div v-for="c in contractAlerts.expiring_soon.slice(0, 4)" :key="c.id" class="flex items-center justify-between text-sm">
+                        <span class="text-gray-900 dark:text-gray-100 truncate">{{ c.title }}</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full" :class="c.days_until_expiry <= 7 ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'">{{ c.days_until_expiry }}d</span>
+                    </div>
+                </div>
+                <div v-else class="text-sm text-gray-500">No contracts expiring soon</div>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Recent Activity</h3>
+                <div class="divide-y divide-gray-100 dark:divide-gray-700">
+                    <div v-for="(item, i) in activity.slice(0, 15)" :key="i" class="flex items-start gap-3 py-2">
+                        <span class="w-2 h-2 mt-2 rounded-full flex-shrink-0" :class="activityColor(item.type)"></span>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm text-gray-900 dark:text-gray-100">{{ item.label }}</div>
+                            <div class="text-xs text-gray-500 truncate">{{ item.detail }}</div>
+                        </div>
+                        <span class="text-xs text-gray-400 flex-shrink-0">{{ timeAgo(item.created_at) }}</span>
+                    </div>
+                    <div v-if="activity.length === 0" class="py-4 text-center text-gray-500 text-sm">No recent activity</div>
+                </div>
             </div>
         </div>
     </div>
@@ -140,6 +177,8 @@ const kpis = ref<KpiData | null>(null);
 const charts = ref<ChartData | null>(null);
 const activity = ref<ActivityItem[]>([]);
 const modules = ref<ModuleSummary | null>(null);
+const expenseSummary = ref<any>(null);
+const contractAlerts = ref<any>(null);
 
 const maxRevenue = computed(() => Math.max(1, ...(charts.value?.revenue_trend ?? []).map(d => d.value)));
 const maxOrders = computed(() => Math.max(1, ...(charts.value?.orders_trend ?? []).map(d => d.value)));
@@ -170,16 +209,33 @@ function activityColor(type: string): string {
 
 async function loadData() {
     try {
-        const [kpiRes, chartRes, actRes, modRes] = await Promise.all([
+        const [kpiRes, chartRes, actRes, modRes, expRes, contractRes] = await Promise.all([
             apiClient.get('/analytics/kpis', { params: { period: period.value } }),
             apiClient.get('/analytics/charts', { params: { months: 6 } }),
             apiClient.get('/analytics/activity', { params: { limit: 20 } }),
             apiClient.get('/analytics/modules'),
+            apiClient.get('/v1/expenses/summary').catch(() => ({ data: { data: null } })),
+            apiClient.get('/v1/contracts', { params: { per_page: 50 } }).catch(() => ({ data: { data: [] } })),
         ]);
         kpis.value = kpiRes.data?.data ?? null;
         charts.value = chartRes.data?.data ?? null;
         activity.value = actRes.data?.data ?? [];
         modules.value = modRes.data?.data ?? null;
+        expenseSummary.value = expRes.data?.data ?? null;
+
+        const contracts = contractRes.data?.data ?? [];
+        const today = new Date();
+        contractAlerts.value = {
+            expiring_soon: contracts
+                .filter((c: any) => c.end_date && c.status === 'active')
+                .map((c: any) => ({
+                    id: c.id,
+                    title: c.title,
+                    days_until_expiry: Math.ceil((new Date(c.end_date).getTime() - today.getTime()) / 86400000),
+                }))
+                .filter((c: any) => c.days_until_expiry > 0 && c.days_until_expiry <= 30)
+                .sort((a: any, b: any) => a.days_until_expiry - b.days_until_expiry),
+        };
     } catch { /* ignore */ }
 }
 

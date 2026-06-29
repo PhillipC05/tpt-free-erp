@@ -42,7 +42,7 @@ class TransactionTest extends TestCase
 
     public function test_can_create_transaction(): void
     {
-        $response = $this->postJson('/api/finance/transactions', $this->validPayload(), $this->auth());
+        $response = $this->postJson('/api/v1/finance/transactions', $this->validPayload(), $this->auth());
 
         $response->assertCreated()->assertJson(['success' => true]);
         $this->assertDatabaseHas('finance_transactions', [
@@ -54,21 +54,21 @@ class TransactionTest extends TestCase
 
     public function test_transaction_type_must_be_debit_or_credit(): void
     {
-        $response = $this->postJson('/api/finance/transactions', $this->validPayload(['type' => 'invalid']), $this->auth());
+        $response = $this->postJson('/api/v1/finance/transactions', $this->validPayload(['type' => 'invalid']), $this->auth());
 
         $response->assertStatus(422);
     }
 
     public function test_amount_must_be_positive(): void
     {
-        $response = $this->postJson('/api/finance/transactions', $this->validPayload(['amount' => -100]), $this->auth());
+        $response = $this->postJson('/api/v1/finance/transactions', $this->validPayload(['amount' => -100]), $this->auth());
 
         $response->assertStatus(422);
     }
 
     public function test_account_must_exist(): void
     {
-        $response = $this->postJson('/api/finance/transactions', $this->validPayload(['account_id' => 99999]), $this->auth());
+        $response = $this->postJson('/api/v1/finance/transactions', $this->validPayload(['account_id' => 99999]), $this->auth());
 
         $response->assertStatus(422);
     }
@@ -77,7 +77,7 @@ class TransactionTest extends TestCase
     {
         $transaction = Transaction::factory()->create(['account_id' => $this->account->id, 'status' => 'pending']);
 
-        $response = $this->postJson("/api/finance/transactions/{$transaction->id}/approve", [], $this->auth());
+        $response = $this->postJson("/api/v1/finance/transactions/{$transaction->id}/approve", [], $this->auth());
 
         $response->assertOk()->assertJson(['success' => true]);
         $this->assertDatabaseHas('finance_transactions', ['id' => $transaction->id, 'status' => 'posted']);
@@ -87,7 +87,7 @@ class TransactionTest extends TestCase
     {
         $transaction = Transaction::factory()->posted()->create(['account_id' => $this->account->id]);
 
-        $response = $this->putJson("/api/finance/transactions/{$transaction->id}", $this->validPayload(), $this->auth());
+        $response = $this->putJson("/api/v1/finance/transactions/{$transaction->id}", $this->validPayload(), $this->auth());
 
         $response->assertStatus(422);
     }
@@ -96,7 +96,7 @@ class TransactionTest extends TestCase
     {
         $transaction = Transaction::factory()->create(['account_id' => $this->account->id, 'status' => 'pending']);
 
-        $response = $this->postJson("/api/finance/transactions/{$transaction->id}/void", [], $this->auth());
+        $response = $this->postJson("/api/v1/finance/transactions/{$transaction->id}/void", [], $this->auth());
 
         $response->assertOk()->assertJson(['success' => true]);
         $this->assertDatabaseHas('finance_transactions', ['id' => $transaction->id, 'status' => 'void']);
@@ -106,7 +106,7 @@ class TransactionTest extends TestCase
     {
         $transaction = Transaction::factory()->posted()->create(['account_id' => $this->account->id]);
 
-        $response = $this->deleteJson("/api/finance/transactions/{$transaction->id}", [], $this->auth());
+        $response = $this->deleteJson("/api/v1/finance/transactions/{$transaction->id}", [], $this->auth());
 
         $response->assertStatus(422);
     }
@@ -117,7 +117,7 @@ class TransactionTest extends TestCase
         $otherAccount = Account::factory()->create();
         Transaction::factory()->create(['account_id' => $otherAccount->id]);
 
-        $response = $this->getJson("/api/finance/accounts/{$this->account->id}/transactions", $this->auth());
+        $response = $this->getJson("/api/v1/finance/accounts/{$this->account->id}/transactions", $this->auth());
 
         $response->assertOk()
             ->assertJsonStructure(['success', 'data', 'meta'])

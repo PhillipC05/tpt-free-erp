@@ -32,7 +32,7 @@ class InvoiceTest extends TestCase
     {
         Invoice::factory()->count(3)->create();
 
-        $response = $this->getJson('/api/sales/invoices', $this->auth());
+        $response = $this->getJson('/api/v1/sales/invoices', $this->auth());
 
         $response->assertOk()
             ->assertJsonStructure(['success', 'data', 'meta'])
@@ -44,7 +44,7 @@ class InvoiceTest extends TestCase
         $customer = Customer::factory()->create();
         $order = Order::factory()->create(['customer_id' => $customer->id]);
 
-        $response = $this->postJson('/api/sales/invoices', [
+        $response = $this->postJson('/api/v1/sales/invoices', [
             'invoice_number' => 'INV-0001',
             'order_id' => $order->id,
             'customer_id' => $customer->id,
@@ -64,7 +64,7 @@ class InvoiceTest extends TestCase
 
     public function test_create_invoice_requires_mandatory_fields(): void
     {
-        $response = $this->postJson('/api/sales/invoices', [], $this->auth());
+        $response = $this->postJson('/api/v1/sales/invoices', [], $this->auth());
 
         $response->assertStatus(422)->assertJson(['success' => false]);
     }
@@ -73,7 +73,7 @@ class InvoiceTest extends TestCase
     {
         $invoice = Invoice::factory()->create();
 
-        $response = $this->getJson("/api/sales/invoices/{$invoice->id}", $this->auth());
+        $response = $this->getJson("/api/v1/sales/invoices/{$invoice->id}", $this->auth());
 
         $response->assertOk()
             ->assertJson(['success' => true, 'data' => ['id' => $invoice->id]]);
@@ -81,7 +81,7 @@ class InvoiceTest extends TestCase
 
     public function test_show_nonexistent_invoice_returns_404(): void
     {
-        $response = $this->getJson('/api/sales/invoices/99999', $this->auth());
+        $response = $this->getJson('/api/v1/sales/invoices/99999', $this->auth());
 
         $response->assertNotFound();
     }
@@ -90,7 +90,7 @@ class InvoiceTest extends TestCase
     {
         $invoice = Invoice::factory()->create();
 
-        $response = $this->deleteJson("/api/sales/invoices/{$invoice->id}", [], $this->auth());
+        $response = $this->deleteJson("/api/v1/sales/invoices/{$invoice->id}", [], $this->auth());
 
         $response->assertOk()->assertJson(['success' => true]);
         $this->assertDatabaseMissing('sales_invoices', ['id' => $invoice->id, 'deleted_at' => null]);
@@ -98,7 +98,7 @@ class InvoiceTest extends TestCase
 
     public function test_requires_authentication(): void
     {
-        $response = $this->getJson('/api/sales/invoices');
+        $response = $this->getJson('/api/v1/sales/invoices');
 
         $response->assertUnauthorized();
     }

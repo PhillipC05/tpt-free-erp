@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Documents;
 use App\Http\Controllers\Api\BaseApiController;
 use App\Models\Documents\Document;
 use App\Models\Documents\DocumentFolder;
+use App\Models\Documents\DocumentVersion;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -121,7 +122,26 @@ class DocumentController extends BaseApiController
             return $error;
         }
 
-        $document->update($request->only(['name', 'description', 'tags', 'folder_id']));
+        $nextVersion = $document->version + 1;
+
+        DocumentVersion::create([
+            'document_id' => $document->id,
+            'version_number' => $document->version,
+            'name' => $document->name,
+            'original_filename' => $document->original_filename,
+            'storage_path' => $document->storage_path,
+            'mime_type' => $document->mime_type,
+            'file_size' => $document->file_size,
+            'description' => $document->description,
+            'tags' => $document->tags,
+            'uploaded_by' => $document->uploaded_by,
+        ]);
+
+        $document->update(array_merge(
+            $request->only(['name', 'description', 'tags', 'folder_id']),
+            ['version' => $nextVersion],
+        ));
+
         $this->cacheFlush();
 
         return $this->respondSuccess('Document updated successfully', $document);
@@ -230,6 +250,25 @@ class DocumentController extends BaseApiController
         return $this->respond([
             'success' => true,
             'data' => $folders,
+        ]);
+    }
+
+    public function versions(int $id): JsonResponse
+    {
+        $document = Document::find($id);
+
+        if (!$document) {
+            return $this->respondNotFound('Document not found');
+        }
+
+        $versions = $document->versions()->with('uploader')->get();
+
+        return $this->respond([
+            'success' => true,
+            'data' => [
+                'current_version' => $document->version,
+                'versions' => $versions,
+            ],
         ]);
     }
 

@@ -31,7 +31,7 @@ class MaintenanceTest extends TestCase
     {
         MaintenanceRecord::factory()->count(3)->create();
 
-        $response = $this->getJson('/api/assets/maintenance', $this->auth());
+        $response = $this->getJson('/api/v1/assets/maintenance', $this->auth());
 
         $response->assertOk()
             ->assertJsonStructure(['success', 'data', 'meta'])
@@ -42,7 +42,7 @@ class MaintenanceTest extends TestCase
     {
         $asset = Asset::factory()->create();
 
-        $response = $this->postJson('/api/assets/maintenance', [
+        $response = $this->postJson('/api/v1/assets/maintenance', [
             'asset_id' => $asset->id,
             'title' => 'Annual service',
             'description' => 'Annual preventive maintenance check',
@@ -57,7 +57,7 @@ class MaintenanceTest extends TestCase
 
     public function test_create_maintenance_requires_mandatory_fields(): void
     {
-        $response = $this->postJson('/api/assets/maintenance', [], $this->auth());
+        $response = $this->postJson('/api/v1/assets/maintenance', [], $this->auth());
 
         $response->assertStatus(422)->assertJson(['success' => false]);
     }
@@ -66,7 +66,7 @@ class MaintenanceTest extends TestCase
     {
         $record = MaintenanceRecord::factory()->create();
 
-        $response = $this->getJson("/api/assets/maintenance/{$record->id}", $this->auth());
+        $response = $this->getJson("/api/v1/assets/maintenance/{$record->id}", $this->auth());
 
         $response->assertOk()
             ->assertJson(['success' => true, 'data' => ['id' => $record->id]]);
@@ -74,7 +74,7 @@ class MaintenanceTest extends TestCase
 
     public function test_show_nonexistent_record_returns_404(): void
     {
-        $response = $this->getJson('/api/assets/maintenance/99999', $this->auth());
+        $response = $this->getJson('/api/v1/assets/maintenance/99999', $this->auth());
 
         $response->assertNotFound();
     }
@@ -85,7 +85,7 @@ class MaintenanceTest extends TestCase
         MaintenanceRecord::factory()->count(2)->create(['asset_id' => $asset->id]);
         MaintenanceRecord::factory()->create();
 
-        $response = $this->getJson("/api/assets/assets/{$asset->id}/maintenance-history", $this->auth());
+        $response = $this->getJson("/api/v1/assets/assets/{$asset->id}/maintenance-history", $this->auth());
 
         $response->assertOk()->assertJson(['success' => true]);
         $this->assertCount(2, $response->json('data'));
@@ -93,7 +93,7 @@ class MaintenanceTest extends TestCase
 
     public function test_requires_authentication(): void
     {
-        $response = $this->getJson('/api/assets/maintenance');
+        $response = $this->getJson('/api/v1/assets/maintenance');
 
         $response->assertUnauthorized();
     }

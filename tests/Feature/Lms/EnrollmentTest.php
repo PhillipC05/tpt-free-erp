@@ -32,7 +32,7 @@ class EnrollmentTest extends TestCase
     {
         Enrollment::factory()->count(3)->create();
 
-        $response = $this->getJson('/api/lms/enrollments', $this->auth());
+        $response = $this->getJson('/api/v1/lms/enrollments', $this->auth());
 
         $response->assertOk()
             ->assertJsonStructure(['success', 'data', 'meta'])
@@ -44,7 +44,7 @@ class EnrollmentTest extends TestCase
         $course = Course::factory()->create();
         $employee = Employee::factory()->create();
 
-        $response = $this->postJson('/api/lms/enrollments', [
+        $response = $this->postJson('/api/v1/lms/enrollments', [
             'course_id' => $course->id,
             'employee_id' => $employee->id,
             'enrollment_date' => '2026-05-31',
@@ -60,7 +60,7 @@ class EnrollmentTest extends TestCase
 
     public function test_create_enrollment_requires_mandatory_fields(): void
     {
-        $response = $this->postJson('/api/lms/enrollments', [], $this->auth());
+        $response = $this->postJson('/api/v1/lms/enrollments', [], $this->auth());
 
         $response->assertStatus(422)->assertJson(['success' => false]);
     }
@@ -69,7 +69,7 @@ class EnrollmentTest extends TestCase
     {
         $enrollment = Enrollment::factory()->create();
 
-        $response = $this->getJson("/api/lms/enrollments/{$enrollment->id}", $this->auth());
+        $response = $this->getJson("/api/v1/lms/enrollments/{$enrollment->id}", $this->auth());
 
         $response->assertOk()
             ->assertJson(['success' => true, 'data' => ['id' => $enrollment->id]]);
@@ -77,7 +77,7 @@ class EnrollmentTest extends TestCase
 
     public function test_show_nonexistent_enrollment_returns_404(): void
     {
-        $response = $this->getJson('/api/lms/enrollments/99999', $this->auth());
+        $response = $this->getJson('/api/v1/lms/enrollments/99999', $this->auth());
 
         $response->assertNotFound();
     }
@@ -87,7 +87,7 @@ class EnrollmentTest extends TestCase
         $course = Course::factory()->create();
         $employee = Employee::factory()->create();
 
-        $response = $this->postJson("/api/lms/courses/{$course->id}/enroll", [
+        $response = $this->postJson("/api/v1/lms/courses/{$course->id}/enroll", [
             'employee_id' => $employee->id,
         ], $this->auth());
 
@@ -102,7 +102,7 @@ class EnrollmentTest extends TestCase
     {
         $enrollment = Enrollment::factory()->create(['status' => 'in_progress']);
 
-        $response = $this->putJson("/api/lms/enrollments/{$enrollment->id}/complete", [
+        $response = $this->putJson("/api/v1/lms/enrollments/{$enrollment->id}/complete", [
             'score' => 88.5,
         ], $this->auth());
 
@@ -112,7 +112,7 @@ class EnrollmentTest extends TestCase
 
     public function test_requires_authentication(): void
     {
-        $response = $this->getJson('/api/lms/enrollments');
+        $response = $this->getJson('/api/v1/lms/enrollments');
 
         $response->assertUnauthorized();
     }

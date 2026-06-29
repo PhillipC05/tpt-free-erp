@@ -30,7 +30,7 @@ class AccountTest extends TestCase
     {
         Account::factory()->count(3)->create();
 
-        $response = $this->getJson('/api/finance/accounts', $this->auth());
+        $response = $this->getJson('/api/v1/finance/accounts', $this->auth());
 
         $response->assertOk()
             ->assertJsonStructure(['success', 'data', 'meta'])
@@ -39,7 +39,7 @@ class AccountTest extends TestCase
 
     public function test_can_create_account(): void
     {
-        $response = $this->postJson('/api/finance/accounts', [
+        $response = $this->postJson('/api/v1/finance/accounts', [
             'code' => '1000',
             'name' => 'Cash Account',
             'type' => 'asset',
@@ -55,7 +55,7 @@ class AccountTest extends TestCase
 
     public function test_create_account_requires_code_name_and_type(): void
     {
-        $response = $this->postJson('/api/finance/accounts', [], $this->auth());
+        $response = $this->postJson('/api/v1/finance/accounts', [], $this->auth());
 
         $response->assertStatus(422)
             ->assertJson(['success' => false]);
@@ -65,7 +65,7 @@ class AccountTest extends TestCase
     {
         Account::factory()->create(['code' => '1000']);
 
-        $response = $this->postJson('/api/finance/accounts', [
+        $response = $this->postJson('/api/v1/finance/accounts', [
             'code' => '1000',
             'name' => 'Duplicate',
             'type' => 'asset',
@@ -78,7 +78,7 @@ class AccountTest extends TestCase
     {
         $account = Account::factory()->create();
 
-        $response = $this->getJson("/api/finance/accounts/{$account->id}", $this->auth());
+        $response = $this->getJson("/api/v1/finance/accounts/{$account->id}", $this->auth());
 
         $response->assertOk()
             ->assertJson(['success' => true, 'data' => ['id' => $account->id]]);
@@ -86,7 +86,7 @@ class AccountTest extends TestCase
 
     public function test_show_nonexistent_account_returns_404(): void
     {
-        $response = $this->getJson('/api/finance/accounts/99999', $this->auth());
+        $response = $this->getJson('/api/v1/finance/accounts/99999', $this->auth());
 
         $response->assertNotFound();
     }
@@ -95,7 +95,7 @@ class AccountTest extends TestCase
     {
         $account = Account::factory()->create(['code' => '1000']);
 
-        $response = $this->putJson("/api/finance/accounts/{$account->id}", [
+        $response = $this->putJson("/api/v1/finance/accounts/{$account->id}", [
             'code' => '1000',
             'name' => 'Updated Name',
             'type' => 'asset',
@@ -109,7 +109,7 @@ class AccountTest extends TestCase
     {
         $account = Account::factory()->create();
 
-        $response = $this->deleteJson("/api/finance/accounts/{$account->id}", [], $this->auth());
+        $response = $this->deleteJson("/api/v1/finance/accounts/{$account->id}", [], $this->auth());
 
         $response->assertOk()->assertJson(['success' => true]);
         $this->assertDatabaseMissing('finance_accounts', ['id' => $account->id]);
@@ -119,7 +119,7 @@ class AccountTest extends TestCase
     {
         $account = Account::factory()->create();
 
-        $response = $this->getJson("/api/finance/accounts/{$account->id}/balance", $this->auth());
+        $response = $this->getJson("/api/v1/finance/accounts/{$account->id}/balance", $this->auth());
 
         $response->assertOk()
             ->assertJsonStructure(['success', 'data' => ['account', 'total_debits', 'total_credits', 'calculated_balance']]);
@@ -127,7 +127,7 @@ class AccountTest extends TestCase
 
     public function test_requires_authentication(): void
     {
-        $response = $this->getJson('/api/finance/accounts');
+        $response = $this->getJson('/api/v1/finance/accounts');
 
         $response->assertUnauthorized();
     }

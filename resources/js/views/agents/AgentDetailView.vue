@@ -56,6 +56,13 @@
         </div>
       </div>
 
+      <SkillEnableModal
+        :agent-id="Number(agentId)"
+        v-model="showSkillBrowser"
+        :current-skills="skills"
+        @saved="loadAll"
+      />
+
       <!-- Executions Tab -->
       <div v-if="activeTab === 'executions'" class="space-y-3">
         <h2 class="font-semibold text-gray-900">Execution History</h2>
@@ -112,7 +119,10 @@
 
       <!-- Schedules Tab -->
       <div v-if="activeTab === 'schedules'" class="space-y-4">
-        <h2 class="font-semibold text-gray-900">Schedules</h2>
+        <div class="flex items-center justify-between">
+          <h2 class="font-semibold text-gray-900">Schedules</h2>
+          <button @click="showScheduleCreate = true" class="text-sm text-indigo-600 hover:text-indigo-700">+ New Schedule</button>
+        </div>
         <div v-if="schedules.length === 0" class="text-sm text-gray-400 py-4">No schedules configured.</div>
         <div v-for="sched in schedules" :key="sched.id" class="bg-white border border-gray-200 rounded-lg p-4">
           <div class="flex items-center justify-between">
@@ -128,6 +138,12 @@
           <div class="text-xs text-gray-400 mt-1">Next run: {{ sched.next_run_at ? new Date(sched.next_run_at).toLocaleString() : 'Not scheduled' }}</div>
         </div>
       </div>
+
+      <ScheduleCreateModal
+        :agent-id="Number(agentId)"
+        v-model="showScheduleCreate"
+        @saved="loadAll"
+      />
     </template>
   </div>
 </template>
@@ -136,6 +152,8 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
+import SkillEnableModal from '@/components/SkillEnableModal.vue'
+import ScheduleCreateModal from '@/components/ScheduleCreateModal.vue'
 
 const route = useRoute()
 const agentId = route.params.id
@@ -146,6 +164,7 @@ const schedules = ref<any[]>([])
 const loading = ref(true)
 const activeTab = ref('skills')
 const showSkillBrowser = ref(false)
+const showScheduleCreate = ref(false)
 const showTokenCreate = ref(false)
 const newToken = ref('')
 const tokenForm = ref({ name: '' })

@@ -31,7 +31,7 @@ class PurchaseOrderTest extends TestCase
     {
         PurchaseOrder::factory()->count(3)->create();
 
-        $response = $this->getJson('/api/procurement/purchase-orders', $this->auth());
+        $response = $this->getJson('/api/v1/procurement/purchase-orders', $this->auth());
 
         $response->assertOk()
             ->assertJsonStructure(['success', 'data', 'meta'])
@@ -42,7 +42,7 @@ class PurchaseOrderTest extends TestCase
     {
         $vendor = Vendor::factory()->create();
 
-        $response = $this->postJson('/api/procurement/purchase-orders', [
+        $response = $this->postJson('/api/v1/procurement/purchase-orders', [
             'po_number' => 'PO-0001',
             'vendor_id' => $vendor->id,
             'order_date' => '2026-05-01',
@@ -58,7 +58,7 @@ class PurchaseOrderTest extends TestCase
 
     public function test_create_po_requires_mandatory_fields(): void
     {
-        $response = $this->postJson('/api/procurement/purchase-orders', [], $this->auth());
+        $response = $this->postJson('/api/v1/procurement/purchase-orders', [], $this->auth());
 
         $response->assertStatus(422)->assertJson(['success' => false]);
     }
@@ -67,7 +67,7 @@ class PurchaseOrderTest extends TestCase
     {
         $po = PurchaseOrder::factory()->create();
 
-        $response = $this->getJson("/api/procurement/purchase-orders/{$po->id}", $this->auth());
+        $response = $this->getJson("/api/v1/procurement/purchase-orders/{$po->id}", $this->auth());
 
         $response->assertOk()
             ->assertJson(['success' => true, 'data' => ['id' => $po->id]]);
@@ -75,7 +75,7 @@ class PurchaseOrderTest extends TestCase
 
     public function test_show_nonexistent_po_returns_404(): void
     {
-        $response = $this->getJson('/api/procurement/purchase-orders/99999', $this->auth());
+        $response = $this->getJson('/api/v1/procurement/purchase-orders/99999', $this->auth());
 
         $response->assertNotFound();
     }
@@ -84,7 +84,7 @@ class PurchaseOrderTest extends TestCase
     {
         $po = PurchaseOrder::factory()->create(['status' => 'draft']);
 
-        $response = $this->putJson("/api/procurement/purchase-orders/{$po->id}/status", [
+        $response = $this->putJson("/api/v1/procurement/purchase-orders/{$po->id}/status", [
             'status' => 'sent',
         ], $this->auth());
 
@@ -96,7 +96,7 @@ class PurchaseOrderTest extends TestCase
     {
         $po = PurchaseOrder::factory()->create();
 
-        $response = $this->deleteJson("/api/procurement/purchase-orders/{$po->id}", [], $this->auth());
+        $response = $this->deleteJson("/api/v1/procurement/purchase-orders/{$po->id}", [], $this->auth());
 
         $response->assertOk()->assertJson(['success' => true]);
         $this->assertSoftDeleted('procurement_purchase_orders', ['id' => $po->id]);
@@ -104,7 +104,7 @@ class PurchaseOrderTest extends TestCase
 
     public function test_requires_authentication(): void
     {
-        $response = $this->getJson('/api/procurement/purchase-orders');
+        $response = $this->getJson('/api/v1/procurement/purchase-orders');
 
         $response->assertUnauthorized();
     }

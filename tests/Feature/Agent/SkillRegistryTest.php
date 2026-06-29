@@ -24,10 +24,22 @@ class SkillRegistryTest extends TestCase
 
     protected function tearDown(): void
     {
-        // Clean up test skill files
-        $testFile = $this->skillsDir . '/test/test_skill.md';
-        if (file_exists($testFile)) unlink($testFile);
-        if (is_dir($this->skillsDir . '/test')) rmdir($this->skillsDir . '/test');
+        // Clean up test skill files recursively
+        $testDir = $this->skillsDir . '/test';
+        if (is_dir($testDir)) {
+            $files = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($testDir, \RecursiveDirectoryIterator::SKIP_DOTS),
+                \RecursiveIteratorIterator::CHILD_FIRST
+            );
+            foreach ($files as $file) {
+                if ($file->isDir()) {
+                    rmdir($file->getRealPath());
+                } else {
+                    unlink($file->getRealPath());
+                }
+            }
+            rmdir($testDir);
+        }
         $this->registry->clearCache();
         parent::tearDown();
     }

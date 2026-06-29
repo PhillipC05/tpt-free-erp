@@ -30,7 +30,7 @@ class OnboardingController extends BaseApiController
     {
         $completion = OnboardingCompletion::where('user_id', $request->user()->id)->first();
 
-        if (!$completion) {
+        if (! $completion) {
             return $this->respond([
                 'success' => true,
                 'data' => [
@@ -74,7 +74,7 @@ class OnboardingController extends BaseApiController
         $coa = $preset->chart_of_accounts_template ?? [];
         foreach ($coa as $accountData) {
             $code = $accountData['code'] ?? null;
-            if ($code && !Account::where('code', $code)->exists()) {
+            if ($code && ! Account::where('code', $code)->exists()) {
                 Account::create([
                     'code' => $code,
                     'name' => $accountData['name'] ?? $code,
@@ -93,7 +93,7 @@ class OnboardingController extends BaseApiController
         $departments = $preset->departments_template ?? [];
         foreach ($departments as $deptData) {
             $name = $deptData['name'] ?? null;
-            if ($name && !Department::where('name', $name)->exists()) {
+            if ($name && ! Department::where('name', $name)->exists()) {
                 Department::create([
                     'name' => $name,
                     'code' => $deptData['code'] ?? strtoupper(substr($name, 0, 4)),
@@ -132,5 +132,12 @@ class OnboardingController extends BaseApiController
         );
 
         return $this->respondSuccess('Onboarding skipped');
+    }
+
+    public function reset(Request $request): JsonResponse
+    {
+        OnboardingCompletion::where('user_id', $request->user()->id)->delete();
+
+        return $this->respondSuccess('Onboarding reset. Redirect to /onboarding to re-run.');
     }
 }

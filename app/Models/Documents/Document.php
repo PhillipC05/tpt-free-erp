@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -16,7 +17,7 @@ class Document extends Model
     protected $table = 'documents';
 
     protected $fillable = [
-        'name', 'original_filename', 'storage_path', 'mime_type', 'file_size',
+        'name', 'version', 'original_filename', 'storage_path', 'mime_type', 'file_size',
         'folder_id', 'documentable_type', 'documentable_id', 'description', 'tags', 'uploaded_by',
     ];
 
@@ -33,6 +34,11 @@ class Document extends Model
     public function folder(): BelongsTo
     {
         return $this->belongsTo(DocumentFolder::class);
+    }
+
+    public function versions(): HasMany
+    {
+        return $this->hasMany(DocumentVersion::class)->orderByDesc('version_number');
     }
 
     public function uploader(): BelongsTo

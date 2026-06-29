@@ -140,7 +140,7 @@ class ESignatureTest extends TestCase
             'requested_by'  => $this->user->id,
         ]);
 
-        $this->getJson("/api/esignatures/sign/{$sig->token}")
+        $this->getJson("/api/v1/esignatures/sign/{$sig->token}")
             ->assertOk()
             ->assertJsonPath('data.signer_email', $sig->signer_email);
     }
@@ -154,7 +154,7 @@ class ESignatureTest extends TestCase
             'requested_by'  => $this->user->id,
         ]);
 
-        $this->postJson("/api/esignatures/sign/{$sig->token}", [
+        $this->postJson("/api/v1/esignatures/sign/{$sig->token}", [
             'signature_type' => 'typed',
             'signature_data' => 'Jane Smith',
             'signer_name'    => 'Jane Smith',
@@ -172,7 +172,7 @@ class ESignatureTest extends TestCase
             'requested_by'  => $this->user->id,
         ]);
 
-        $this->postJson("/api/esignatures/sign/{$sig->token}", [
+        $this->postJson("/api/v1/esignatures/sign/{$sig->token}", [
             'signature_type' => 'typed',
             'signature_data' => 'Someone Else',
             'signer_name'    => 'Someone Else',
@@ -188,7 +188,7 @@ class ESignatureTest extends TestCase
             'requested_by'  => $this->user->id,
         ]);
 
-        $this->postJson("/api/esignatures/sign/{$sig->token}/decline", [
+        $this->postJson("/api/v1/esignatures/sign/{$sig->token}/decline", [
             'reason' => 'I disagree with clause 3.',
         ])->assertOk();
 
@@ -205,7 +205,7 @@ class ESignatureTest extends TestCase
             'expires_at'    => now()->subHour(),
         ]);
 
-        $this->postJson("/api/esignatures/sign/{$sig->token}", [
+        $this->postJson("/api/v1/esignatures/sign/{$sig->token}", [
             'signature_type' => 'typed',
             'signature_data' => 'Jane',
             'signer_name'    => 'Jane',

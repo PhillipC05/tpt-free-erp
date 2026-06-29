@@ -31,7 +31,7 @@ class QualityCheckTest extends TestCase
     {
         QualityCheck::factory()->count(3)->create();
 
-        $response = $this->getJson('/api/quality/checks', $this->auth());
+        $response = $this->getJson('/api/v1/quality/checks', $this->auth());
 
         $response->assertOk()
             ->assertJsonStructure(['success', 'data', 'meta'])
@@ -42,7 +42,7 @@ class QualityCheckTest extends TestCase
     {
         $product = Product::factory()->create();
 
-        $response = $this->postJson('/api/quality/checks', [
+        $response = $this->postJson('/api/v1/quality/checks', [
             'check_code' => 'QC-001',
             'product_id' => $product->id,
             'type' => 'incoming',
@@ -54,7 +54,7 @@ class QualityCheckTest extends TestCase
 
     public function test_create_quality_check_requires_mandatory_fields(): void
     {
-        $response = $this->postJson('/api/quality/checks', [], $this->auth());
+        $response = $this->postJson('/api/v1/quality/checks', [], $this->auth());
 
         $response->assertStatus(422)->assertJson(['success' => false]);
     }
@@ -63,7 +63,7 @@ class QualityCheckTest extends TestCase
     {
         $check = QualityCheck::factory()->create();
 
-        $response = $this->getJson("/api/quality/checks/{$check->id}", $this->auth());
+        $response = $this->getJson("/api/v1/quality/checks/{$check->id}", $this->auth());
 
         $response->assertOk()
             ->assertJson(['success' => true, 'data' => ['id' => $check->id]]);
@@ -71,7 +71,7 @@ class QualityCheckTest extends TestCase
 
     public function test_show_nonexistent_check_returns_404(): void
     {
-        $response = $this->getJson('/api/quality/checks/99999', $this->auth());
+        $response = $this->getJson('/api/v1/quality/checks/99999', $this->auth());
 
         $response->assertNotFound();
     }
@@ -80,7 +80,7 @@ class QualityCheckTest extends TestCase
     {
         $check = QualityCheck::factory()->create(['result' => null]);
 
-        $response = $this->postJson("/api/quality/checks/{$check->id}/record-result", [
+        $response = $this->postJson("/api/v1/quality/checks/{$check->id}/record-result", [
             'result' => 'pass',
             'notes' => 'All criteria met',
         ], $this->auth());
@@ -93,7 +93,7 @@ class QualityCheckTest extends TestCase
     {
         $check = QualityCheck::factory()->create();
 
-        $response = $this->deleteJson("/api/quality/checks/{$check->id}", [], $this->auth());
+        $response = $this->deleteJson("/api/v1/quality/checks/{$check->id}", [], $this->auth());
 
         $response->assertOk()->assertJson(['success' => true]);
         $this->assertDatabaseMissing('quality_checks', ['id' => $check->id]);
@@ -101,7 +101,7 @@ class QualityCheckTest extends TestCase
 
     public function test_requires_authentication(): void
     {
-        $response = $this->getJson('/api/quality/checks');
+        $response = $this->getJson('/api/v1/quality/checks');
 
         $response->assertUnauthorized();
     }

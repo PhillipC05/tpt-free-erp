@@ -42,7 +42,7 @@ class ProductTest extends TestCase
     {
         Product::factory()->count(5)->create();
 
-        $response = $this->getJson('/api/inventory/products', $this->auth());
+        $response = $this->getJson('/api/v1/inventory/products', $this->auth());
 
         $response->assertOk()
             ->assertJsonStructure(['success', 'data', 'meta'])
@@ -51,7 +51,7 @@ class ProductTest extends TestCase
 
     public function test_can_create_product(): void
     {
-        $response = $this->postJson('/api/inventory/products', $this->validPayload(), $this->auth());
+        $response = $this->postJson('/api/v1/inventory/products', $this->validPayload(), $this->auth());
 
         $response->assertCreated()->assertJson(['success' => true]);
         $this->assertDatabaseHas('inventory_products', ['sku' => 'SKU-0001']);
@@ -61,7 +61,7 @@ class ProductTest extends TestCase
     {
         Product::factory()->create(['sku' => 'SKU-DUPE']);
 
-        $response = $this->postJson('/api/inventory/products', $this->validPayload(['sku' => 'SKU-DUPE']), $this->auth());
+        $response = $this->postJson('/api/v1/inventory/products', $this->validPayload(['sku' => 'SKU-DUPE']), $this->auth());
 
         $response->assertStatus(422);
     }
@@ -70,14 +70,14 @@ class ProductTest extends TestCase
     {
         $product = Product::factory()->create();
 
-        $response = $this->getJson("/api/inventory/products/{$product->id}", $this->auth());
+        $response = $this->getJson("/api/v1/inventory/products/{$product->id}", $this->auth());
 
         $response->assertOk()->assertJson(['success' => true, 'data' => ['id' => $product->id]]);
     }
 
     public function test_show_returns_404_for_missing_product(): void
     {
-        $response = $this->getJson('/api/inventory/products/99999', $this->auth());
+        $response = $this->getJson('/api/v1/inventory/products/99999', $this->auth());
 
         $response->assertNotFound();
     }
@@ -86,7 +86,7 @@ class ProductTest extends TestCase
     {
         $product = Product::factory()->create(['sku' => 'SKU-001']);
 
-        $response = $this->putJson("/api/inventory/products/{$product->id}", $this->validPayload([
+        $response = $this->putJson("/api/v1/inventory/products/{$product->id}", $this->validPayload([
             'sku' => 'SKU-001',
             'name' => 'Updated Name',
         ]), $this->auth());
@@ -99,7 +99,7 @@ class ProductTest extends TestCase
     {
         $product = Product::factory()->create();
 
-        $response = $this->deleteJson("/api/inventory/products/{$product->id}", [], $this->auth());
+        $response = $this->deleteJson("/api/v1/inventory/products/{$product->id}", [], $this->auth());
 
         $response->assertOk()->assertJson(['success' => true]);
         $this->assertSoftDeleted('inventory_products', ['id' => $product->id]);
@@ -107,7 +107,7 @@ class ProductTest extends TestCase
 
     public function test_requires_authentication(): void
     {
-        $response = $this->getJson('/api/inventory/products');
+        $response = $this->getJson('/api/v1/inventory/products');
 
         $response->assertUnauthorized();
     }

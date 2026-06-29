@@ -274,7 +274,7 @@
 
 ### Build & Performance
 - [x] Lazy loading routes — all routes use `() => import(...)` dynamic imports
-- [ ] Code splitting (advanced chunking config)
+- [x] Code splitting (advanced chunking config) — `vite.config.ts` with manual chunks (vendor-vue), ES2020 target, CSS code splitting, 1MB warning limit
 - [ ] Asset bundling/minification
 - [ ] Image optimization
 - [ ] PWA offline support
@@ -285,9 +285,9 @@
 ## Phase 5: Infrastructure & DevOps
 
 ### CI/CD
-- [ ] GitHub Actions workflow for PHPUnit
-- [ ] GitHub Actions for PHPStan analysis
-- [ ] GitHub Actions for frontend build
+- [x] GitHub Actions workflow for PHPUnit — `.github/workflows/ci.yml` (parallel PHP test + Node build jobs)
+- [x] GitHub Actions for PHPStan analysis — `.github/workflows/phpstan.yml` (graceful skip when not installed)
+- [x] GitHub Actions for frontend build — included in `.github/workflows/ci.yml` (Node job: npm ci + npm run build)
 - [ ] Docker optimization (multi-stage builds)
 - [ ] Automated deployment scripts
 
@@ -380,10 +380,10 @@
 - [x] Routes: `/api/v1/expenses/` with `permission:expenses.*` middleware
 - [x] Frontend: `resources/js/views/expenses/ExpensesView.vue`
 - [x] Feature tests: `tests/Feature/Expenses/ExpenseTest.php`
-- [ ] Add `ExpenseItem` CRUD endpoints (currently only ExpenseReport top-level)
-- [ ] Add receipt upload endpoint (store in `storage/app/expenses/`)
-- [ ] Add expense category seeder with common defaults (Meals, Travel, Accommodation, Software, etc.)
-- [ ] Add expense summary dashboard widget
+- [x] Add `ExpenseItem` CRUD endpoints — `app/Http/Controllers/Api/Expenses/ExpenseItemController.php`
+- [x] Add receipt upload endpoint — `ExpenseItemController@uploadReceipt` (jpg/jpeg/png/pdf, 5MB max)
+- [x] Add expense category seeder with common defaults — `database/seeders/ExpenseCategorySeeder.php` (12 categories)
+- [x] Add expense summary dashboard widget — `DashboardView.vue` shows totals by status + counts
 
 ### Budget & Forecasting Module
 - [x] Migration: `finance_budgets`, `budget_lines` tables
@@ -391,10 +391,10 @@
 - [x] Controller: `app/Http/Controllers/Api/Finance/BudgetController.php`
 - [x] Routes: `/api/v1/finance/budgets/` with `permission:finance.*` middleware
 - [x] Frontend: `resources/js/views/finance/BudgetsView.vue`
-- [ ] Add budget vs actuals variance calculation endpoint
-- [ ] Add budget line CRUD endpoints (`/api/v1/finance/budgets/{id}/lines`)
-- [ ] Add budget approval workflow (draft → approved)
-- [ ] Write feature tests: `tests/Feature/Finance/BudgetTest.php`
+- [x] Add budget vs actuals variance calculation endpoint — `BudgetLineController@variance`
+- [x] Add budget line CRUD endpoints — `app/Http/Controllers/Api/Finance/BudgetLineController.php`
+- [x] Add budget approval workflow (draft → approved) — `BudgetController@approve` + `@close`
+- [x] Write feature tests: `tests/Feature/Finance/BudgetTest.php` — 19 tests covering CRUD, validation, approve, close, lines, variance
 
 ### Document Management Module
 - [x] Migration: `document_folders`, `documents` tables (polymorphic `documentable`)
@@ -403,9 +403,9 @@
 - [x] Routes: `/api/v1/documents/` with `permission:documents.*` middleware
 - [x] Frontend: `resources/js/views/documents/DocumentsView.vue`
 - [x] Feature tests: `tests/Feature/Documents/DocumentTest.php`
-- [ ] Add actual file upload via `Storage::disk('local')` (currently stores metadata only)
-- [ ] Add document version history tracking
-- [ ] Add document sharing endpoint (`/api/v1/documents/{id}/share`)
+- [x] Add actual file upload via `Storage::disk('local')` — `DocumentController@store` handles file upload (50MB max)
+- [x] Add document version history tracking — `document_versions` table, `DocumentVersion` model, versioned update in controller, `GET /documents/{id}/versions` endpoint
+- [x] Add document sharing endpoint (`/api/v1/documents/{id}/share`) — `DocumentController@share` + `@sharedDownload` with cache-based tokens
 - [ ] Add polymorphic document attachment to Invoice, Contract, Employee, Asset views
 
 ### Contract Management Module
@@ -416,8 +416,8 @@
 - [x] Routes: `/api/v1/contracts/` with `permission:contracts.*` middleware
 - [x] Frontend: `resources/js/views/contracts/ContractsView.vue`
 - [x] Feature tests: `tests/Feature/Contracts/ContractTest.php`
-- [ ] Add milestone CRUD endpoints (`/api/v1/contracts/{id}/milestones`)
-- [ ] Add contract expiry alert (auto-notify 30/7/1 days before end_date)
+- [x] Add milestone CRUD endpoints — `app/Http/Controllers/Api/Contracts/ContractMilestoneController.php`
+- [x] Add contract expiry alert (auto-notify 30/7/1 days before end_date) — `contracts:check-expiry` command, daily at 09:00 via Kernel scheduler
 - [x] Add in-house e-signature module — `ESignature` model, controller, migration, factory, 14 tests, Vue management view + public signing page with canvas/typed modes, token-based audit trail with SHA-256 tamper detection
 
 ### Onboarding Wizard (15-Industry Preset)
@@ -431,9 +431,9 @@
 - [x] Pinia store: `resources/js/stores/onboarding.ts`
 - [x] Auth store: checks onboarding status after login, sets `onboardingPending` flag
 - [x] Feature tests: `tests/Feature/OnboardingTest.php`
-- [ ] Trigger onboarding wizard redirect in `MainLayout.vue` when `onboardingPending` is true
-- [ ] Add "Re-run onboarding" option in Settings
-- [ ] Add industry preset import for existing accounts (don't duplicate existing CoA codes)
+- [x] Trigger onboarding wizard redirect in `MainLayout.vue` when `onboardingPending` is true
+- [x] Add "Re-run onboarding" option in Settings — `POST /v1/onboarding/reset` + button in `SettingsView.vue`
+- [x] Add industry preset import for existing accounts (don't duplicate existing CoA codes) — existing `apply()` already uses duplicate-safe logic
 
 ### GitHub URL & Housekeeping
 - [x] Update `README.md` — clone URL already correct (`PhillipC05`)
@@ -442,9 +442,9 @@
 - [x] Update `CHANGELOG.md` — release URL updated to `PhillipC05`
 
 ### Future Modules (Phase 7)
-- [ ] **Point of Sale (POS)** — for Retail & Hospitality industries
-- [ ] **Fleet Management** — for Transportation & Field Services
-- [ ] **Subscription/Recurring Billing** — for Technology/SaaS
+- [x] **Point of Sale (POS)** — for Retail & Hospitality industries — controllers, models, migrations, UI, tests done
+- [x] **Fleet Management** — for Transportation & Field Services — controllers, models, migrations, UI, tests done; parts inventory added in 03830c1
+- [x] **Subscription/Recurring Billing** — for Technology/SaaS — controllers, models, service, migrations, UI, tests done
 - [ ] **Donor/Grant Management** — for Non-Profit sector
 - [x] **E-signature Module** — in-house, token-based, audit trail + SHA-256 tamper detection (linked to Contracts + Documents)
 - [ ] **Email Campaign Sending** — link to Marketing module
@@ -469,7 +469,7 @@
 - [x] Write feature tests: `tests/Feature/ReportGenerationTest.php` — queue, poll status, download CSV, ownership isolation, scheduled CRUD
 - [x] Add PDF export support via `barryvdh/laravel-dompdf` — added to composer.json, `toPdf()` in ReportGenerationJob, download streams PDF with correct Content-Type
 - [x] Add report expiry cleanup command: `app/Console/Commands/CleanExpiredReports.php` — `php artisan reports:clean-expired` (runs daily via scheduler)
-- [ ] Add per-report caching so identical parameters within 1 hour reuse existing result
+- [x] Add per-report caching so identical parameters within 1 hour reuse existing result — `ReportGenerationJob` checks cache before generating
 
 ### AI Agent Infrastructure
 - [x] Migration: `agent_profiles`, `agent_tokens`, `agent_skill_assignments`, `agent_executions`, `agent_schedules` — `2026_06_24_000002_create_agent_infrastructure_tables.php`
@@ -507,8 +507,8 @@
   - [x] `expenses/categorize_expense.md` — expense categorisation
 - [x] Write Tier 2 skills (10 files): finance.forecast_cashflow, finance.reconcile_accounts, finance.budget_variance_analysis, sales.draft_followup_email, sales.customer_churn_risk, procurement.evaluate_vendor, procurement.rfq_generator, projects.generate_status_report, hr.onboard_employee, marketing.generate_campaign_brief
 - [x] Add skill file upload endpoint: `POST /api/v1/agents/skills/upload` (admin only) — validates frontmatter, stores .md, clears registry cache; exposed `SkillRegistry::parseContent()` for validation
-- [ ] Add `SkillRegistry` fallback: if `storage/app/skills/` is empty, return empty array with helpful message
-- [ ] Add skill validation on upload (must have slug, category, required_permissions, inputs, outputs)
+- [x] Add `SkillRegistry` fallback: if `storage/app/skills/` is empty, return empty array with helpful message — `getSkillsHelpMessage()` method added
+- [x] Add skill validation on upload (must have slug, category, required_permissions, inputs, outputs) — returns 422 with specific missing fields
 
 ### AI Agent Frontend
 - [x] `resources/js/views/agents/AgentsView.vue` — list + filter + create agents
@@ -519,8 +519,8 @@
 - [x] Create `resources/js/stores/agents.ts` — Pinia store with typed interfaces, CRUD, skill catalog cache, execution polling with auto-cleanup
 - [x] Add execution status polling in `AgentDetailView.vue` — auto-refresh every 5s when queued/running; animated pulse dot on tab; auto-clears on unmount
 - [x] Onboarding redirect wired in `MainLayout.vue` — redirects to `/onboarding` when `authStore.onboardingPending` is true
-- [ ] Add `SkillEnableModal` component — enable a skill on an agent with optional config overrides
-- [ ] Add `ScheduleCreateModal` component in `AgentDetailView.vue` — cron expression builder UI
+- [x] Add `SkillEnableModal` component — `resources/js/components/SkillEnableModal.vue` with checkbox list of available skills
+- [x] Add `ScheduleCreateModal` component in `AgentDetailView.vue` — `resources/js/components/ScheduleCreateModal.vue` with cron preset buttons
 
 ### Skills — Tier 3 & 4 (completed this session)
 - [x] Write Tier 3 skills (10 files): inventory.demand_forecast, manufacturing.optimise_bom, hr.leave_coverage_check, quality.analyse_nonconformance, assets.maintenance_schedule, finance.budget_variance_analysis, sales.upsell_opportunities, contracts.review_terms, hr.interview_question_generator, finance.audit_trail_summary, marketing.lead_nurture_sequence
@@ -536,6 +536,78 @@
 - [ ] **Model cost tracking** — dashboard showing token usage + estimated cost per agent/skill/period
 - [ ] **Skill A/B testing** — compare two skill versions on the same input to evaluate quality
 - [ ] **Agent audit export** — export `agent_executions` as CSV for compliance
+
+---
+
+---
+
+## Phase 8: HR Expansion, Recruitment, Training & Notifications (2026-06-29)
+
+### Recruitment Module
+- [x] Migration: `recruitment_jobs`, `recruitment_applications`, `recruitment_interviews` tables — `2026_06_26_000001_create_recruitment_tables.php`
+- [x] Models: `app/Models/Recruitment/Job.php`, `Application.php`, `Interview.php`
+- [x] Factories: `database/factories/Recruitment/JobFactory.php`, `ApplicationFactory.php`, `InterviewFactory.php`
+- [x] Controller: `app/Http/Controllers/Api/Recruitment/RecruitmentController.php` — jobs, applications, interviews, pipeline
+- [x] Routes: `/api/v1/recruitment/` in `routes/api.php`
+- [x] Frontend: `resources/js/views/recruitment/RecruitmentView.vue`
+- [x] Feature tests: `tests/Feature/Recruitment/RecruitmentTest.php`
+- [ ] Add offer letter generation (e-signature integration)
+- [ ] Add candidate portal (public-facing application form)
+
+### Training & Certification Module
+- [x] Migration: `training_programs`, `training_sessions`, `training_enrollments`, `training_certifications` — `2026_06_26_000002_create_training_tables.php`
+- [x] Models: `app/Models/Training/Program.php`, `Session.php`, `Enrollment.php`, `Certification.php`
+- [x] Factories: `database/factories/Training/` — ProgramFactory, SessionFactory, EnrollmentFactory, CertificationFactory
+- [x] Controller: `app/Http/Controllers/Api/Training/TrainingController.php` — programs, sessions, enrollments, certifications
+- [x] Routes: `/api/v1/training/` in `routes/api.php`
+- [x] Frontend: `resources/js/views/training/TrainingView.vue`
+- [x] Feature tests: `tests/Feature/Training/TrainingTest.php`
+- [ ] Add certification expiry alerts (30-day warning)
+- [ ] Add training completion reporting
+
+### Enhanced HR Features
+- [x] Employee directory — `app/Http/Controllers/Api/HR/DirectoryController.php`; `resources/js/views/hr/DirectoryView.vue`; org-chart component `OrgNode.vue`
+- [x] Employee self-service — `app/Http/Controllers/Api/HR/SelfServiceController.php`; `resources/js/views/hr/SelfServiceView.vue` (leave apply, payslips, personal info)
+- [x] Employee documents — `app/Http/Controllers/Api/HR/EmployeeDocumentController.php`; `resources/js/views/hr/DocumentsView.vue`
+- [x] HR tracking (overtime, shift, compliance) — `app/Http/Controllers/Api/HR/HRTrackingController.php`; `resources/js/views/hr/HRTrackingView.vue`
+- [x] Employee profile view — `resources/js/views/hr/EmployeeProfileView.vue`
+- [x] Overtime tracking — migration `2026_06_25_000005_add_overtime_to_attendance.php`; overtime fields on Attendance model
+- [x] Enhanced payroll (bulk run, payslip PDF, cost centre breakdown) — `PayrollController.php` expanded
+- [x] Enhanced leave (balance check, approval workflow, public holidays) — `LeaveRequestController.php` expanded
+- [x] Enhanced attendance (bulk import, summary report) — `AttendanceController.php` expanded
+- [x] Feature tests: `AttendanceTest.php`, `DirectoryTest.php`, `EmployeeCrudTest.php`, `EmployeeDocumentTest.php`, `HRTrackingTest.php`, `PayrollManagementTest.php`, `SelfServiceTest.php`
+
+### Enhanced Notifications Module
+- [x] Migration: `notification_messages`, `notification_preferences`, `notification_templates`, `notification_webhooks` — `2026_06_25_000004_create_notification_enhanced_tables.php`
+- [x] Models: `app/Models/Notification/NotificationMessage.php`, `NotificationPreference.php`, `NotificationTemplate.php`, `NotificationWebhook.php`
+- [x] Factories: `NotificationMessageFactory`, `NotificationPreferenceFactory`, `NotificationTemplateFactory`
+- [x] Controllers: `NotificationEnhancedController.php` (send, inbox, mark-read, bulk-delete), `NotificationTemplateController.php` (template CRUD + preview)
+- [x] Service: `app/Services/Notification/NotificationService.php`
+- [x] Routes: `/api/v1/notifications/enhanced/` and `/api/v1/notifications/templates/`
+- [x] Frontend: `resources/js/views/notifications/NotificationsView.vue`
+- [x] Feature tests: `tests/Feature/Notification/NotificationEnhancedTest.php`
+- [ ] Add email delivery channel (send via Laravel Mail)
+- [ ] Add push notification delivery (web push via Vapid)
+
+### Analytics Module
+- [x] Controller: `app/Http/Controllers/Api/AnalyticsController.php` — cross-module KPIs (revenue, hr, inventory, sales funnel)
+- [x] Routes: `/api/v1/analytics/` in `routes/api.php`
+- [x] Feature tests: `tests/Feature/Analytics/AnalyticsTest.php`
+- [x] Enhanced dashboard with live KPI cards — `resources/js/views/DashboardView.vue` rebuilt
+- [ ] Add per-module analytics drilldown views
+- [ ] Add scheduled analytics digest email
+
+### Fleet Parts Inventory
+- [x] Migration: `fleet_parts`, `fleet_part_categories`, `fleet_part_usages` — `2026_06_25_000002_create_fleet_parts_tables.php`
+- [x] Models: `app/Models/Fleet/Part.php`, `PartUsage.php`; `PartCategory` already in Fleet migration
+- [x] Factories: `PartCategoryFactory`, `PartFactory`, `PartUsageFactory`
+- [x] Controllers: `PartCategoryController.php`, `PartController.php`, `PartUsageController.php`
+- [x] Controllers: `FuelTrackingController.php`, `MaintenanceTrackingController.php` (fleet analytics)
+- [x] Routes: `/api/v1/fleet/parts/`, `/api/v1/fleet/fuel-tracking/`, `/api/v1/fleet/maintenance-tracking/`
+- [ ] Frontend views for parts inventory and fleet analytics
+
+### Shared Type System
+- [x] Centralised TypeScript interfaces — `resources/js/types/index.ts` — covers all 14 modules
 
 ---
 

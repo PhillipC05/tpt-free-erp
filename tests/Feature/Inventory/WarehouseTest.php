@@ -28,14 +28,14 @@ class WarehouseTest extends TestCase
     {
         Warehouse::factory()->count(3)->create();
 
-        $response = $this->getJson('/api/inventory/warehouses', $this->auth());
+        $response = $this->getJson('/api/v1/inventory/warehouses', $this->auth());
 
         $response->assertOk()->assertJson(['success' => true]);
     }
 
     public function test_can_create_warehouse(): void
     {
-        $response = $this->postJson('/api/inventory/warehouses', [
+        $response = $this->postJson('/api/v1/inventory/warehouses', [
             'code' => 'WH-01',
             'name' => 'Main Warehouse',
             'city' => 'New York',
@@ -50,7 +50,7 @@ class WarehouseTest extends TestCase
     {
         Warehouse::factory()->create(['code' => 'WH-01']);
 
-        $response = $this->postJson('/api/inventory/warehouses', [
+        $response = $this->postJson('/api/v1/inventory/warehouses', [
             'code' => 'WH-01',
             'name' => 'Another Warehouse',
         ], $this->auth());
@@ -62,7 +62,7 @@ class WarehouseTest extends TestCase
     {
         $warehouse = Warehouse::factory()->create();
 
-        $response = $this->deleteJson("/api/inventory/warehouses/{$warehouse->id}", [], $this->auth());
+        $response = $this->deleteJson("/api/v1/inventory/warehouses/{$warehouse->id}", [], $this->auth());
 
         $response->assertOk()->assertJson(['success' => true]);
         $this->assertSoftDeleted('inventory_warehouses', ['id' => $warehouse->id]);

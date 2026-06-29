@@ -83,17 +83,35 @@
                 </button>
             </div>
         </form>
+
+        <!-- Re-run Onboarding -->
+        <div class="mt-10 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+            <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Onboarding Setup</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Re-run the onboarding wizard to apply a different industry preset or reconfigure your chart of accounts and departments.</p>
+            <div v-if="rerunError" class="text-sm text-red-600 dark:text-red-400 mb-3">{{ rerunError }}</div>
+            <button
+                @click="rerunOnboarding"
+                :disabled="rerunning"
+                class="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white text-sm font-medium rounded-md transition-colors"
+            >
+                {{ rerunning ? 'Resetting...' : 'Re-run Onboarding Setup' }}
+            </button>
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import api from '@/api/axios';
 
+const router = useRouter();
 const loading = ref(true);
 const saving = ref(false);
 const error = ref('');
 const saved = ref(false);
+const rerunning = ref(false);
+const rerunError = ref('');
 
 const form = ref({
     company_name: '',
@@ -177,6 +195,19 @@ async function save() {
         error.value = e?.response?.data?.message ?? 'Failed to save settings.';
     } finally {
         saving.value = false;
+    }
+}
+
+async function rerunOnboarding() {
+    rerunning.value = true;
+    rerunError.value = '';
+    try {
+        await api.post('/v1/onboarding/reset');
+        router.push('/onboarding');
+    } catch (e: any) {
+        rerunError.value = e?.response?.data?.message ?? 'Failed to reset onboarding.';
+    } finally {
+        rerunning.value = false;
     }
 }
 </script>

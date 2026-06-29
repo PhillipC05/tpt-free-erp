@@ -30,7 +30,7 @@ class CustomerTest extends TestCase
     {
         Customer::factory()->count(3)->create();
 
-        $response = $this->getJson('/api/sales/customers', $this->auth());
+        $response = $this->getJson('/api/v1/sales/customers', $this->auth());
 
         $response->assertOk()
             ->assertJsonStructure(['success', 'data', 'meta'])
@@ -39,7 +39,7 @@ class CustomerTest extends TestCase
 
     public function test_can_create_customer(): void
     {
-        $response = $this->postJson('/api/sales/customers', [
+        $response = $this->postJson('/api/v1/sales/customers', [
             'code' => 'CUST-001',
             'name' => 'Acme Corp',
             'email' => 'acme@example.com',
@@ -55,7 +55,7 @@ class CustomerTest extends TestCase
 
     public function test_create_customer_requires_code_name(): void
     {
-        $response = $this->postJson('/api/sales/customers', [], $this->auth());
+        $response = $this->postJson('/api/v1/sales/customers', [], $this->auth());
 
         $response->assertStatus(422)->assertJson(['success' => false]);
     }
@@ -64,7 +64,7 @@ class CustomerTest extends TestCase
     {
         Customer::factory()->create(['code' => 'CUST-001']);
 
-        $response = $this->postJson('/api/sales/customers', [
+        $response = $this->postJson('/api/v1/sales/customers', [
             'code' => 'CUST-001',
             'name' => 'Duplicate',
         ], $this->auth());
@@ -76,7 +76,7 @@ class CustomerTest extends TestCase
     {
         $customer = Customer::factory()->create();
 
-        $response = $this->getJson("/api/sales/customers/{$customer->id}", $this->auth());
+        $response = $this->getJson("/api/v1/sales/customers/{$customer->id}", $this->auth());
 
         $response->assertOk()
             ->assertJson(['success' => true, 'data' => ['id' => $customer->id]]);
@@ -84,7 +84,7 @@ class CustomerTest extends TestCase
 
     public function test_show_nonexistent_customer_returns_404(): void
     {
-        $response = $this->getJson('/api/sales/customers/99999', $this->auth());
+        $response = $this->getJson('/api/v1/sales/customers/99999', $this->auth());
 
         $response->assertNotFound();
     }
@@ -93,7 +93,7 @@ class CustomerTest extends TestCase
     {
         $customer = Customer::factory()->create(['code' => 'CUST-001']);
 
-        $response = $this->putJson("/api/sales/customers/{$customer->id}", [
+        $response = $this->putJson("/api/v1/sales/customers/{$customer->id}", [
             'code' => 'CUST-001',
             'name' => 'Updated Name',
             'email' => $customer->email,
@@ -107,7 +107,7 @@ class CustomerTest extends TestCase
     {
         $customer = Customer::factory()->create();
 
-        $response = $this->deleteJson("/api/sales/customers/{$customer->id}", [], $this->auth());
+        $response = $this->deleteJson("/api/v1/sales/customers/{$customer->id}", [], $this->auth());
 
         $response->assertOk()->assertJson(['success' => true]);
         $this->assertSoftDeleted('sales_customers', ['id' => $customer->id]);
@@ -115,7 +115,7 @@ class CustomerTest extends TestCase
 
     public function test_requires_authentication(): void
     {
-        $response = $this->getJson('/api/sales/customers');
+        $response = $this->getJson('/api/v1/sales/customers');
 
         $response->assertUnauthorized();
     }

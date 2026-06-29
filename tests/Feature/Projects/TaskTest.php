@@ -31,7 +31,7 @@ class TaskTest extends TestCase
     {
         Task::factory()->count(3)->create();
 
-        $response = $this->getJson('/api/projects/tasks', $this->auth());
+        $response = $this->getJson('/api/v1/projects/tasks', $this->auth());
 
         $response->assertOk()
             ->assertJsonStructure(['success', 'data', 'meta'])
@@ -42,7 +42,7 @@ class TaskTest extends TestCase
     {
         $project = Project::factory()->create();
 
-        $response = $this->postJson('/api/projects/tasks', [
+        $response = $this->postJson('/api/v1/projects/tasks', [
             'code' => 'TASK-001',
             'project_id' => $project->id,
             'title' => 'Set up database',
@@ -56,7 +56,7 @@ class TaskTest extends TestCase
 
     public function test_create_task_requires_mandatory_fields(): void
     {
-        $response = $this->postJson('/api/projects/tasks', [], $this->auth());
+        $response = $this->postJson('/api/v1/projects/tasks', [], $this->auth());
 
         $response->assertStatus(422)->assertJson(['success' => false]);
     }
@@ -65,7 +65,7 @@ class TaskTest extends TestCase
     {
         $task = Task::factory()->create();
 
-        $response = $this->getJson("/api/projects/tasks/{$task->id}", $this->auth());
+        $response = $this->getJson("/api/v1/projects/tasks/{$task->id}", $this->auth());
 
         $response->assertOk()
             ->assertJson(['success' => true, 'data' => ['id' => $task->id]]);
@@ -73,7 +73,7 @@ class TaskTest extends TestCase
 
     public function test_show_nonexistent_task_returns_404(): void
     {
-        $response = $this->getJson('/api/projects/tasks/99999', $this->auth());
+        $response = $this->getJson('/api/v1/projects/tasks/99999', $this->auth());
 
         $response->assertNotFound();
     }
@@ -82,7 +82,7 @@ class TaskTest extends TestCase
     {
         $task = Task::factory()->create(['status' => 'todo']);
 
-        $response = $this->putJson("/api/projects/tasks/{$task->id}/status", [
+        $response = $this->putJson("/api/v1/projects/tasks/{$task->id}/status", [
             'status' => 'in_progress',
         ], $this->auth());
 
@@ -96,7 +96,7 @@ class TaskTest extends TestCase
         Task::factory()->count(2)->create(['project_id' => $project->id]);
         Task::factory()->create();
 
-        $response = $this->getJson("/api/projects/projects/{$project->id}/tasks", $this->auth());
+        $response = $this->getJson("/api/v1/projects/projects/{$project->id}/tasks", $this->auth());
 
         $response->assertOk()->assertJson(['success' => true]);
         $this->assertCount(2, $response->json('data'));
@@ -104,7 +104,7 @@ class TaskTest extends TestCase
 
     public function test_requires_authentication(): void
     {
-        $response = $this->getJson('/api/projects/tasks');
+        $response = $this->getJson('/api/v1/projects/tasks');
 
         $response->assertUnauthorized();
     }

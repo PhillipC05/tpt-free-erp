@@ -44,7 +44,7 @@ class EmployeeTest extends TestCase
     {
         Employee::factory()->count(3)->create();
 
-        $response = $this->getJson('/api/hr/employees', $this->auth());
+        $response = $this->getJson('/api/v1/hr/employees', $this->auth());
 
         $response->assertOk()
             ->assertJsonStructure(['success', 'data', 'meta'])
@@ -53,7 +53,7 @@ class EmployeeTest extends TestCase
 
     public function test_can_create_employee(): void
     {
-        $response = $this->postJson('/api/hr/employees', $this->validPayload(), $this->auth());
+        $response = $this->postJson('/api/v1/hr/employees', $this->validPayload(), $this->auth());
 
         $response->assertCreated()->assertJson(['success' => true]);
         $this->assertDatabaseHas('hr_employees', ['employee_code' => 'EMP-0001']);
@@ -63,7 +63,7 @@ class EmployeeTest extends TestCase
     {
         Employee::factory()->create(['employee_code' => 'EMP-0001']);
 
-        $response = $this->postJson('/api/hr/employees', $this->validPayload(), $this->auth());
+        $response = $this->postJson('/api/v1/hr/employees', $this->validPayload(), $this->auth());
 
         $response->assertStatus(422);
     }
@@ -72,14 +72,14 @@ class EmployeeTest extends TestCase
     {
         $employee = Employee::factory()->create();
 
-        $response = $this->getJson("/api/hr/employees/{$employee->id}", $this->auth());
+        $response = $this->getJson("/api/v1/hr/employees/{$employee->id}", $this->auth());
 
         $response->assertOk()->assertJson(['success' => true, 'data' => ['id' => $employee->id]]);
     }
 
     public function test_show_nonexistent_employee_returns_404(): void
     {
-        $response = $this->getJson('/api/hr/employees/99999', $this->auth());
+        $response = $this->getJson('/api/v1/hr/employees/99999', $this->auth());
 
         $response->assertNotFound();
     }
@@ -88,7 +88,7 @@ class EmployeeTest extends TestCase
     {
         $employee = Employee::factory()->create(['employee_code' => 'EMP-0001']);
 
-        $response = $this->putJson("/api/hr/employees/{$employee->id}", $this->validPayload([
+        $response = $this->putJson("/api/v1/hr/employees/{$employee->id}", $this->validPayload([
             'first_name' => 'Jane',
         ]), $this->auth());
 
@@ -100,7 +100,7 @@ class EmployeeTest extends TestCase
     {
         $employee = Employee::factory()->create();
 
-        $response = $this->deleteJson("/api/hr/employees/{$employee->id}", [], $this->auth());
+        $response = $this->deleteJson("/api/v1/hr/employees/{$employee->id}", [], $this->auth());
 
         $response->assertOk()->assertJson(['success' => true]);
         $this->assertSoftDeleted('hr_employees', ['id' => $employee->id]);
@@ -108,7 +108,7 @@ class EmployeeTest extends TestCase
 
     public function test_requires_authentication(): void
     {
-        $response = $this->getJson('/api/hr/employees');
+        $response = $this->getJson('/api/v1/hr/employees');
 
         $response->assertUnauthorized();
     }

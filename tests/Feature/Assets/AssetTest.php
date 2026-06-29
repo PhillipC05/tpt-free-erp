@@ -30,7 +30,7 @@ class AssetTest extends TestCase
     {
         Asset::factory()->count(3)->create();
 
-        $response = $this->getJson('/api/assets/assets', $this->auth());
+        $response = $this->getJson('/api/v1/assets/assets', $this->auth());
 
         $response->assertOk()
             ->assertJsonStructure(['success', 'data', 'meta'])
@@ -39,7 +39,7 @@ class AssetTest extends TestCase
 
     public function test_can_create_asset(): void
     {
-        $response = $this->postJson('/api/assets/assets', [
+        $response = $this->postJson('/api/v1/assets/assets', [
             'asset_code' => 'AST-001',
             'name' => 'Dell Laptop',
             'type' => 'equipment',
@@ -53,7 +53,7 @@ class AssetTest extends TestCase
 
     public function test_create_asset_requires_mandatory_fields(): void
     {
-        $response = $this->postJson('/api/assets/assets', [], $this->auth());
+        $response = $this->postJson('/api/v1/assets/assets', [], $this->auth());
 
         $response->assertStatus(422)->assertJson(['success' => false]);
     }
@@ -62,7 +62,7 @@ class AssetTest extends TestCase
     {
         Asset::factory()->create(['asset_code' => 'AST-001']);
 
-        $response = $this->postJson('/api/assets/assets', [
+        $response = $this->postJson('/api/v1/assets/assets', [
             'asset_code' => 'AST-001',
             'name' => 'Duplicate',
             'type' => 'equipment',
@@ -77,7 +77,7 @@ class AssetTest extends TestCase
     {
         $asset = Asset::factory()->create();
 
-        $response = $this->getJson("/api/assets/assets/{$asset->id}", $this->auth());
+        $response = $this->getJson("/api/v1/assets/assets/{$asset->id}", $this->auth());
 
         $response->assertOk()
             ->assertJson(['success' => true, 'data' => ['id' => $asset->id]]);
@@ -85,7 +85,7 @@ class AssetTest extends TestCase
 
     public function test_show_nonexistent_asset_returns_404(): void
     {
-        $response = $this->getJson('/api/assets/assets/99999', $this->auth());
+        $response = $this->getJson('/api/v1/assets/assets/99999', $this->auth());
 
         $response->assertNotFound();
     }
@@ -100,7 +100,7 @@ class AssetTest extends TestCase
             'current_value' => 10000,
         ]);
 
-        $response = $this->postJson("/api/assets/assets/{$asset->id}/depreciate", [], $this->auth());
+        $response = $this->postJson("/api/v1/assets/assets/{$asset->id}/depreciate", [], $this->auth());
 
         $response->assertOk()->assertJson(['success' => true]);
         $this->assertDatabaseHas('assets', ['id' => $asset->id, 'current_value' => 8200.00]);
@@ -112,7 +112,7 @@ class AssetTest extends TestCase
             'useful_life_years' => null,
         ]);
 
-        $response = $this->postJson("/api/assets/assets/{$asset->id}/depreciate", [], $this->auth());
+        $response = $this->postJson("/api/v1/assets/assets/{$asset->id}/depreciate", [], $this->auth());
 
         $response->assertStatus(422)->assertJson(['success' => false]);
     }
@@ -121,7 +121,7 @@ class AssetTest extends TestCase
     {
         $asset = Asset::factory()->create();
 
-        $response = $this->deleteJson("/api/assets/assets/{$asset->id}", [], $this->auth());
+        $response = $this->deleteJson("/api/v1/assets/assets/{$asset->id}", [], $this->auth());
 
         $response->assertOk()->assertJson(['success' => true]);
         $this->assertSoftDeleted('assets', ['id' => $asset->id]);
@@ -129,7 +129,7 @@ class AssetTest extends TestCase
 
     public function test_requires_authentication(): void
     {
-        $response = $this->getJson('/api/assets/assets');
+        $response = $this->getJson('/api/v1/assets/assets');
 
         $response->assertUnauthorized();
     }

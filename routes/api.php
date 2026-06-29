@@ -160,6 +160,7 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
         Route::get('/status', [OnboardingController::class, 'status']);
         Route::post('/apply', [OnboardingController::class, 'apply']);
         Route::post('/skip', [OnboardingController::class, 'skip']);
+        Route::post('/reset', [OnboardingController::class, 'reset']);
     });
 
     // ===== FINANCE MODULE =====
@@ -718,6 +719,7 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
             Route::get('/folders', [DocumentController::class, 'folders']);
             Route::get('/{document}', [DocumentController::class, 'show']);
             Route::get('/{document}/download', [DocumentController::class, 'download']);
+            Route::get('/{document}/versions', [DocumentController::class, 'versions']);
         });
         Route::middleware('permission:documents.create')->group(function () {
             Route::post('/', [DocumentController::class, 'store']);

@@ -31,7 +31,7 @@ class BomTest extends TestCase
     {
         Bom::factory()->count(3)->create();
 
-        $response = $this->getJson('/api/manufacturing/boms', $this->auth());
+        $response = $this->getJson('/api/v1/manufacturing/boms', $this->auth());
 
         $response->assertOk()
             ->assertJsonStructure(['success', 'data', 'meta'])
@@ -42,7 +42,7 @@ class BomTest extends TestCase
     {
         $product = Product::factory()->create();
 
-        $response = $this->postJson('/api/manufacturing/boms', [
+        $response = $this->postJson('/api/v1/manufacturing/boms', [
             'code' => 'BOM-001',
             'name' => 'Widget Assembly',
             'product_id' => $product->id,
@@ -56,7 +56,7 @@ class BomTest extends TestCase
 
     public function test_create_bom_requires_code_and_name(): void
     {
-        $response = $this->postJson('/api/manufacturing/boms', [], $this->auth());
+        $response = $this->postJson('/api/v1/manufacturing/boms', [], $this->auth());
 
         $response->assertStatus(422)->assertJson(['success' => false]);
     }
@@ -65,7 +65,7 @@ class BomTest extends TestCase
     {
         Bom::factory()->create(['code' => 'BOM-001']);
 
-        $response = $this->postJson('/api/manufacturing/boms', [
+        $response = $this->postJson('/api/v1/manufacturing/boms', [
             'code' => 'BOM-001',
             'name' => 'Duplicate',
             'quantity' => 1,
@@ -78,7 +78,7 @@ class BomTest extends TestCase
     {
         $bom = Bom::factory()->create();
 
-        $response = $this->getJson("/api/manufacturing/boms/{$bom->id}", $this->auth());
+        $response = $this->getJson("/api/v1/manufacturing/boms/{$bom->id}", $this->auth());
 
         $response->assertOk()
             ->assertJson(['success' => true, 'data' => ['id' => $bom->id]]);
@@ -86,7 +86,7 @@ class BomTest extends TestCase
 
     public function test_show_nonexistent_bom_returns_404(): void
     {
-        $response = $this->getJson('/api/manufacturing/boms/99999', $this->auth());
+        $response = $this->getJson('/api/v1/manufacturing/boms/99999', $this->auth());
 
         $response->assertNotFound();
     }
@@ -95,7 +95,7 @@ class BomTest extends TestCase
     {
         $bom = Bom::factory()->create(['code' => 'BOM-001']);
 
-        $response = $this->putJson("/api/manufacturing/boms/{$bom->id}", [
+        $response = $this->putJson("/api/v1/manufacturing/boms/{$bom->id}", [
             'code' => 'BOM-001',
             'name' => 'Updated Assembly',
             'product_id' => $bom->product_id,
@@ -110,7 +110,7 @@ class BomTest extends TestCase
     {
         $bom = Bom::factory()->create();
 
-        $response = $this->deleteJson("/api/manufacturing/boms/{$bom->id}", [], $this->auth());
+        $response = $this->deleteJson("/api/v1/manufacturing/boms/{$bom->id}", [], $this->auth());
 
         $response->assertOk()->assertJson(['success' => true]);
         $this->assertSoftDeleted('manufacturing_boms', ['id' => $bom->id]);
@@ -118,7 +118,7 @@ class BomTest extends TestCase
 
     public function test_requires_authentication(): void
     {
-        $response = $this->getJson('/api/manufacturing/boms');
+        $response = $this->getJson('/api/v1/manufacturing/boms');
 
         $response->assertUnauthorized();
     }

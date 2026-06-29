@@ -115,11 +115,21 @@ class AgentSkillController extends BaseApiController
         // Parse to validate required frontmatter fields
         $parsed = $this->registry->parseContent($content);
 
-        $required = ['slug', 'category', 'name'];
-        foreach ($required as $field) {
+        $missing = [];
+        foreach (['slug', 'category', 'name'] as $field) {
             if (empty($parsed[$field])) {
-                return $this->respondError("Missing required frontmatter field: {$field}", 422);
+                $missing[] = $field;
             }
+        }
+
+        foreach (['inputs', 'outputs'] as $section) {
+            if (empty($parsed[$section])) {
+                $missing[] = $section;
+            }
+        }
+
+        if (!empty($missing)) {
+            return $this->respondError('Missing required fields: ' . implode(', ', $missing), 422);
         }
 
         // Validate slug format: category.name (no spaces, lowercase)

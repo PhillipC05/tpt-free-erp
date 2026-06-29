@@ -31,7 +31,7 @@ class WorkOrderTest extends TestCase
     {
         WorkOrder::factory()->count(3)->create();
 
-        $response = $this->getJson('/api/manufacturing/work-orders', $this->auth());
+        $response = $this->getJson('/api/v1/manufacturing/work-orders', $this->auth());
 
         $response->assertOk()
             ->assertJsonStructure(['success', 'data', 'meta'])
@@ -42,7 +42,7 @@ class WorkOrderTest extends TestCase
     {
         $product = Product::factory()->create();
 
-        $response = $this->postJson('/api/manufacturing/work-orders', [
+        $response = $this->postJson('/api/v1/manufacturing/work-orders', [
             'wo_number' => 'WO-0001',
             'product_id' => $product->id,
             'planned_quantity' => 100,
@@ -57,7 +57,7 @@ class WorkOrderTest extends TestCase
 
     public function test_create_work_order_requires_mandatory_fields(): void
     {
-        $response = $this->postJson('/api/manufacturing/work-orders', [], $this->auth());
+        $response = $this->postJson('/api/v1/manufacturing/work-orders', [], $this->auth());
 
         $response->assertStatus(422)->assertJson(['success' => false]);
     }
@@ -66,7 +66,7 @@ class WorkOrderTest extends TestCase
     {
         $wo = WorkOrder::factory()->create();
 
-        $response = $this->getJson("/api/manufacturing/work-orders/{$wo->id}", $this->auth());
+        $response = $this->getJson("/api/v1/manufacturing/work-orders/{$wo->id}", $this->auth());
 
         $response->assertOk()
             ->assertJson(['success' => true, 'data' => ['id' => $wo->id]]);
@@ -74,7 +74,7 @@ class WorkOrderTest extends TestCase
 
     public function test_show_nonexistent_work_order_returns_404(): void
     {
-        $response = $this->getJson('/api/manufacturing/work-orders/99999', $this->auth());
+        $response = $this->getJson('/api/v1/manufacturing/work-orders/99999', $this->auth());
 
         $response->assertNotFound();
     }
@@ -83,7 +83,7 @@ class WorkOrderTest extends TestCase
     {
         $wo = WorkOrder::factory()->create(['status' => 'planned']);
 
-        $response = $this->postJson("/api/manufacturing/work-orders/{$wo->id}/start", [], $this->auth());
+        $response = $this->postJson("/api/v1/manufacturing/work-orders/{$wo->id}/start", [], $this->auth());
 
         $response->assertOk()->assertJson(['success' => true]);
         $this->assertDatabaseHas('manufacturing_work_orders', ['id' => $wo->id, 'status' => 'in_progress']);
@@ -93,14 +93,14 @@ class WorkOrderTest extends TestCase
     {
         $wo = WorkOrder::factory()->create();
 
-        $response = $this->deleteJson("/api/manufacturing/work-orders/{$wo->id}", [], $this->auth());
+        $response = $this->deleteJson("/api/v1/manufacturing/work-orders/{$wo->id}", [], $this->auth());
 
         $response->assertOk()->assertJson(['success' => true]);
     }
 
     public function test_requires_authentication(): void
     {
-        $response = $this->getJson('/api/manufacturing/work-orders');
+        $response = $this->getJson('/api/v1/manufacturing/work-orders');
 
         $response->assertUnauthorized();
     }

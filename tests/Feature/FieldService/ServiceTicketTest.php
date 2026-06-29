@@ -31,7 +31,7 @@ class ServiceTicketTest extends TestCase
     {
         ServiceTicket::factory()->count(3)->create();
 
-        $response = $this->getJson('/api/field-service/tickets', $this->auth());
+        $response = $this->getJson('/api/v1/field-service/tickets', $this->auth());
 
         $response->assertOk()
             ->assertJsonStructure(['success', 'data', 'meta'])
@@ -42,7 +42,7 @@ class ServiceTicketTest extends TestCase
     {
         $customer = Customer::factory()->create();
 
-        $response = $this->postJson('/api/field-service/tickets', [
+        $response = $this->postJson('/api/v1/field-service/tickets', [
             'ticket_number' => 'TKT-0001',
             'customer_id' => $customer->id,
             'title' => 'Equipment not working',
@@ -57,7 +57,7 @@ class ServiceTicketTest extends TestCase
 
     public function test_create_ticket_requires_mandatory_fields(): void
     {
-        $response = $this->postJson('/api/field-service/tickets', [], $this->auth());
+        $response = $this->postJson('/api/v1/field-service/tickets', [], $this->auth());
 
         $response->assertStatus(422)->assertJson(['success' => false]);
     }
@@ -66,7 +66,7 @@ class ServiceTicketTest extends TestCase
     {
         $ticket = ServiceTicket::factory()->create();
 
-        $response = $this->getJson("/api/field-service/tickets/{$ticket->id}", $this->auth());
+        $response = $this->getJson("/api/v1/field-service/tickets/{$ticket->id}", $this->auth());
 
         $response->assertOk()
             ->assertJson(['success' => true, 'data' => ['id' => $ticket->id]]);
@@ -74,7 +74,7 @@ class ServiceTicketTest extends TestCase
 
     public function test_show_nonexistent_ticket_returns_404(): void
     {
-        $response = $this->getJson('/api/field-service/tickets/99999', $this->auth());
+        $response = $this->getJson('/api/v1/field-service/tickets/99999', $this->auth());
 
         $response->assertNotFound();
     }
@@ -83,7 +83,7 @@ class ServiceTicketTest extends TestCase
     {
         $ticket = ServiceTicket::factory()->create(['status' => 'open']);
 
-        $response = $this->putJson("/api/field-service/tickets/{$ticket->id}/status", [
+        $response = $this->putJson("/api/v1/field-service/tickets/{$ticket->id}/status", [
             'status' => 'in_progress',
         ], $this->auth());
 
@@ -95,7 +95,7 @@ class ServiceTicketTest extends TestCase
     {
         $ticket = ServiceTicket::factory()->create();
 
-        $response = $this->deleteJson("/api/field-service/tickets/{$ticket->id}", [], $this->auth());
+        $response = $this->deleteJson("/api/v1/field-service/tickets/{$ticket->id}", [], $this->auth());
 
         $response->assertOk()->assertJson(['success' => true]);
         $this->assertDatabaseMissing('field_service_tickets', ['id' => $ticket->id]);
@@ -103,7 +103,7 @@ class ServiceTicketTest extends TestCase
 
     public function test_requires_authentication(): void
     {
-        $response = $this->getJson('/api/field-service/tickets');
+        $response = $this->getJson('/api/v1/field-service/tickets');
 
         $response->assertUnauthorized();
     }

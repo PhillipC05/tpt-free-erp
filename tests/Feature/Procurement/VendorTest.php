@@ -30,7 +30,7 @@ class VendorTest extends TestCase
     {
         Vendor::factory()->count(3)->create();
 
-        $response = $this->getJson('/api/procurement/vendors', $this->auth());
+        $response = $this->getJson('/api/v1/procurement/vendors', $this->auth());
 
         $response->assertOk()
             ->assertJsonStructure(['success', 'data', 'meta'])
@@ -39,7 +39,7 @@ class VendorTest extends TestCase
 
     public function test_can_create_vendor(): void
     {
-        $response = $this->postJson('/api/procurement/vendors', [
+        $response = $this->postJson('/api/v1/procurement/vendors', [
             'code' => 'VEN-001',
             'name' => 'Supplier Inc',
             'email' => 'supplier@example.com',
@@ -52,7 +52,7 @@ class VendorTest extends TestCase
 
     public function test_create_vendor_requires_code_and_name(): void
     {
-        $response = $this->postJson('/api/procurement/vendors', [], $this->auth());
+        $response = $this->postJson('/api/v1/procurement/vendors', [], $this->auth());
 
         $response->assertStatus(422)->assertJson(['success' => false]);
     }
@@ -61,7 +61,7 @@ class VendorTest extends TestCase
     {
         Vendor::factory()->create(['code' => 'VEN-001']);
 
-        $response = $this->postJson('/api/procurement/vendors', [
+        $response = $this->postJson('/api/v1/procurement/vendors', [
             'code' => 'VEN-001',
             'name' => 'Duplicate',
         ], $this->auth());
@@ -73,7 +73,7 @@ class VendorTest extends TestCase
     {
         $vendor = Vendor::factory()->create();
 
-        $response = $this->getJson("/api/procurement/vendors/{$vendor->id}", $this->auth());
+        $response = $this->getJson("/api/v1/procurement/vendors/{$vendor->id}", $this->auth());
 
         $response->assertOk()
             ->assertJson(['success' => true, 'data' => ['id' => $vendor->id]]);
@@ -81,7 +81,7 @@ class VendorTest extends TestCase
 
     public function test_show_nonexistent_vendor_returns_404(): void
     {
-        $response = $this->getJson('/api/procurement/vendors/99999', $this->auth());
+        $response = $this->getJson('/api/v1/procurement/vendors/99999', $this->auth());
 
         $response->assertNotFound();
     }
@@ -90,7 +90,7 @@ class VendorTest extends TestCase
     {
         $vendor = Vendor::factory()->create(['code' => 'VEN-001']);
 
-        $response = $this->putJson("/api/procurement/vendors/{$vendor->id}", [
+        $response = $this->putJson("/api/v1/procurement/vendors/{$vendor->id}", [
             'code' => 'VEN-001',
             'name' => 'Updated Supplier',
             'email' => $vendor->email,
@@ -104,7 +104,7 @@ class VendorTest extends TestCase
     {
         $vendor = Vendor::factory()->create();
 
-        $response = $this->deleteJson("/api/procurement/vendors/{$vendor->id}", [], $this->auth());
+        $response = $this->deleteJson("/api/v1/procurement/vendors/{$vendor->id}", [], $this->auth());
 
         $response->assertOk()->assertJson(['success' => true]);
         $this->assertSoftDeleted('procurement_vendors', ['id' => $vendor->id]);
@@ -112,7 +112,7 @@ class VendorTest extends TestCase
 
     public function test_requires_authentication(): void
     {
-        $response = $this->getJson('/api/procurement/vendors');
+        $response = $this->getJson('/api/v1/procurement/vendors');
 
         $response->assertUnauthorized();
     }

@@ -31,7 +31,7 @@ class OrderTest extends TestCase
     {
         Order::factory()->count(3)->create();
 
-        $response = $this->getJson('/api/sales/orders', $this->auth());
+        $response = $this->getJson('/api/v1/sales/orders', $this->auth());
 
         $response->assertOk()
             ->assertJsonStructure(['success', 'data', 'meta'])
@@ -42,7 +42,7 @@ class OrderTest extends TestCase
     {
         $customer = Customer::factory()->create();
 
-        $response = $this->postJson('/api/sales/orders', [
+        $response = $this->postJson('/api/v1/sales/orders', [
             'order_number' => 'ORD-0001',
             'customer_id' => $customer->id,
             'order_date' => '2026-05-01',
@@ -58,7 +58,7 @@ class OrderTest extends TestCase
 
     public function test_create_order_requires_mandatory_fields(): void
     {
-        $response = $this->postJson('/api/sales/orders', [], $this->auth());
+        $response = $this->postJson('/api/v1/sales/orders', [], $this->auth());
 
         $response->assertStatus(422)->assertJson(['success' => false]);
     }
@@ -67,7 +67,7 @@ class OrderTest extends TestCase
     {
         $order = Order::factory()->create();
 
-        $response = $this->getJson("/api/sales/orders/{$order->id}", $this->auth());
+        $response = $this->getJson("/api/v1/sales/orders/{$order->id}", $this->auth());
 
         $response->assertOk()
             ->assertJson(['success' => true, 'data' => ['id' => $order->id]]);
@@ -75,7 +75,7 @@ class OrderTest extends TestCase
 
     public function test_show_nonexistent_order_returns_404(): void
     {
-        $response = $this->getJson('/api/sales/orders/99999', $this->auth());
+        $response = $this->getJson('/api/v1/sales/orders/99999', $this->auth());
 
         $response->assertNotFound();
     }
@@ -84,7 +84,7 @@ class OrderTest extends TestCase
     {
         $order = Order::factory()->create(['status' => 'draft']);
 
-        $response = $this->putJson("/api/sales/orders/{$order->id}/status", [
+        $response = $this->putJson("/api/v1/sales/orders/{$order->id}/status", [
             'status' => 'confirmed',
         ], $this->auth());
 
@@ -96,7 +96,7 @@ class OrderTest extends TestCase
     {
         $order = Order::factory()->create();
 
-        $response = $this->deleteJson("/api/sales/orders/{$order->id}", [], $this->auth());
+        $response = $this->deleteJson("/api/v1/sales/orders/{$order->id}", [], $this->auth());
 
         $response->assertOk()->assertJson(['success' => true]);
         $this->assertSoftDeleted('sales_orders', ['id' => $order->id]);
@@ -104,7 +104,7 @@ class OrderTest extends TestCase
 
     public function test_requires_authentication(): void
     {
-        $response = $this->getJson('/api/sales/orders');
+        $response = $this->getJson('/api/v1/sales/orders');
 
         $response->assertUnauthorized();
     }

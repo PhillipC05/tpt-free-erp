@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 class ReportGenerationJob implements ShouldQueue
 {
@@ -42,6 +43,36 @@ class ReportGenerationJob implements ShouldQueue
 
     public function handle(): void
     {
+        $cacheKey = 'report_cache:' . $this->userId . ':' . $this->reportType . ':' . md5(json_encode($this->parameters));
+        $cached = Cache::get($cacheKey);
+
+        if ($cached && $cached['generated_at'] > now()->subHour()) {
+            $reportId = $this->generatedReportId ?? DB::table('generated_reports')->insertGetId([
+                'user_id'     => $this->userId,
+                'report_type' => $this->reportType,
+                'parameters'  => json_encode($this->parameters),
+                'format'      => $this->format,
+                'status'      => 'completed',
+                'result_path' => $cached['result_path'] ?? null,
+                'result_data' => $cached['result_data'] ?? null,
+                'completed_at' => now(),
+                'expires_at'  => now()->addDays(7),
+                'created_at'  => now(),
+                'updated_at'  => now(),
+            ]);
+
+            DB::table('generated_reports')->where('id', $reportId)->update([
+                'status' => 'completed',
+                'result_path' => $cached['result_path'] ?? null,
+                'result_data' => $cached['result_data'] ?? null,
+                'completed_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            Log::info("Report cache hit for user={$this->userId} type={$this->reportType}, reusing report #{$reportId}");
+            return;
+        }
+
         // Find or create the generated_reports record
         $reportId = $this->generatedReportId ?? DB::table('generated_reports')->insertGetId([
             'user_id'     => $this->userId,
@@ -78,6 +109,12 @@ class ReportGenerationJob implements ShouldQueue
             }
 
             DB::table('generated_reports')->where('id', $reportId)->update($updateFields);
+
+            Cache::put($cacheKey, [
+                'result_data'  => $resultJson,
+                'result_path'  => $updateFields['result_path'] ?? null,
+                'generated_at' => now(),
+            ], now()->addHour());
 
             if ($this->deliveryEmail) {
                 $this->sendEmailDelivery($this->deliveryEmail, $data, $reportId);

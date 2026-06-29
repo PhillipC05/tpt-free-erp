@@ -4,6 +4,7 @@ namespace App\Services\Agent;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class SkillRegistry
@@ -19,7 +20,19 @@ class SkillRegistry
 
     public function all(): array
     {
+        if (!File::isDirectory($this->skillsPath) || empty(File::allFiles($this->skillsPath))) {
+            Log::info('SkillRegistry: storage/app/skills/ directory is empty or missing — returning empty skill list.');
+            return [];
+        }
+
         return Cache::remember(self::CACHE_KEY, self::CACHE_TTL, fn() => $this->scanAll());
+    }
+
+    public function getSkillsHelpMessage(): string
+    {
+        return 'To add skills, create Markdown (.md) files with YAML frontmatter in storage/app/skills/{category}/. '
+            . 'Each file must include at minimum: slug, category, name, description. '
+            . 'Example: storage/app/skills/mycategory/my-skill.md';
     }
 
     public function find(string $slug): ?array

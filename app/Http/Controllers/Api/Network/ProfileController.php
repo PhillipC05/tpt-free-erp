@@ -92,7 +92,7 @@ class ProfileController extends BaseApiController
         return $this->respondSuccess('Profile updated successfully', $profile);
     }
 
-    public function show(Request $request, int $id): JsonResponse
+    public function show(int $id): JsonResponse
     {
         $profile = UserProfile::with('interests')->find($id);
 
@@ -101,7 +101,7 @@ class ProfileController extends BaseApiController
         }
 
         // Only show if discoverable or own profile
-        if (!$profile->is_discoverable && $profile->user_id !== $request->user()->id) {
+        if (!$profile->is_discoverable && $profile->user_id !== request()->user()->id) {
             return $this->respondNotFound('Profile not found');
         }
 

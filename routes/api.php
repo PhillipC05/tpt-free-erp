@@ -83,6 +83,7 @@ use App\Http\Controllers\Api\Projects\TaskController;
 use App\Http\Controllers\Api\Projects\TimeEntryController;
 use App\Http\Controllers\Api\Quality\CheckController;
 use App\Http\Controllers\Api\Quality\NonConformanceController;
+use App\Http\Controllers\Api\Recruitment\PublicCandidateController;
 use App\Http\Controllers\Api\Recruitment\RecruitmentController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\RoleController;
@@ -125,6 +126,14 @@ Route::prefix('esignatures/sign')->group(function () {
     Route::get('/{token}', [ESignatureController::class, 'getByToken']);
     Route::post('/{token}', [ESignatureController::class, 'sign']);
     Route::post('/{token}/decline', [ESignatureController::class, 'decline']);
+});
+
+// ===== PUBLIC CANDIDATE PORTAL (no auth — job listings & applications) =====
+Route::prefix('public')->group(function () {
+    Route::get('jobs', [PublicCandidateController::class, 'listJobs']);
+    Route::get('jobs/{job}', [PublicCandidateController::class, 'showJob']);
+    Route::post('jobs/{job}/apply', [PublicCandidateController::class, 'apply']);
+    Route::get('applications/{token}', [PublicCandidateController::class, 'trackApplication']);
 });
 
 // ===== HEALTH CHECK =====
@@ -670,6 +679,7 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
             Route::get('jobs/{job}', [RecruitmentController::class, 'showJob']);
             Route::get('applications', [RecruitmentController::class, 'listApplications']);
             Route::get('applications/{application}', [RecruitmentController::class, 'showApplication']);
+            Route::get('applications/{application}/offer-letter', [RecruitmentController::class, 'showOfferLetter']);
             Route::get('pipeline', [RecruitmentController::class, 'pipeline']);
             Route::get('dashboard', [RecruitmentController::class, 'dashboard']);
         });
@@ -677,6 +687,7 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
             Route::post('jobs', [RecruitmentController::class, 'storeJob']);
             Route::post('applications', [RecruitmentController::class, 'storeApplication']);
             Route::post('applications/{application}/interviews', [RecruitmentController::class, 'scheduleInterview']);
+            Route::post('applications/{application}/offer-letter', [RecruitmentController::class, 'generateOfferLetter']);
         });
         Route::middleware('permission:hr.edit')->group(function () {
             Route::put('jobs/{job}', [RecruitmentController::class, 'updateJob']);

@@ -3,11 +3,10 @@
 namespace App\Http\Controllers\Api\Marketing;
 
 use App\Http\Controllers\Api\BaseApiController;
-use App\Mail\CampaignEmail;
 use App\Models\Marketing\Campaign;
+use App\Services\Marketing\CampaignEmailService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 
 class CampaignController extends BaseApiController
 {
@@ -139,46 +138,33 @@ class CampaignController extends BaseApiController
             return $this->respondError('Cannot send a '.$campaign->status.' campaign', 422);
         }
 
+        $user = $request->user();
+        if (! $user->hasRole('admin') && $campaign->created_by !== $user->id) {
+            return $this->respondError('Only admins or campaign owners can send this campaign', 403);
+        }
+
         $error = $this->validate($request->all(), [
             'subject' => 'required|string|max:255',
             'html_body' => 'required|string',
-            'recipients' => 'required|array|min:1|max:1000',
-            'recipients.*' => 'email',
         ]);
 
         if ($error) {
             return $error;
         }
 
-        $recipients = $request->input('recipients');
-        $mailable = new CampaignEmail(
-            subject: $request->input('subject'),
-            htmlBody: $request->input('html_body'),
-            campaignName: $campaign->name,
+        $service = new CampaignEmailService;
+        $result = $service->sendCampaign(
+            $campaign,
+            $request->input('subject'),
+            $request->input('html_body'),
         );
-
-        $sent = 0;
-        $failed = [];
-
-        foreach ($recipients as $email) {
-            try {
-                Mail::to($email)->queue($mailable);
-                $sent++;
-            } catch (\Throwable $e) {
-                $failed[] = $email;
-            }
-        }
 
         if ($campaign->status === 'draft') {
             $campaign->update(['status' => 'active']);
             $this->cacheFlush();
         }
 
-        return $this->respondSuccess('Campaign queued for sending', [
-            'queued' => $sent,
-            'failed' => $failed,
-            'total_recipients' => count($recipients),
-        ]);
+        return $this->respondSuccess('Campaign queued for sending', $result);
     }
 
     public function roi(int $id): JsonResponse

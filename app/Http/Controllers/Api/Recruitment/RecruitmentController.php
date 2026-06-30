@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api\Recruitment;
 
 use App\Http\Controllers\Api\BaseApiController;
+use App\Models\ESignature\ESignature;
 use App\Models\Recruitment\Application;
 use App\Models\Recruitment\Interview;
 use App\Models\Recruitment\Job;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -271,6 +273,167 @@ class RecruitmentController extends BaseApiController
         }
 
         return $this->respondSuccess('Application status updated', $application->fresh(['job', 'reviewer']));
+    }
+
+    // ── OFFER LETTERS ─────────────────────────────────────────────────────
+
+    public function generateOfferLetter(Request $request, int $id): JsonResponse
+    {
+        $application = Application::with(['job.department'])->find($id);
+        if (! $application) {
+            return $this->respondNotFound();
+        }
+
+        $error = $this->validate($request->all(), [
+            'salary' => 'required|numeric|min:0',
+            'start_date' => 'required|date|after:today',
+            'notes' => 'nullable|string|max:2000',
+        ]);
+        if ($error) {
+            return $error;
+        }
+
+        if ($application->offer_letter_content) {
+            return $this->respondError('Offer letter already exists for this application. Use the GET endpoint to retrieve it.', 422);
+        }
+
+        $job = $application->job;
+        $department = $job->department;
+        $salary = number_format((float) $request->input('salary'), 2);
+        $startDate = Carbon::parse($request->input('start_date'))->format('F j, Y');
+        $companyName = config('app.name', 'TPT ERP');
+        $candidateName = $application->candidate_name;
+        $jobTitle = $job->title;
+        $deptName = $department->name ?? 'N/A';
+        $employmentType = str_replace('_', ' ', ucfirst($job->employment_type));
+
+        $offerHtml = <<<HTML
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; padding: 40px; color: #333;">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #1e40af; margin: 0;">{$companyName}</h1>
+        <p style="color: #666; margin: 5px 0 0 0;">Offer of Employment</p>
+    </div>
+
+    <p>Date: {$startDate}</p>
+    <p>Dear {$candidateName},</p>
+
+    <p>We are pleased to extend to you an offer of employment for the position of <strong>{$jobTitle}</strong> in the <strong>{$deptName}</strong> department at {$companyName}.</p>
+
+    <h3 style="color: #374151; margin-top: 24px;">Position Details</h3>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 16px;">
+        <tr>
+            <td style="padding: 8px; border: 1px solid #e5e7eb; background: #f9fafb; width: 200px;">Position</td>
+            <td style="padding: 8px; border: 1px solid #e5e7eb;">{$jobTitle}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #e5e7eb; background: #f9fafb;">Department</td>
+            <td style="padding: 8px; border: 1px solid #e5e7eb;">{$deptName}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #e5e7eb; background: #f9fafb;">Employment Type</td>
+            <td style="padding: 8px; border: 1px solid #e5e7eb;">{$employmentType}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #e5e7eb; background: #f9fafb;">Location</td>
+            <td style="padding: 8px; border: 1px solid #e5e7eb;">{$job->location}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #e5e7eb; background: #f9fafb;">Annual Salary</td>
+            <td style="padding: 8px; border: 1px solid #e5e7eb;">\${$salary}</td>
+        </tr>
+        <tr>
+            <td style="padding: 8px; border: 1px solid #e5e7eb; background: #f9fafb;">Start Date</td>
+            <td style="padding: 8px; border: 1px solid #e5e7eb;">{$startDate}</td>
+        </tr>
+    </table>
+
+    <p>This offer is contingent upon successful completion of background verification and your signed agreement to the company's policies and terms of employment.</p>
+
+    {$this->buildNotesHtml($request->input('notes'))}
+
+    <p>We are excited about the possibility of you joining our team and look forward to your positive response.</p>
+
+    <p>Sincerely,<br>
+    <strong>{$companyName} Human Resources</strong></p>
+
+    <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0 15px;">
+    <p style="color: #999; font-size: 11px;">Application #{$application->application_number}</p>
+</body>
+</html>
+HTML;
+
+        $application->update([
+            'offer_letter_content' => $offerHtml,
+            'offer_letter_generated_at' => now(),
+            'status' => 'offer',
+        ]);
+
+        $signature = ESignature::create([
+            'signable_type' => Application::class,
+            'signable_id' => $application->id,
+            'token' => ESignature::generateToken(),
+            'status' => 'pending',
+            'signer_name' => $application->candidate_name,
+            'signer_email' => $application->candidate_email,
+            'document_hash' => ESignature::hashSignable($application->fresh()->toArray()),
+            'message' => 'Offer letter for '.$jobTitle.' position',
+            'expires_at' => now()->addDays(14),
+            'requested_by' => Auth::id(),
+            'audit_log' => [[
+                'event' => 'offer_letter_created',
+                'at' => now()->toIso8601String(),
+                'by' => Auth::user()->email,
+            ]],
+        ]);
+
+        return $this->respondCreated([
+            'esignature_id' => $signature->id,
+            'signing_token' => $signature->token,
+            'expires_at' => $signature->expires_at,
+        ], 'Offer letter generated and E-Signature request created');
+    }
+
+    public function showOfferLetter(int $id): JsonResponse
+    {
+        $application = Application::with(['job.department'])->find($id);
+        if (! $application) {
+            return $this->respondNotFound();
+        }
+
+        if (! $application->offer_letter_content) {
+            return $this->respondError('No offer letter exists for this application', 404);
+        }
+
+        $signature = ESignature::where('signable_type', Application::class)
+            ->where('signable_id', $application->id)
+            ->latest()
+            ->first();
+
+        return $this->respond([
+            'success' => true,
+            'data' => [
+                'offer_letter_content' => $application->offer_letter_content,
+                'generated_at' => $application->offer_letter_generated_at,
+                'signature_status' => $signature?->status,
+                'signed_at' => $signature?->signed_at,
+                'esignature_id' => $signature?->id,
+            ],
+        ]);
+    }
+
+    private function buildNotesHtml(?string $notes): string
+    {
+        if (! $notes) {
+            return '';
+        }
+
+        return <<<HTML
+        <h3 style="color: #374151; margin-top: 24px;">Additional Notes</h3>
+        <p>{$notes}</p>
+        HTML;
     }
 
     // ── INTERVIEWS ────────────────────────────────────────────────────────

@@ -9,6 +9,7 @@ use App\Console\Commands\NotifyContractExpiry;
 use App\Console\Commands\RunAgentSchedules;
 use App\Console\Commands\RunScheduledReports;
 use App\Console\Commands\SeedCampaignAnalytics;
+use App\Console\Commands\SendAnalyticsDigest;
 use App\Console\Commands\SyncSkills;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
@@ -22,6 +23,7 @@ class Kernel extends ConsoleKernel
         NotifyContractExpiry::class,
         RunScheduledReports::class,
         SeedCampaignAnalytics::class,
+        SendAnalyticsDigest::class,
         SyncSkills::class,
         RunAgentSchedules::class,
     ];
@@ -42,6 +44,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('certifications:check-expiry')->dailyAt('08:30');
         // Seed yesterday's campaign analytics rows for all active campaigns
         $schedule->command('marketing:seed-analytics')->dailyAt('01:00');
+        // Send weekly analytics digest every Monday at 9am
+        $schedule->command('analytics:send-digest')->weeklyOn(1, '09:00');
     }
 
     protected function commands(): void

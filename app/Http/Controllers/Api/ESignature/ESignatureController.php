@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\BaseApiController;
 use App\Models\Contracts\Contract;
 use App\Models\Documents\Document;
 use App\Models\ESignature\ESignature;
+use App\Models\Recruitment\Application;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -290,8 +291,10 @@ class ESignatureController extends BaseApiController
         $map = [
             'contract' => Contract::class,
             'document' => Document::class,
+            'application' => Application::class,
             'App\\Models\\Contracts\\Contract' => Contract::class,
             'App\\Models\\Documents\\Document' => Document::class,
+            'App\\Models\\Recruitment\\Application' => Application::class,
         ];
 
         return $map[$type] ?? null;

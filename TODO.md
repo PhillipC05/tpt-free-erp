@@ -349,7 +349,7 @@
 - [x] Feature tests: `tests/Feature/Marketing/MarketingTest.php`
 - [x] Add `CampaignAnalytic` seeding via a daily scheduled job — `app/Console/Commands/SeedCampaignAnalytics.php` (`marketing:seed-analytics`), runs daily at 01:00; supports `--date` for backfill
 - [x] Add campaign ROI calculation endpoint — `GET /api/v1/marketing/campaigns/{id}/roi` returns `roi_percent`, `roas`, `cost_per_click`, `cost_per_acquisition`
-- [ ] Email integration: campaign send via SMTP/Mailgun (Phase 7)
+- [x] Email integration: campaign send via SMTP/Mailgun (Phase 7) — `CampaignEmailService.php` + `CampaignEmail.php` mailable + send endpoint
 
 ### Network Module (Professional Networking)
 - [x] Migration: `user_profiles`, `user_profile_interests`, `user_follows`, `user_connections`, `network_posts`, `network_post_reactions`, `network_post_comments` tables
@@ -545,8 +545,8 @@
 - [x] Routes: `/api/v1/recruitment/` in `routes/api.php`
 - [x] Frontend: `resources/js/views/recruitment/RecruitmentView.vue`
 - [x] Feature tests: `tests/Feature/Recruitment/RecruitmentTest.php`
-- [ ] Add offer letter generation (e-signature integration)
-- [ ] Add candidate portal (public-facing application form)
+- [x] Add offer letter generation (e-signature integration) — `POST /api/v1/recruitment/applications/{id}/offer-letter` + ESignature integration
+- [x] Add candidate portal (public-facing application form) — `PublicCandidateController.php` with job listing, apply, status check endpoints
 
 ### Training & Certification Module
 - [x] Migration: `training_programs`, `training_sessions`, `training_enrollments`, `training_certifications` — `2026_06_26_000002_create_training_tables.php`
@@ -589,7 +589,7 @@
 - [x] Feature tests: `tests/Feature/Analytics/AnalyticsTest.php`
 - [x] Enhanced dashboard with live KPI cards — `resources/js/views/DashboardView.vue` rebuilt
 - [x] Add per-module analytics drilldown views — `ModuleAnalyticsController` with 5 methods, 5 Vue views, router routes, sidebar nav
-- [ ] Add scheduled analytics digest email
+- [x] Add scheduled analytics digest email — `SendAnalyticsDigest.php` command, weekly Monday 9am, `AnalyticsDigestMail` mailable
 
 ### Fleet Parts Inventory
 - [x] Migration: `fleet_parts`, `fleet_part_categories`, `fleet_part_usages` — `2026_06_25_000002_create_fleet_parts_tables.php`

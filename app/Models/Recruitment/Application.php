@@ -2,6 +2,7 @@
 
 namespace App\Models\Recruitment;
 
+use App\Models\ESignature\ESignature;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -19,12 +20,19 @@ class Application extends Model
         'application_number', 'job_id', 'candidate_name', 'candidate_email',
         'candidate_phone', 'resume_path', 'cover_letter', 'expected_salary',
         'status', 'rejection_reason', 'reviewed_by', 'reviewed_at',
+        'tracking_token', 'offer_letter_content', 'offer_letter_generated_at',
     ];
 
     protected $casts = [
         'expected_salary' => 'decimal:2',
         'reviewed_at' => 'datetime',
+        'offer_letter_generated_at' => 'datetime',
     ];
+
+    public function offerLetterSignature()
+    {
+        return $this->morphOne(ESignature::class, 'signable');
+    }
 
     public function job(): BelongsTo
     {

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class LeaveRequest extends Model
 {
     use HasFactory;
+
     protected $table = 'hr_leave_requests';
 
     protected $fillable = [

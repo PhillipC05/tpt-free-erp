@@ -19,7 +19,7 @@ class LocalModelService
         $startTime = microtime(true);
 
         $payload = [
-            'model'  => $model,
+            'model' => $model,
             'prompt' => $prompt,
             'stream' => false,
             'options' => array_merge([
@@ -34,21 +34,21 @@ class LocalModelService
 
             $durationMs = (int) ((microtime(true) - $startTime) * 1000);
 
-            if (!$response->successful()) {
-                throw new \RuntimeException("Ollama API error {$response->status()}: " . $response->body());
+            if (! $response->successful()) {
+                throw new \RuntimeException("Ollama API error {$response->status()}: ".$response->body());
             }
 
             $body = $response->json();
 
             return [
-                'text'        => $body['response'] ?? '',
+                'text' => $body['response'] ?? '',
                 'tokens_used' => ($body['prompt_eval_count'] ?? 0) + ($body['eval_count'] ?? 0),
-                'model_used'  => $model,
+                'model_used' => $model,
                 'duration_ms' => $durationMs,
-                'provider'    => 'local',
+                'provider' => 'local',
             ];
         } catch (\Throwable $e) {
-            Log::error("LocalModelService error: " . $e->getMessage());
+            Log::error('LocalModelService error: '.$e->getMessage());
             throw $e;
         }
     }
@@ -58,10 +58,10 @@ class LocalModelService
         $startTime = microtime(true);
 
         $payload = [
-            'model'    => $model,
+            'model' => $model,
             'messages' => $messages,
-            'stream'   => false,
-            'options'  => [
+            'stream' => false,
+            'options' => [
                 'temperature' => $options['temperature'] ?? 0.3,
                 'num_predict' => $options['max_tokens'] ?? 2000,
             ],
@@ -72,18 +72,18 @@ class LocalModelService
 
         $durationMs = (int) ((microtime(true) - $startTime) * 1000);
 
-        if (!$response->successful()) {
-            throw new \RuntimeException("Ollama chat error: " . $response->body());
+        if (! $response->successful()) {
+            throw new \RuntimeException('Ollama chat error: '.$response->body());
         }
 
         $body = $response->json();
 
         return [
-            'text'        => $body['message']['content'] ?? '',
+            'text' => $body['message']['content'] ?? '',
             'tokens_used' => ($body['prompt_eval_count'] ?? 0) + ($body['eval_count'] ?? 0),
-            'model_used'  => $model,
+            'model_used' => $model,
             'duration_ms' => $durationMs,
-            'provider'    => 'local',
+            'provider' => 'local',
         ];
     }
 
@@ -95,8 +95,9 @@ class LocalModelService
                 return $response->json('models', []);
             }
         } catch (\Throwable $e) {
-            Log::warning("Could not list Ollama models: " . $e->getMessage());
+            Log::warning('Could not list Ollama models: '.$e->getMessage());
         }
+
         return [];
     }
 }

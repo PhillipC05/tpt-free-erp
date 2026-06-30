@@ -32,25 +32,30 @@ class LeaveController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new LeaveRequest());
+        parent::__construct(new LeaveRequest);
     }
 
     public function store(Request $request): JsonResponse
     {
         $error = $this->validate($request->all());
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $data = $request->all();
         $data['status'] = $data['status'] ?? 'pending';
 
         $leave = LeaveRequest::create($data);
+
         return $this->respondCreated($leave, 'Leave request submitted successfully');
     }
 
     public function approve(Request $request, int $id): JsonResponse
     {
         $leave = LeaveRequest::find($id);
-        if (!$leave) return $this->respondNotFound();
+        if (! $leave) {
+            return $this->respondNotFound();
+        }
 
         if ($leave->status !== 'pending') {
             return $this->respondError('Only pending requests can be approved', 422);
@@ -68,7 +73,9 @@ class LeaveController extends BaseApiController
     public function reject(Request $request, int $id): JsonResponse
     {
         $leave = LeaveRequest::find($id);
-        if (!$leave) return $this->respondNotFound();
+        if (! $leave) {
+            return $this->respondNotFound();
+        }
 
         if ($leave->status !== 'pending') {
             return $this->respondError('Only pending requests can be rejected', 422);
@@ -77,7 +84,9 @@ class LeaveController extends BaseApiController
         $error = $this->validate($request->all(), [
             'rejection_reason' => 'required|string',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $leave->update([
             'status' => 'rejected',
@@ -90,13 +99,16 @@ class LeaveController extends BaseApiController
     public function cancel(int $id): JsonResponse
     {
         $leave = LeaveRequest::find($id);
-        if (!$leave) return $this->respondNotFound();
+        if (! $leave) {
+            return $this->respondNotFound();
+        }
 
-        if (!in_array($leave->status, ['pending', 'approved'])) {
+        if (! in_array($leave->status, ['pending', 'approved'])) {
             return $this->respondError('Leave request cannot be cancelled', 422);
         }
 
         $leave->update(['status' => 'cancelled']);
+
         return $this->respondSuccess('Leave request cancelled', $leave->fresh());
     }
 
@@ -142,7 +154,7 @@ class LeaveController extends BaseApiController
     public function myLeaves(Request $request): JsonResponse
     {
         $employeeId = $request->query('employee_id');
-        if (!$employeeId) {
+        if (! $employeeId) {
             return $this->respondError('Employee ID is required', 400);
         }
 

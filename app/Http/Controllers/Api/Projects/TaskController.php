@@ -34,7 +34,7 @@ class TaskController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new Task());
+        parent::__construct(new Task);
     }
 
     public function store(Request $request): JsonResponse
@@ -42,22 +42,27 @@ class TaskController extends BaseApiController
         $error = $this->validate($request->all(), array_merge($this->validationRules, [
             'code' => 'required|string|max:20|unique:project_tasks,code',
         ]));
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $data = $request->all();
         $data['status'] = $data['status'] ?? 'todo';
 
         $task = Task::create($data);
+
         return $this->respondCreated($task, 'Task created successfully');
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
         $task = Task::find($id);
-        if (!$task) return $this->respondNotFound();
+        if (! $task) {
+            return $this->respondNotFound();
+        }
 
         $error = $this->validate($request->all(), [
-            'code' => 'required|string|max:20|unique:project_tasks,code,' . $id,
+            'code' => 'required|string|max:20|unique:project_tasks,code,'.$id,
             'project_id' => 'required|exists:projects,id',
             'title' => 'required|string|max:200',
             'description' => 'nullable|string',
@@ -71,16 +76,21 @@ class TaskController extends BaseApiController
             'parent_id' => 'nullable|exists:project_tasks,id',
             'sort_order' => 'nullable|integer|min:0',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $task->update($request->all());
+
         return $this->respondSuccess('Task updated', $task->fresh());
     }
 
     public function complete(Request $request, int $id): JsonResponse
     {
         $task = Task::find($id);
-        if (!$task) return $this->respondNotFound();
+        if (! $task) {
+            return $this->respondNotFound();
+        }
 
         $data = [
             'status' => 'done',
@@ -92,6 +102,7 @@ class TaskController extends BaseApiController
         }
 
         $task->update($data);
+
         return $this->respondSuccess('Task completed', $task->fresh());
     }
 
@@ -133,12 +144,16 @@ class TaskController extends BaseApiController
     public function updateStatus(Request $request, int $task): JsonResponse
     {
         $record = Task::find($task);
-        if (!$record) return $this->respondNotFound();
+        if (! $record) {
+            return $this->respondNotFound();
+        }
 
         $error = $this->validate($request->all(), [
             'status' => 'required|in:todo,in_progress,review,done,cancelled',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $updates = ['status' => $request->input('status')];
         if ($request->input('status') === 'done') {
@@ -146,6 +161,7 @@ class TaskController extends BaseApiController
         }
 
         $record->update($updates);
+
         return $this->respondSuccess('Status updated', $record->fresh());
     }
 
@@ -163,7 +179,9 @@ class TaskController extends BaseApiController
     public function show(int $id): JsonResponse
     {
         $task = Task::with(['project', 'assignee', 'parent', 'subTasks', 'timeEntries'])->find($id);
-        if (!$task) return $this->respondNotFound();
+        if (! $task) {
+            return $this->respondNotFound();
+        }
 
         return $this->respond(['success' => true, 'data' => $task]);
     }

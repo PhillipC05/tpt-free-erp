@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -12,12 +13,13 @@ class RoleExpirationTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user  = User::factory()->create();
+        $this->user = User::factory()->create();
         $this->token = $this->user->createToken('test')->plainTextToken;
     }
 
@@ -29,11 +31,11 @@ class RoleExpirationTest extends TestCase
     private function insertRole(string $name): int
     {
         DB::table('roles')->insertOrIgnore([
-            'name'         => $name,
+            'name' => $name,
             'display_name' => $name,
-            'is_system'    => 0,
-            'created_at'   => now(),
-            'updated_at'   => now(),
+            'is_system' => 0,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         return DB::table('roles')->where('name', $name)->value('id');
@@ -42,25 +44,25 @@ class RoleExpirationTest extends TestCase
     private function insertPermission(string $name, string $module = 'finance'): int
     {
         DB::table('permissions')->insertOrIgnore([
-            'name'         => $name,
+            'name' => $name,
             'display_name' => $name,
-            'module'       => $module,
-            'created_at'   => now(),
-            'updated_at'   => now(),
+            'module' => $module,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         return DB::table('permissions')->where('name', $name)->value('id');
     }
 
-    private function assignRole(int $roleId, ?\Carbon\Carbon $expiresAt = null): void
+    private function assignRole(int $roleId, ?Carbon $expiresAt = null): void
     {
         DB::table('user_roles')->insert([
-            'user_id'     => $this->user->id,
-            'role_id'     => $roleId,
+            'user_id' => $this->user->id,
+            'role_id' => $roleId,
             'assigned_at' => now(),
-            'expires_at'  => $expiresAt,
-            'created_at'  => now(),
-            'updated_at'  => now(),
+            'expires_at' => $expiresAt,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
     }
 
@@ -88,7 +90,6 @@ class RoleExpirationTest extends TestCase
             'updated_at' => now(),
         ]);
     }
-
 
     public function test_non_expired_role_grants_access_to_admin_route(): void
     {
@@ -137,14 +138,14 @@ class RoleExpirationTest extends TestCase
 
     public function test_non_expired_permission_role_grants_finance_access(): void
     {
-        $roleId       = $this->insertRole('finance_viewer_exp');
+        $roleId = $this->insertRole('finance_viewer_exp');
         $permissionId = $this->insertPermission('finance.view');
 
         DB::table('role_permissions')->insert([
-            'role_id'       => $roleId,
+            'role_id' => $roleId,
             'permission_id' => $permissionId,
-            'created_at'    => now(),
-            'updated_at'    => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         $this->assignRole($roleId, now()->addHour());
@@ -154,14 +155,14 @@ class RoleExpirationTest extends TestCase
 
     public function test_expired_permission_role_denies_finance_access(): void
     {
-        $roleId       = $this->insertRole('finance_viewer_expired');
+        $roleId = $this->insertRole('finance_viewer_expired');
         $permissionId = $this->insertPermission('finance.view');
 
         DB::table('role_permissions')->insert([
-            'role_id'       => $roleId,
+            'role_id' => $roleId,
             'permission_id' => $permissionId,
-            'created_at'    => now(),
-            'updated_at'    => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         $this->assignRole($roleId, now()->subHour()); // already expired
@@ -176,14 +177,14 @@ class RoleExpirationTest extends TestCase
         $this->assignRole($adminRoleId, now()->subDay());
 
         // Active finance.view permission via a non-expired role
-        $roleId       = $this->insertRole('finance_active');
+        $roleId = $this->insertRole('finance_active');
         $permissionId = $this->insertPermission('finance.view');
 
         DB::table('role_permissions')->insert([
-            'role_id'       => $roleId,
+            'role_id' => $roleId,
             'permission_id' => $permissionId,
-            'created_at'    => now(),
-            'updated_at'    => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         $this->assignRole($roleId, null); // active, no expiry

@@ -20,18 +20,21 @@ class TimeEntryController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new TimeEntry());
+        parent::__construct(new TimeEntry);
     }
 
     public function store(Request $request): JsonResponse
     {
         $error = $this->validate($request->all());
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $data = $request->all();
         $data['is_billable'] = $data['is_billable'] ?? true;
 
         $entry = TimeEntry::create($data);
+
         return $this->respondCreated($entry->load(['task', 'user']), 'Time entry created successfully');
     }
 

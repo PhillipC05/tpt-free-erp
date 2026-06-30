@@ -16,11 +16,11 @@ class EmployeeRequest extends FormRequest
         $employeeId = $this->route('id');
 
         return [
-            'employee_code' => 'required|string|max:20|unique:hr_employees,employee_code,' . $employeeId,
+            'employee_code' => 'required|string|max:20|unique:hr_employees,employee_code,'.$employeeId,
             'user_id' => 'nullable|exists:users,id',
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
-            'email' => 'required|email|max:200|unique:hr_employees,email,' . $employeeId,
+            'email' => 'required|email|max:200|unique:hr_employees,email,'.$employeeId,
             'phone' => 'nullable|string|max:20',
             'position' => 'nullable|string|max:200',
             'department_id' => 'nullable|exists:hr_departments,id',

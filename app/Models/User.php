@@ -3,15 +3,17 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Network\UserProfile;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Models\Network\UserProfile;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\HasApiTokens;
 
 #[Fillable(['name', 'email', 'password'])]
@@ -37,6 +39,16 @@ class User extends Authenticatable
     public function profile(): HasOne
     {
         return $this->hasOne(UserProfile::class);
+    }
+
+    public function apiKeys(): HasMany
+    {
+        return $this->hasMany(ApiKey::class);
+    }
+
+    public function pushSubscriptions(): HasMany
+    {
+        return $this->hasMany(PushSubscription::class);
     }
 
     public function roles(): BelongsToMany
@@ -95,7 +107,7 @@ class User extends Authenticatable
         $cacheKey = "user_permissions_{$this->id}";
 
         return cache()->remember($cacheKey, now()->addMinutes(5), function () {
-            return \Illuminate\Support\Facades\DB::table('permissions as p')
+            return DB::table('permissions as p')
                 ->join('role_permissions as rp', 'p.id', '=', 'rp.permission_id')
                 ->join('roles as r', 'r.id', '=', 'rp.role_id')
                 ->join('user_roles as ur', 'r.id', '=', 'ur.role_id')

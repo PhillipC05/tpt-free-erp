@@ -54,7 +54,7 @@ return [
 
         'stack' => [
             'driver' => 'stack',
-            'channels' => explode(',', (string) env('LOG_STACK', 'single')),
+            'channels' => explode(',', (string) env('LOG_STACK', 'single,daily')),
             'ignore_exceptions' => false,
         ],
 
@@ -121,6 +121,38 @@ return [
         'null' => [
             'driver' => 'monolog',
             'handler' => NullHandler::class,
+        ],
+
+        'audit' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/audit.log'),
+            'level' => env('LOG_LEVEL', 'info'),
+            'days' => env('LOG_AUDIT_DAYS', 30),
+            'replace_placeholders' => true,
+        ],
+
+        'agent_execution' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/agent-execution.log'),
+            'level' => env('LOG_LEVEL', 'info'),
+            'days' => env('LOG_AGENT_DAYS', 14),
+            'replace_placeholders' => true,
+        ],
+
+        'error_log' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/error.log'),
+            'level' => 'error',
+            'days' => env('LOG_ERROR_DAYS', 30),
+            'replace_placeholders' => true,
+        ],
+
+        'performance' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/performance.log'),
+            'level' => env('LOG_LEVEL', 'info'),
+            'days' => env('LOG_PERFORMANCE_DAYS', 14),
+            'replace_placeholders' => true,
         ],
 
         'emergency' => [

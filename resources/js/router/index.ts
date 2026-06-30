@@ -260,6 +260,12 @@ const routes: RouteRecordRaw[] = [
             { path: 'marketing/leads', name: 'marketing.leads', component: () => import('@/views/marketing/LeadsView.vue') },
             // Expenses
             { path: 'expenses', name: 'expenses', component: () => import('@/views/expenses/ExpensesView.vue') },
+            // Analytics Drilldowns
+            { path: 'analytics/finance', name: 'analytics.finance', component: () => import('@/views/analytics/FinanceAnalyticsView.vue') },
+            { path: 'analytics/inventory', name: 'analytics.inventory', component: () => import('@/views/analytics/InventoryAnalyticsView.vue') },
+            { path: 'analytics/sales', name: 'analytics.sales', component: () => import('@/views/analytics/SalesAnalyticsView.vue') },
+            { path: 'analytics/hr', name: 'analytics.hr', component: () => import('@/views/analytics/HrAnalyticsView.vue') },
+            { path: 'analytics/procurement', name: 'analytics.procurement', component: () => import('@/views/analytics/ProcurementAnalyticsView.vue') },
             // Finance budgets
             { path: 'finance/budgets', name: 'finance.budgets', component: () => import('@/views/finance/BudgetsView.vue') },
             // Documents
@@ -288,8 +294,13 @@ const routes: RouteRecordRaw[] = [
             { path: 'fleet/maintenance-tracking', name: 'fleet.maintenance-tracking', component: () => import('@/views/fleet/MaintenanceTrackingView.vue') },
             // Subscriptions
             { path: 'subscription', name: 'subscription', component: () => import('@/views/subscription/SubscriptionsView.vue') },
+            // Donors & Grants
+            { path: 'donors', name: 'donors', component: () => import('@/views/donors/DonorsView.vue') },
+            { path: 'grants', name: 'grants', component: () => import('@/views/donors/GrantsView.vue') },
             // Notifications
             { path: 'notifications-center', name: 'notifications-center', component: () => import('@/views/notifications/NotificationsView.vue') },
+            // Developer Portal
+            { path: 'developer', name: 'developer.portal', component: () => import('@/views/developer/DeveloperPortalView.vue') },
         ],
     },
     {

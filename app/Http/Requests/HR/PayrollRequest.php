@@ -16,7 +16,7 @@ class PayrollRequest extends FormRequest
         $payrollId = $this->route('id');
 
         return [
-            'payroll_number' => 'required|string|max:50|unique:hr_payroll,payroll_number,' . $payrollId,
+            'payroll_number' => 'required|string|max:50|unique:hr_payroll,payroll_number,'.$payrollId,
             'employee_id' => 'required|exists:hr_employees,id',
             'period_start' => 'required|date',
             'period_end' => 'required|date|after_or_equal:period_start',

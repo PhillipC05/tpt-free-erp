@@ -5,14 +5,15 @@ namespace Tests\Feature\Lms;
 use App\Models\Lms\Course;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
 
 class CourseTest extends TestCase
 {
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
 
     protected function setUp(): void
@@ -27,6 +28,7 @@ class CourseTest extends TestCase
     {
         return ['Authorization' => "Bearer {$this->token}"];
     }
+
     private function assignAdminRole(): void
     {
         DB::table('roles')->insertOrIgnore([
@@ -48,7 +50,6 @@ class CourseTest extends TestCase
             'updated_at' => now(),
         ]);
     }
-
 
     public function test_can_list_courses(): void
     {

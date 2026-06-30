@@ -3,7 +3,10 @@ import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';
 import { bunny } from 'laravel-vite-plugin/fonts';
 import tailwindcss from '@tailwindcss/vite';
+import { visualizer } from 'rollup-plugin-visualizer';
 import path from 'path';
+
+const analyze = process.env.ANALYZE === 'true';
 
 export default defineConfig({
     plugins: [
@@ -47,6 +50,7 @@ export default defineConfig({
                     'vendor-vue': ['vue', 'vue-router', 'pinia'],
                 },
             },
+            ...(analyze ? { plugins: [visualizer({ open: true, filename: 'bundle-stats.html' })] } : {}),
         },
     },
 });

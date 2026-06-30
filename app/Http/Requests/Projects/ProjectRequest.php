@@ -16,7 +16,7 @@ class ProjectRequest extends FormRequest
         $projectId = $this->route('id');
 
         return [
-            'code' => 'required|string|max:20|unique:projects,code,' . $projectId,
+            'code' => 'required|string|max:20|unique:projects,code,'.$projectId,
             'name' => 'required|string|max:200',
             'description' => 'nullable|string',
             'start_date' => 'required|date',

@@ -34,11 +34,11 @@ class PermissionSeeder extends Seeder
         foreach (self::MODULES as $module) {
             foreach (self::ACTIONS as $action) {
                 $permissions[] = [
-                    'name'         => "{$module}.{$action}",
-                    'display_name' => ucfirst($action) . ' ' . ucwords(str_replace('_', ' ', $module)),
-                    'module'       => $module,
-                    'created_at'   => $now,
-                    'updated_at'   => $now,
+                    'name' => "{$module}.{$action}",
+                    'display_name' => ucfirst($action).' '.ucwords(str_replace('_', ' ', $module)),
+                    'module' => $module,
+                    'created_at' => $now,
+                    'updated_at' => $now,
                 ];
             }
         }
@@ -49,6 +49,6 @@ class PermissionSeeder extends Seeder
 
         DB::table('permissions')->insertOrIgnore($permissions);
 
-        $this->command->info('PermissionSeeder: ' . count($permissions) . ' permissions upserted (duplicates skipped).');
+        $this->command->info('PermissionSeeder: '.count($permissions).' permissions upserted (duplicates skipped).');
     }
 }

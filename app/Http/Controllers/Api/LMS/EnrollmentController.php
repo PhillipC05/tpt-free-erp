@@ -19,13 +19,15 @@ class EnrollmentController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new Enrollment());
+        parent::__construct(new Enrollment);
     }
 
     public function store(Request $request): JsonResponse
     {
         $error = $this->validate($request->all());
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $existing = Enrollment::where('course_id', $request->course_id)
             ->where('employee_id', $request->employee_id)
@@ -40,6 +42,7 @@ class EnrollmentController extends BaseApiController
         $data['status'] = $data['status'] ?? 'enrolled';
 
         $enrollment = Enrollment::create($data);
+
         return $this->respondCreated($enrollment->load(['course', 'employee']), 'Enrolled successfully');
     }
 
@@ -79,7 +82,9 @@ class EnrollmentController extends BaseApiController
         $error = $this->validate($request->all(), [
             'employee_id' => 'required|exists:hr_employees,id',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $existing = Enrollment::where('course_id', $course)
             ->where('employee_id', $request->employee_id)
@@ -103,7 +108,9 @@ class EnrollmentController extends BaseApiController
     public function complete(Request $request, int $enrollment): JsonResponse
     {
         $record = Enrollment::find($enrollment);
-        if (!$record) return $this->respondNotFound();
+        if (! $record) {
+            return $this->respondNotFound();
+        }
 
         if ($record->status === 'completed') {
             return $this->respondError('Enrollment is already completed', 422);

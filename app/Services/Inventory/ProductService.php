@@ -19,6 +19,7 @@ class ProductService
     public function updateProduct(Product $product, array $data): Product
     {
         $product->update($data);
+
         return $product->fresh();
     }
 
@@ -27,6 +28,7 @@ class ProductService
         if ($product->stock()->sum('quantity') > 0) {
             throw new \RuntimeException('Cannot delete product with existing stock');
         }
+
         return $product->delete();
     }
 
@@ -37,6 +39,7 @@ class ProductService
             ->get()
             ->filter(function ($product) {
                 $totalStock = $product->stock->sum('quantity');
+
                 return $totalStock <= $product->min_stock_level;
             });
     }

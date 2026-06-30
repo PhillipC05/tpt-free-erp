@@ -23,39 +23,49 @@ class CheckController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new QualityCheck());
+        parent::__construct(new QualityCheck);
     }
 
     public function store(Request $request): JsonResponse
     {
         $error = $this->validate($request->all());
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $data = $request->all();
         $data['inspected_at'] = $data['inspected_at'] ?? now();
 
         $check = QualityCheck::create($data);
+
         return $this->respondCreated($check, 'Quality check created successfully');
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
         $check = QualityCheck::find($id);
-        if (!$check) return $this->respondNotFound();
+        if (! $check) {
+            return $this->respondNotFound();
+        }
 
         $error = $this->validate($request->all(), array_merge($this->validationRules, [
-            'check_code' => 'required|string|max:50|unique:quality_checks,check_code,' . $id,
+            'check_code' => 'required|string|max:50|unique:quality_checks,check_code,'.$id,
         ]));
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $check->update($request->all());
+
         return $this->respondSuccess('Quality check updated', $check->fresh());
     }
 
     public function show(int $id): JsonResponse
     {
         $check = QualityCheck::with(['product', 'nonConformances'])->find($id);
-        if (!$check) return $this->respondNotFound();
+        if (! $check) {
+            return $this->respondNotFound();
+        }
 
         return $this->respond(['success' => true, 'data' => $check]);
     }
@@ -94,14 +104,18 @@ class CheckController extends BaseApiController
     public function recordResult(Request $request, int $check): JsonResponse
     {
         $qc = QualityCheck::find($check);
-        if (!$qc) return $this->respondNotFound();
+        if (! $qc) {
+            return $this->respondNotFound();
+        }
 
         $error = $this->validate($request->all(), [
             'result' => 'required|in:pass,fail,conditional',
             'notes' => 'nullable|string',
             'inspected_by' => 'nullable|exists:hr_employees,id',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $qc->update(array_merge($request->only(['result', 'notes', 'inspected_by']), [
             'inspected_at' => now(),

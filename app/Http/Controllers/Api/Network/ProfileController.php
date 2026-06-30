@@ -60,11 +60,11 @@ class ProfileController extends BaseApiController
         return $this->respondCreated($profile);
     }
 
-    public function update(Request $request, int $id): JsonResponse
+    public function update(Request $request, int $id = 0): JsonResponse
     {
         $profile = UserProfile::where('user_id', $request->user()->id)->first();
 
-        if (!$profile) {
+        if (! $profile) {
             return $this->respondNotFound('Profile not found');
         }
 
@@ -96,12 +96,12 @@ class ProfileController extends BaseApiController
     {
         $profile = UserProfile::with('interests')->find($id);
 
-        if (!$profile) {
+        if (! $profile) {
             return $this->respondNotFound('Profile not found');
         }
 
         // Only show if discoverable or own profile
-        if (!$profile->is_discoverable && $profile->user_id !== request()->user()->id) {
+        if (! $profile->is_discoverable && $profile->user_id !== request()->user()->id) {
             return $this->respondNotFound('Profile not found');
         }
 
@@ -153,7 +153,7 @@ class ProfileController extends BaseApiController
 
         return $this->respondSuccess('Avatar uploaded successfully', [
             'avatar_path' => $path,
-            'avatar_url'  => Storage::url($path),
+            'avatar_url' => Storage::url($path),
         ]);
     }
 
@@ -161,7 +161,7 @@ class ProfileController extends BaseApiController
     {
         $profile = UserProfile::where('user_id', $request->user()->id)->first();
 
-        if (!$profile) {
+        if (! $profile) {
             return $this->respondNotFound('Profile not found');
         }
 

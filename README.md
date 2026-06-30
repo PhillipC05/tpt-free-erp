@@ -117,7 +117,14 @@ php artisan l5-swagger:generate
 
 # List all API routes
 php artisan route:list --path=api
+
+# Bundle size analysis
+npm run build:analyze
 ```
+
+### Bundle Analysis
+
+Run `npm run build:analyze` to generate an interactive treemap (`bundle-stats.html`) showing chunk sizes and dependencies. Use this to identify large imports and optimize the bundle.
 
 ---
 

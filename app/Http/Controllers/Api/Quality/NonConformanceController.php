@@ -23,18 +23,21 @@ class NonConformanceController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new NonConformance());
+        parent::__construct(new NonConformance);
     }
 
     public function store(Request $request): JsonResponse
     {
         $error = $this->validate($request->all());
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $data = $request->all();
         $data['status'] = $data['status'] ?? 'open';
 
         $nc = NonConformance::create($data);
+
         return $this->respondCreated($nc, 'Non-conformance created successfully');
     }
 
@@ -72,12 +75,16 @@ class NonConformanceController extends BaseApiController
     public function updateStatus(Request $request, int $nc): JsonResponse
     {
         $record = NonConformance::find($nc);
-        if (!$record) return $this->respondNotFound();
+        if (! $record) {
+            return $this->respondNotFound();
+        }
 
         $error = $this->validate($request->all(), [
             'status' => 'required|in:open,investigating,resolved,closed',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $updates = ['status' => $request->input('status')];
         if ($request->input('status') === 'resolved') {
@@ -85,6 +92,7 @@ class NonConformanceController extends BaseApiController
         }
 
         $record->update($updates);
+
         return $this->respondSuccess('Status updated', $record->fresh());
     }
 }

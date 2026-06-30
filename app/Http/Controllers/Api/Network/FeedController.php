@@ -55,9 +55,9 @@ class FeedController extends BaseApiController
         $feedUserIds[] = $userId; // always include self
 
         $posts = NetworkPost::with([
-                'author:id,name',
-                'author.profile:user_id,headline',
-            ])
+            'author:id,name',
+            'author.profile:user_id,headline',
+        ])
             ->whereIn('user_id', array_unique($feedUserIds))
             ->orderBy('created_at', 'desc')
             ->paginate(20);

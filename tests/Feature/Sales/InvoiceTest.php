@@ -7,14 +7,15 @@ use App\Models\Sales\Invoice;
 use App\Models\Sales\Order;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
 
 class InvoiceTest extends TestCase
 {
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
 
     protected function setUp(): void
@@ -29,6 +30,7 @@ class InvoiceTest extends TestCase
     {
         return ['Authorization' => "Bearer {$this->token}"];
     }
+
     private function assignAdminRole(): void
     {
         DB::table('roles')->insertOrIgnore([
@@ -50,7 +52,6 @@ class InvoiceTest extends TestCase
             'updated_at' => now(),
         ]);
     }
-
 
     public function test_can_list_invoices(): void
     {

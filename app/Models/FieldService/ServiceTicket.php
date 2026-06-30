@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ServiceTicket extends Model
 {
     use HasFactory;
+
     protected $table = 'field_service_tickets';
 
     protected $fillable = [

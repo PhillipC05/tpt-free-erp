@@ -19,8 +19,8 @@ class ContractExpiryCommandTest extends TestCase
 
         $user = User::factory()->create();
         Contract::factory()->create([
-            'status'     => 'active',
-            'end_date'   => now()->addDays(30)->toDateString(),
+            'status' => 'active',
+            'end_date' => now()->addDays(30)->toDateString(),
             'created_by' => $user->id,
         ]);
 
@@ -38,14 +38,14 @@ class ContractExpiryCommandTest extends TestCase
         $user = User::factory()->create();
 
         Contract::factory()->create([
-            'status'     => 'active',
-            'end_date'   => now()->addDays(7)->toDateString(),
+            'status' => 'active',
+            'end_date' => now()->addDays(7)->toDateString(),
             'created_by' => $user->id,
         ]);
 
         Contract::factory()->create([
-            'status'     => 'signed',
-            'end_date'   => now()->addDays(1)->toDateString(),
+            'status' => 'signed',
+            'end_date' => now()->addDays(1)->toDateString(),
             'created_by' => $user->id,
         ]);
 
@@ -67,14 +67,14 @@ class ContractExpiryCommandTest extends TestCase
         $user = User::factory()->create();
 
         Contract::factory()->create([
-            'status'     => 'draft',
-            'end_date'   => now()->addDays(30)->toDateString(),
+            'status' => 'draft',
+            'end_date' => now()->addDays(30)->toDateString(),
             'created_by' => $user->id,
         ]);
 
         Contract::factory()->create([
-            'status'     => 'terminated',
-            'end_date'   => now()->addDays(7)->toDateString(),
+            'status' => 'terminated',
+            'end_date' => now()->addDays(7)->toDateString(),
             'created_by' => $user->id,
         ]);
 
@@ -97,13 +97,13 @@ class ContractExpiryCommandTest extends TestCase
         Notification::fake();
 
         $creator = User::factory()->create();
-        $signer  = User::factory()->create();
+        $signer = User::factory()->create();
 
         Contract::factory()->create([
-            'status'     => 'active',
-            'end_date'   => now()->addDays(30)->toDateString(),
+            'status' => 'active',
+            'end_date' => now()->addDays(30)->toDateString(),
             'created_by' => $creator->id,
-            'signed_by'  => $signer->id,
+            'signed_by' => $signer->id,
         ]);
 
         $this->artisan('contracts:notify-expiry')->assertSuccessful();

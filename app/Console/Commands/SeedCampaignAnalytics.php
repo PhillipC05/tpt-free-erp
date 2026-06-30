@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Marketing\Campaign;
 use App\Models\Marketing\CampaignAnalytic;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 
 /**
@@ -14,12 +15,13 @@ use Illuminate\Console\Command;
 class SeedCampaignAnalytics extends Command
 {
     protected $signature = 'marketing:seed-analytics {--date= : Date to seed (YYYY-MM-DD, defaults to yesterday)}';
+
     protected $description = 'Seed campaign analytic rows for active campaigns (runs daily)';
 
     public function handle(): int
     {
         $date = $this->option('date')
-            ? \Carbon\Carbon::parse($this->option('date'))->toDateString()
+            ? Carbon::parse($this->option('date'))->toDateString()
             : now()->subDay()->toDateString();
 
         $campaigns = Campaign::where('status', 'active')
@@ -31,6 +33,7 @@ class SeedCampaignAnalytics extends Command
 
         if ($campaigns->isEmpty()) {
             $this->info("No active campaigns found for {$date}.");
+
             return self::SUCCESS;
         }
 
@@ -48,25 +51,26 @@ class SeedCampaignAnalytics extends Command
             // Simulate realistic engagement metrics derived from budget
             $dailyBudget = $campaign->budget ? (float) $campaign->budget / 30 : 100;
             $impressions = (int) ($dailyBudget * random_int(80, 120));
-            $clicks      = (int) ($impressions * (random_int(2, 8) / 100));
+            $clicks = (int) ($impressions * (random_int(2, 8) / 100));
             $conversions = (int) ($clicks * (random_int(5, 20) / 100));
-            $cost        = round($dailyBudget * (random_int(80, 100) / 100), 2);
-            $revenue     = round($cost * (random_int(100, 400) / 100), 2);
+            $cost = round($dailyBudget * (random_int(80, 100) / 100), 2);
+            $revenue = round($cost * (random_int(100, 400) / 100), 2);
 
             CampaignAnalytic::create([
                 'campaign_id' => $campaign->id,
-                'date'        => $date,
+                'date' => $date,
                 'impressions' => $impressions,
-                'clicks'      => $clicks,
+                'clicks' => $clicks,
                 'conversions' => $conversions,
-                'cost'        => $cost,
-                'revenue'     => $revenue,
+                'cost' => $cost,
+                'revenue' => $revenue,
             ]);
 
             $seeded++;
         }
 
         $this->info("Seeded analytics for {$seeded} campaign(s) on {$date}.");
+
         return self::SUCCESS;
     }
 }

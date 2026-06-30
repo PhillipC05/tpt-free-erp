@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\Marketing;
 use App\Http\Controllers\Api\BaseApiController;
 use App\Mail\CampaignEmail;
 use App\Models\Marketing\Campaign;
-use App\Models\Marketing\CampaignAnalytic;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -75,7 +74,7 @@ class CampaignController extends BaseApiController
     {
         $campaign = Campaign::find($id);
 
-        if (!$campaign) {
+        if (! $campaign) {
             return $this->respondNotFound('Campaign not found');
         }
 
@@ -86,13 +85,13 @@ class CampaignController extends BaseApiController
     {
         $campaign = Campaign::find($id);
 
-        if (!$campaign) {
+        if (! $campaign) {
             return $this->respondNotFound('Campaign not found');
         }
 
         $error = $this->validate($request->all(), [
             'name' => 'sometimes|required|string|max:255',
-            'code' => 'sometimes|required|string|max:100|unique:marketing_campaigns,code,' . $id,
+            'code' => 'sometimes|required|string|max:100|unique:marketing_campaigns,code,'.$id,
             'type' => 'sometimes|required|string|in:email,social,event,paid_ads,content',
             'status' => 'nullable|string|in:draft,active,paused,completed,cancelled',
             'budget' => 'nullable|numeric|min:0',
@@ -114,7 +113,7 @@ class CampaignController extends BaseApiController
     {
         $campaign = Campaign::find($id);
 
-        if (!$campaign) {
+        if (! $campaign) {
             return $this->respondNotFound('Campaign not found');
         }
 
@@ -128,7 +127,7 @@ class CampaignController extends BaseApiController
     {
         $campaign = Campaign::find($id);
 
-        if (!$campaign) {
+        if (! $campaign) {
             return $this->respondNotFound('Campaign not found');
         }
 
@@ -136,8 +135,8 @@ class CampaignController extends BaseApiController
             return $this->respondError('Only email campaigns can be sent via this endpoint', 422);
         }
 
-        if (!in_array($campaign->status, ['draft', 'active'])) {
-            return $this->respondError('Cannot send a ' . $campaign->status . ' campaign', 422);
+        if (! in_array($campaign->status, ['draft', 'active'])) {
+            return $this->respondError('Cannot send a '.$campaign->status.' campaign', 422);
         }
 
         $error = $this->validate($request->all(), [
@@ -186,35 +185,35 @@ class CampaignController extends BaseApiController
     {
         $campaign = Campaign::find($id);
 
-        if (!$campaign) {
+        if (! $campaign) {
             return $this->respondNotFound('Campaign not found');
         }
 
         $analytics = $campaign->analytics()->get();
-        $totalCost     = (float) $analytics->sum('cost');
-        $totalRevenue  = (float) $analytics->sum('revenue');
-        $totalClicks   = (int)   $analytics->sum('clicks');
-        $conversions   = (int)   $analytics->sum('conversions');
+        $totalCost = (float) $analytics->sum('cost');
+        $totalRevenue = (float) $analytics->sum('revenue');
+        $totalClicks = (int) $analytics->sum('clicks');
+        $conversions = (int) $analytics->sum('conversions');
 
-        $roi           = $totalCost > 0 ? round(($totalRevenue - $totalCost) / $totalCost * 100, 2) : null;
-        $cpa           = $conversions > 0 ? round($totalCost / $conversions, 2) : null;
-        $roas          = $totalCost > 0 ? round($totalRevenue / $totalCost, 4) : null;
-        $cpc           = $totalClicks > 0 ? round($totalCost / $totalClicks, 4) : null;
+        $roi = $totalCost > 0 ? round(($totalRevenue - $totalCost) / $totalCost * 100, 2) : null;
+        $cpa = $conversions > 0 ? round($totalCost / $conversions, 2) : null;
+        $roas = $totalCost > 0 ? round($totalRevenue / $totalCost, 4) : null;
+        $cpc = $totalClicks > 0 ? round($totalCost / $totalClicks, 4) : null;
 
         return $this->respond([
             'success' => true,
-            'data'    => [
-                'campaign_id'       => $campaign->id,
-                'campaign_name'     => $campaign->name,
-                'budget'            => (float) $campaign->budget,
-                'total_cost'        => $totalCost,
-                'total_revenue'     => $totalRevenue,
-                'roi_percent'       => $roi,
-                'roas'              => $roas,
-                'cost_per_click'    => $cpc,
+            'data' => [
+                'campaign_id' => $campaign->id,
+                'campaign_name' => $campaign->name,
+                'budget' => (float) $campaign->budget,
+                'total_cost' => $totalCost,
+                'total_revenue' => $totalRevenue,
+                'roi_percent' => $roi,
+                'roas' => $roas,
+                'cost_per_click' => $cpc,
                 'cost_per_acquisition' => $cpa,
                 'total_conversions' => $conversions,
-                'total_clicks'      => $totalClicks,
+                'total_clicks' => $totalClicks,
             ],
         ]);
     }
@@ -223,7 +222,7 @@ class CampaignController extends BaseApiController
     {
         $campaign = Campaign::find($id);
 
-        if (!$campaign) {
+        if (! $campaign) {
             return $this->respondNotFound('Campaign not found');
         }
 

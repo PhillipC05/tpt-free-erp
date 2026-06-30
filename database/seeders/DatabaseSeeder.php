@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
@@ -34,21 +35,21 @@ class DatabaseSeeder extends Seeder
         $admin = User::firstOrCreate(
             ['email' => 'admin@tpt-erp.local'],
             [
-                'name'               => 'System Administrator',
-                'password'           => Hash::make('password'),
-                'email_verified_at'  => now(),
+                'name' => 'System Administrator',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
             ]
         );
 
         // Assign admin role
-        $adminRole = \Illuminate\Support\Facades\DB::table('roles')->where('name', 'admin')->first();
+        $adminRole = DB::table('roles')->where('name', 'admin')->first();
         if ($adminRole) {
-            \Illuminate\Support\Facades\DB::table('user_roles')->insertOrIgnore([
-                'user_id'     => $admin->id,
-                'role_id'     => $adminRole->id,
+            DB::table('user_roles')->insertOrIgnore([
+                'user_id' => $admin->id,
+                'role_id' => $adminRole->id,
                 'assigned_at' => now(),
-                'created_at'  => now(),
-                'updated_at'  => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
     }

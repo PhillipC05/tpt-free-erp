@@ -28,6 +28,7 @@ class VehicleTest extends TestCase
     {
         return ['Authorization' => "Bearer {$this->token}"];
     }
+
     private function assignAdminRole(): void
     {
         DB::table('roles')->insertOrIgnore([
@@ -49,7 +50,6 @@ class VehicleTest extends TestCase
             'updated_at' => now(),
         ]);
     }
-
 
     public function test_can_list_vehicles(): void
     {

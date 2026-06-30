@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 class SyncSkills extends Command
 {
     protected $signature = 'skills:sync {--clear-cache : Clear the skill registry cache}';
+
     protected $description = 'Sync skill .md files from storage/app/skills/ into the registry cache';
 
     public function __construct(private readonly SkillRegistry $registry)
@@ -23,11 +24,11 @@ class SyncSkills extends Command
         }
 
         $skills = $this->registry->all();
-        $this->info("Loaded " . count($skills) . " skills from storage/app/skills/");
+        $this->info('Loaded '.count($skills).' skills from storage/app/skills/');
 
         $this->table(
             ['Slug', 'Category', 'Model Tier', 'Cost Tier', 'Enabled by Default'],
-            collect($skills)->map(fn($s) => [
+            collect($skills)->map(fn ($s) => [
                 $s['slug'],
                 $s['category'],
                 $s['model_tier'] ?? 'standard',

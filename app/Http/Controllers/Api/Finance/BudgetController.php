@@ -76,7 +76,7 @@ class BudgetController extends BaseApiController
     {
         $budget = Budget::with('lines')->find($id);
 
-        if (!$budget) {
+        if (! $budget) {
             return $this->respondNotFound('Budget not found');
         }
 
@@ -87,7 +87,7 @@ class BudgetController extends BaseApiController
     {
         $budget = Budget::find($id);
 
-        if (!$budget) {
+        if (! $budget) {
             return $this->respondNotFound('Budget not found');
         }
 
@@ -115,7 +115,7 @@ class BudgetController extends BaseApiController
     {
         $budget = Budget::find($id);
 
-        if (!$budget) {
+        if (! $budget) {
             return $this->respondNotFound('Budget not found');
         }
 
@@ -129,7 +129,7 @@ class BudgetController extends BaseApiController
     {
         $budget = Budget::find($id);
 
-        if (!$budget) {
+        if (! $budget) {
             return $this->respondNotFound('Budget not found');
         }
 
@@ -147,7 +147,7 @@ class BudgetController extends BaseApiController
     {
         $budget = Budget::find($id);
 
-        if (!$budget) {
+        if (! $budget) {
             return $this->respondNotFound('Budget not found');
         }
 

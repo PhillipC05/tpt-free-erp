@@ -2,19 +2,21 @@
 
 namespace Tests\Feature\HR;
 
-use App\Models\HR\Employee;
 use App\Models\Documents\Document;
+use App\Models\HR\Employee;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
 
 class EmployeeDocumentTest extends TestCase
 {
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
+
     private Employee $employee;
 
     protected function setUp(): void
@@ -44,6 +46,7 @@ class EmployeeDocumentTest extends TestCase
             'uploaded_by' => $this->user->id,
         ], $overrides));
     }
+
     private function assignAdminRole(): void
     {
         DB::table('roles')->insertOrIgnore([
@@ -65,7 +68,6 @@ class EmployeeDocumentTest extends TestCase
             'updated_at' => now(),
         ]);
     }
-
 
     public function test_can_list_documents(): void
     {

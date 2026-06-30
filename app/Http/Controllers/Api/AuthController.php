@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\User;
+use App\Services\TOTPService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends BaseApiController
@@ -25,7 +27,7 @@ class AuthController extends BaseApiController
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
@@ -62,7 +64,7 @@ class AuthController extends BaseApiController
             'success' => true,
             'data' => [
                 'token' => $token,
-                'user'  => $user,
+                'user' => $user,
             ],
         ], 201);
     }
@@ -70,6 +72,7 @@ class AuthController extends BaseApiController
     public function logout(Request $request): JsonResponse
     {
         $request->user()->currentAccessToken()->delete();
+
         return $this->respondSuccess('Logged out successfully');
     }
 
@@ -82,6 +85,7 @@ class AuthController extends BaseApiController
     {
         $request->user()->currentAccessToken()->delete();
         $token = $request->user()->createToken('api-token')->plainTextToken;
+
         return $this->respond(['success' => true, 'token' => $token]);
     }
 
@@ -123,7 +127,7 @@ class AuthController extends BaseApiController
         // Generate and send magic link (simplified - in production use a proper service)
         $user = User::where('email', $request->email)->first();
         if ($user) {
-            $token = \Illuminate\Support\Str::random(60);
+            $token = Str::random(60);
             $user->update(['magic_link_token' => $token, 'magic_link_expires_at' => now()->addMinutes(15)]);
             // Send email with magic link (implement Mail facade)
         }
@@ -139,7 +143,7 @@ class AuthController extends BaseApiController
             ->where('magic_link_expires_at', '>', now())
             ->first();
 
-        if (!$user) {
+        if (! $user) {
             return $this->respondError('Invalid or expired token', 401);
         }
 
@@ -159,7 +163,7 @@ class AuthController extends BaseApiController
         $request->validate(['code' => 'required|string|size:6']);
 
         // Generate and verify TOTP secret (simplified)
-        $secret = \App\Services\TOTPService::generateSecret();
+        $secret = TOTPService::generateSecret();
         $user->update(['totp_secret' => $secret, 'totp_enabled' => true]);
 
         return $this->respondSuccess('TOTP enabled successfully');
@@ -178,11 +182,11 @@ class AuthController extends BaseApiController
         $request->validate(['code' => 'required|string|size:6']);
 
         $user = $request->user();
-        if (!$user->totp_secret) {
+        if (! $user->totp_secret) {
             return $this->respondError('TOTP not enabled');
         }
 
-        $isValid = \App\Services\TOTPService::verify($user->totp_secret, $request->code);
+        $isValid = TOTPService::verify($user->totp_secret, $request->code);
 
         return $isValid
             ? $this->respondSuccess('TOTP verified successfully')

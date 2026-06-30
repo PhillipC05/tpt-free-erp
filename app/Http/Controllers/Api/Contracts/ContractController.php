@@ -84,7 +84,7 @@ class ContractController extends BaseApiController
     {
         $contract = Contract::with('milestones')->find($id);
 
-        if (!$contract) {
+        if (! $contract) {
             return $this->respondNotFound('Contract not found');
         }
 
@@ -95,13 +95,13 @@ class ContractController extends BaseApiController
     {
         $contract = Contract::find($id);
 
-        if (!$contract) {
+        if (! $contract) {
             return $this->respondNotFound('Contract not found');
         }
 
         $error = $this->validate($request->all(), [
             'title' => 'sometimes|required|string|max:255',
-            'contract_number' => 'sometimes|required|string|max:100|unique:contracts,contract_number,' . $id,
+            'contract_number' => 'sometimes|required|string|max:100|unique:contracts,contract_number,'.$id,
             'type' => 'sometimes|required|string|in:sale,purchase,service,nda',
             'status' => 'nullable|string|in:draft,review,signed,active,expired,terminated',
             'start_date' => 'nullable|date',
@@ -124,7 +124,7 @@ class ContractController extends BaseApiController
     {
         $contract = Contract::find($id);
 
-        if (!$contract) {
+        if (! $contract) {
             return $this->respondNotFound('Contract not found');
         }
 
@@ -146,7 +146,7 @@ class ContractController extends BaseApiController
     {
         $contract = Contract::find($id);
 
-        if (!$contract) {
+        if (! $contract) {
             return $this->respondNotFound('Contract not found');
         }
 
@@ -165,7 +165,7 @@ class ContractController extends BaseApiController
     {
         $contract = Contract::find($id);
 
-        if (!$contract) {
+        if (! $contract) {
             return $this->respondNotFound('Contract not found');
         }
 

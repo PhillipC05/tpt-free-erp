@@ -6,10 +6,12 @@ use App\Models\Contracts\Contract;
 use App\Models\User;
 use App\Notifications\ContractExpiryNotification;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 
 class NotifyContractExpiry extends Command
 {
     protected $signature = 'contracts:notify-expiry';
+
     protected $description = 'Send expiry alerts for contracts expiring in 30, 7, or 1 day(s)';
 
     private const ALERT_DAYS = [30, 7, 1];
@@ -41,7 +43,7 @@ class NotifyContractExpiry extends Command
         $this->info("Contract expiry check complete. {$notified} notification(s) sent.");
     }
 
-    private function resolveRecipients(Contract $contract): \Illuminate\Support\Collection
+    private function resolveRecipients(Contract $contract): Collection
     {
         $userIds = collect([$contract->created_by, $contract->signed_by])
             ->filter()

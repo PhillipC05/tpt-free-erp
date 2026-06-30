@@ -5,14 +5,15 @@ namespace Tests\Feature\Finance;
 use App\Models\Finance\Account;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
 
 class AccountTest extends TestCase
 {
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
 
     protected function setUp(): void
@@ -27,6 +28,7 @@ class AccountTest extends TestCase
     {
         return ['Authorization' => "Bearer {$this->token}"];
     }
+
     private function assignAdminRole(): void
     {
         DB::table('roles')->insertOrIgnore([
@@ -48,7 +50,6 @@ class AccountTest extends TestCase
             'updated_at' => now(),
         ]);
     }
-
 
     public function test_can_list_accounts(): void
     {

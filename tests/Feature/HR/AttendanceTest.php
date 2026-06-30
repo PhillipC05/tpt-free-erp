@@ -5,6 +5,7 @@ namespace Tests\Feature\HR;
 use App\Models\HR\Attendance;
 use App\Models\HR\Employee;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -29,6 +30,7 @@ class AttendanceTest extends TestCase
     {
         return ['Authorization' => "Bearer {$this->token}"];
     }
+
     private function assignAdminRole(): void
     {
         DB::table('roles')->insertOrIgnore([
@@ -51,13 +53,16 @@ class AttendanceTest extends TestCase
         ]);
     }
 
-
     public function test_can_clock_in(): void
     {
+        Carbon::setTestNow(Carbon::today()->setTime(8, 30, 0));
+
         $employee = Employee::factory()->create();
         $response = $this->postJson('/api/v1/hr/attendance/clock-in', [
             'employee_id' => $employee->id,
         ], $this->auth());
+
+        Carbon::setTestNow();
 
         $response->assertOk()->assertJson(['success' => true]);
         $this->assertDatabaseHas('hr_attendance', [
@@ -130,8 +135,12 @@ class AttendanceTest extends TestCase
 
     public function test_can_get_today_status(): void
     {
+        Carbon::setTestNow(Carbon::today()->setTime(8, 30, 0));
+
         $employee = Employee::factory()->create(['status' => 'active']);
         $this->postJson('/api/v1/hr/attendance/clock-in', ['employee_id' => $employee->id], $this->auth());
+
+        Carbon::setTestNow();
 
         $response = $this->getJson('/api/v1/hr/attendance/today-status', $this->auth());
         $response->assertOk()->assertJsonStructure([
@@ -182,11 +191,11 @@ class AttendanceTest extends TestCase
         $record = Attendance::where('employee_id', $employee->id)->whereDate('date', today())->first();
         $record->update(['clock_in' => '08:00:00']);
 
-        \Carbon\Carbon::setTestNow(now()->setTime(19, 0, 0));
+        Carbon::setTestNow(now()->setTime(19, 0, 0));
         $response = $this->postJson('/api/v1/hr/attendance/clock-out', [
             'employee_id' => $employee->id,
         ], $this->auth());
-        \Carbon\Carbon::setTestNow();
+        Carbon::setTestNow();
 
         $response->assertOk();
         $record->refresh();
@@ -203,11 +212,11 @@ class AttendanceTest extends TestCase
         $record = Attendance::where('employee_id', $employee->id)->whereDate('date', today())->first();
         $record->update(['clock_in' => '10:00:00']);
 
-        \Carbon\Carbon::setTestNow(now()->setTime(15, 0, 0));
+        Carbon::setTestNow(now()->setTime(15, 0, 0));
         $response = $this->postJson('/api/v1/hr/attendance/clock-out', [
             'employee_id' => $employee->id,
         ], $this->auth());
-        \Carbon\Carbon::setTestNow();
+        Carbon::setTestNow();
 
         $response->assertOk();
         $record->refresh();

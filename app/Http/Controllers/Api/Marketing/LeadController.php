@@ -81,7 +81,7 @@ class LeadController extends BaseApiController
     {
         $lead = Lead::find($id);
 
-        if (!$lead) {
+        if (! $lead) {
             return $this->respondNotFound('Lead not found');
         }
 
@@ -92,7 +92,7 @@ class LeadController extends BaseApiController
     {
         $lead = Lead::find($id);
 
-        if (!$lead) {
+        if (! $lead) {
             return $this->respondNotFound('Lead not found');
         }
 
@@ -119,7 +119,7 @@ class LeadController extends BaseApiController
     {
         $lead = Lead::find($id);
 
-        if (!$lead) {
+        if (! $lead) {
             return $this->respondNotFound('Lead not found');
         }
 
@@ -133,7 +133,7 @@ class LeadController extends BaseApiController
     {
         $lead = Lead::find($id);
 
-        if (!$lead) {
+        if (! $lead) {
             return $this->respondNotFound('Lead not found');
         }
 
@@ -142,10 +142,10 @@ class LeadController extends BaseApiController
         }
 
         $customer = Customer::create([
-            'name' => trim($lead->first_name . ' ' . $lead->last_name),
+            'name' => trim($lead->first_name.' '.$lead->last_name),
             'email' => $lead->email,
             'phone' => $lead->phone,
-            'code' => 'CUST-' . strtoupper(Str::random(6)),
+            'code' => 'CUST-'.strtoupper(Str::random(6)),
             'status' => 'active',
         ]);
 
@@ -167,15 +167,15 @@ class LeadController extends BaseApiController
     {
         $lead = Lead::find($id);
 
-        if (!$lead) {
+        if (! $lead) {
             return $this->respondNotFound('Lead not found');
         }
 
         $pipeline = CrmPipeline::create([
-            'contact_name' => trim($lead->first_name . ' ' . $lead->last_name),
+            'contact_name' => trim($lead->first_name.' '.$lead->last_name),
             'contact_email' => $lead->email,
             'stage' => 'lead',
-            'name' => trim($lead->first_name . ' ' . $lead->last_name),
+            'name' => trim($lead->first_name.' '.$lead->last_name),
             'status' => 'open',
         ]);
 

@@ -1,91 +1,105 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\Agent\AgentAbTestController;
+use App\Http\Controllers\Api\Agent\AgentCompanyAccessController;
+use App\Http\Controllers\Api\Agent\AgentController;
+use App\Http\Controllers\Api\Agent\AgentCostController;
+use App\Http\Controllers\Api\Agent\AgentExecutionController;
+use App\Http\Controllers\Api\Agent\AgentScheduleController;
+use App\Http\Controllers\Api\Agent\AgentSkillController;
+use App\Http\Controllers\Api\Agent\AgentTeamController;
+use App\Http\Controllers\Api\Agent\AgentTokenController;
+use App\Http\Controllers\Api\Agent\SkillMarketplaceController;
+use App\Http\Controllers\Api\Analytics\ModuleAnalyticsController;
+use App\Http\Controllers\Api\AnalyticsController;
+use App\Http\Controllers\Api\Assets\AssetController;
+use App\Http\Controllers\Api\Assets\MaintenanceController;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\Contracts\ContractController;
+use App\Http\Controllers\Api\Contracts\ContractMilestoneController;
+use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\DeveloperPortalController;
+use App\Http\Controllers\Api\Documents\DocumentController;
+use App\Http\Controllers\Api\Donors\DonorController;
+use App\Http\Controllers\Api\Donors\GrantController;
+use App\Http\Controllers\Api\ESignature\ESignatureController;
+use App\Http\Controllers\Api\Expenses\ExpenseController;
+use App\Http\Controllers\Api\Expenses\ExpenseItemController;
+use App\Http\Controllers\Api\FieldService\TicketController;
 use App\Http\Controllers\Api\Finance\AccountController;
-use App\Http\Controllers\Api\Finance\TransactionController;
-use App\Http\Controllers\Api\Finance\JournalEntryController;
-use App\Http\Controllers\Api\Finance\ReportController as FinanceReportController;
 use App\Http\Controllers\Api\Finance\BudgetController;
 use App\Http\Controllers\Api\Finance\BudgetLineController;
-use App\Http\Controllers\Api\Inventory\ProductController;
-use App\Http\Controllers\Api\Inventory\CategoryController;
-use App\Http\Controllers\Api\Inventory\WarehouseController;
-use App\Http\Controllers\Api\Inventory\StockMovementController;
-use App\Http\Controllers\Api\HR\EmployeeController;
-use App\Http\Controllers\Api\HR\DepartmentController;
-use App\Http\Controllers\Api\HR\LeaveRequestController;
+use App\Http\Controllers\Api\Finance\JournalEntryController;
+use App\Http\Controllers\Api\Finance\ReportController as FinanceReportController;
+use App\Http\Controllers\Api\Finance\TransactionController;
+use App\Http\Controllers\Api\Fleet\DriverController;
+use App\Http\Controllers\Api\Fleet\FuelLogController;
+use App\Http\Controllers\Api\Fleet\FuelTrackingController;
+use App\Http\Controllers\Api\Fleet\MaintenanceController as FleetMaintenanceController;
+use App\Http\Controllers\Api\Fleet\MaintenanceTrackingController;
+use App\Http\Controllers\Api\Fleet\PartCategoryController;
+use App\Http\Controllers\Api\Fleet\PartController;
+use App\Http\Controllers\Api\Fleet\PartUsageController;
+use App\Http\Controllers\Api\Fleet\TripController;
+use App\Http\Controllers\Api\Fleet\VehicleController;
+use App\Http\Controllers\Api\GDPRController;
+use App\Http\Controllers\Api\HealthCheckController;
 use App\Http\Controllers\Api\HR\AttendanceController;
-use App\Http\Controllers\Api\HR\HRTrackingController;
-use App\Http\Controllers\Api\HR\SelfServiceController;
-use App\Http\Controllers\Api\HR\EmployeeDocumentController;
+use App\Http\Controllers\Api\HR\DepartmentController;
 use App\Http\Controllers\Api\HR\DirectoryController;
-use App\Http\Controllers\Api\Recruitment\RecruitmentController;
-use App\Http\Controllers\Api\Training\TrainingController;
-use App\Http\Controllers\Api\Sales\CustomerController;
-use App\Http\Controllers\Api\Sales\OrderController;
-use App\Http\Controllers\Api\Sales\InvoiceController;
-use App\Http\Controllers\Api\Sales\CrmController;
+use App\Http\Controllers\Api\HR\EmployeeController;
+use App\Http\Controllers\Api\HR\EmployeeDocumentController;
+use App\Http\Controllers\Api\HR\HRTrackingController;
+use App\Http\Controllers\Api\HR\LeaveRequestController;
 use App\Http\Controllers\Api\HR\PayrollController;
-use App\Http\Controllers\Api\Procurement\VendorController;
-use App\Http\Controllers\Api\Procurement\PurchaseOrderController;
+use App\Http\Controllers\Api\HR\SelfServiceController;
+use App\Http\Controllers\Api\Inventory\CategoryController;
+use App\Http\Controllers\Api\Inventory\ProductController;
+use App\Http\Controllers\Api\Inventory\StockMovementController;
+use App\Http\Controllers\Api\Inventory\WarehouseController;
+use App\Http\Controllers\Api\LMS\CourseController;
+use App\Http\Controllers\Api\LMS\EnrollmentController;
 use App\Http\Controllers\Api\Manufacturing\BomController;
 use App\Http\Controllers\Api\Manufacturing\WorkOrderController;
+use App\Http\Controllers\Api\Marketing\CampaignController;
+use App\Http\Controllers\Api\Marketing\LeadController;
+use App\Http\Controllers\Api\Network\ConnectionController;
+use App\Http\Controllers\Api\Network\DiscoveryController;
+use App\Http\Controllers\Api\Network\FeedController;
+use App\Http\Controllers\Api\Network\FollowController;
+use App\Http\Controllers\Api\Network\PostController;
+use App\Http\Controllers\Api\Network\ProfileController as NetworkProfileController;
+use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\NotificationEnhancedController;
+use App\Http\Controllers\Api\NotificationTemplateController;
+use App\Http\Controllers\Api\OnboardingController;
+use App\Http\Controllers\Api\Pos\TerminalController;
+use App\Http\Controllers\Api\Pos\TransactionController as PosTransactionController;
+use App\Http\Controllers\Api\Procurement\PurchaseOrderController;
+use App\Http\Controllers\Api\Procurement\VendorController;
+use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\Projects\ProjectController;
 use App\Http\Controllers\Api\Projects\TaskController;
 use App\Http\Controllers\Api\Projects\TimeEntryController;
 use App\Http\Controllers\Api\Quality\CheckController;
 use App\Http\Controllers\Api\Quality\NonConformanceController;
-use App\Http\Controllers\Api\Assets\AssetController;
-use App\Http\Controllers\Api\Assets\MaintenanceController;
-use App\Http\Controllers\Api\FieldService\TicketController;
-use App\Http\Controllers\Api\LMS\CourseController;
-use App\Http\Controllers\Api\LMS\EnrollmentController;
-use App\Http\Controllers\Api\NotificationController;
-use App\Http\Controllers\Api\NotificationTemplateController;
-use App\Http\Controllers\Api\NotificationEnhancedController;
+use App\Http\Controllers\Api\Recruitment\RecruitmentController;
 use App\Http\Controllers\Api\ReportController;
-use App\Http\Controllers\Api\DashboardController;
-use App\Http\Controllers\Api\AnalyticsController;
-use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\RoleController;
-use App\Http\Controllers\Api\Marketing\CampaignController;
-use App\Http\Controllers\Api\Marketing\LeadController;
-use App\Http\Controllers\Api\Network\ProfileController as NetworkProfileController;
-use App\Http\Controllers\Api\Network\DiscoveryController;
-use App\Http\Controllers\Api\Network\FollowController;
-use App\Http\Controllers\Api\Network\ConnectionController;
-use App\Http\Controllers\Api\Network\FeedController;
-use App\Http\Controllers\Api\Network\PostController;
-use App\Http\Controllers\Api\Expenses\ExpenseController;
-use App\Http\Controllers\Api\Expenses\ExpenseItemController;
-use App\Http\Controllers\Api\Documents\DocumentController;
-use App\Http\Controllers\Api\Contracts\ContractController;
-use App\Http\Controllers\Api\Contracts\ContractMilestoneController;
-use App\Http\Controllers\Api\WebhookController;
-use App\Http\Controllers\Api\OnboardingController;
-use App\Http\Controllers\Api\Agent\AgentController;
-use App\Http\Controllers\Api\Agent\AgentTokenController;
-use App\Http\Controllers\Api\Agent\AgentSkillController;
-use App\Http\Controllers\Api\Agent\AgentExecutionController;
-use App\Http\Controllers\Api\Agent\AgentScheduleController;
+use App\Http\Controllers\Api\Sales\CrmController;
+use App\Http\Controllers\Api\Sales\CustomerController;
+use App\Http\Controllers\Api\Sales\InvoiceController;
+use App\Http\Controllers\Api\Sales\OrderController;
+use App\Http\Controllers\Api\SecurityController;
+use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\Subscription\PlanController;
 use App\Http\Controllers\Api\Subscription\SubscriptionController;
 use App\Http\Controllers\Api\Subscription\UsageController;
-use App\Http\Controllers\Api\ESignature\ESignatureController;
-use App\Http\Controllers\Api\Pos\TerminalController;
-use App\Http\Controllers\Api\Pos\TransactionController as PosTransactionController;
-use App\Http\Controllers\Api\Fleet\VehicleController;
-use App\Http\Controllers\Api\Fleet\DriverController;
-use App\Http\Controllers\Api\Fleet\TripController;
-use App\Http\Controllers\Api\Fleet\FuelLogController;
-use App\Http\Controllers\Api\Fleet\MaintenanceController as FleetMaintenanceController;
-use App\Http\Controllers\Api\Fleet\PartCategoryController;
-use App\Http\Controllers\Api\Fleet\PartController;
-use App\Http\Controllers\Api\Fleet\PartUsageController;
-use App\Http\Controllers\Api\Fleet\FuelTrackingController;
-use App\Http\Controllers\Api\Fleet\MaintenanceTrackingController;
+use App\Http\Controllers\Api\Training\TrainingController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\WebhookController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -114,19 +128,7 @@ Route::prefix('esignatures/sign')->group(function () {
 });
 
 // ===== HEALTH CHECK =====
-Route::get('/health', function () {
-    return response()->json([
-        'status'    => 'healthy',
-        'timestamp' => now()->toIso8601String(),
-        'version'   => config('app.version', '1.0.0'),
-        'modules'   => [
-            'finance', 'inventory', 'hr', 'sales', 'procurement',
-            'manufacturing', 'projects', 'quality', 'assets',
-            'field_service', 'lms', 'marketing', 'network',
-            'expenses', 'budgets', 'documents', 'contracts', 'pos', 'fleet', 'subscription',
-        ],
-    ]);
-});
+Route::get('/health', HealthCheckController::class);
 
 // ===== AUTHENTICATED ROUTES — all under /v1 =====
 Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->group(function () {
@@ -153,6 +155,13 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
     Route::get('/analytics/charts', [AnalyticsController::class, 'charts']);
     Route::get('/analytics/activity', [AnalyticsController::class, 'activity']);
     Route::get('/analytics/modules', [AnalyticsController::class, 'moduleSummary']);
+
+    // ----- Analytics Drilldowns -----
+    Route::get('/analytics/finance', [ModuleAnalyticsController::class, 'finance'])->middleware('permission:finance.view');
+    Route::get('/analytics/inventory', [ModuleAnalyticsController::class, 'inventory'])->middleware('permission:inventory.view');
+    Route::get('/analytics/hr', [ModuleAnalyticsController::class, 'hr'])->middleware('permission:hr.view');
+    Route::get('/analytics/sales', [ModuleAnalyticsController::class, 'sales'])->middleware('permission:sales.view');
+    Route::get('/analytics/procurement', [ModuleAnalyticsController::class, 'procurement'])->middleware('permission:procurement.view');
 
     // ----- Onboarding -----
     Route::prefix('onboarding')->group(function () {
@@ -689,6 +698,7 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
             Route::get('sessions', [TrainingController::class, 'listSessions']);
             Route::get('sessions/{session}', [TrainingController::class, 'showSession']);
             Route::get('certifications', [TrainingController::class, 'listCertifications']);
+            Route::get('completion-report', [TrainingController::class, 'completionReport']);
             Route::get('dashboard', [TrainingController::class, 'dashboard']);
         });
         Route::middleware('permission:hr.create')->group(function () {
@@ -903,6 +913,26 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
         });
     });
 
+    // ===== DONORS / GRANTS MODULE =====
+    Route::prefix('donors')->middleware('permission:finance.*')->group(function () {
+        Route::get('/', [DonorController::class, 'index']);
+        Route::post('/', [DonorController::class, 'store']);
+        Route::get('/{donor}', [DonorController::class, 'show']);
+        Route::put('/{donor}', [DonorController::class, 'update']);
+        Route::patch('/{donor}', [DonorController::class, 'update']);
+    });
+
+    Route::prefix('grants')->middleware('permission:finance.*')->group(function () {
+        Route::get('/', [GrantController::class, 'index']);
+        Route::post('/', [GrantController::class, 'store']);
+        Route::get('/{grant}', [GrantController::class, 'show']);
+        Route::put('/{grant}', [GrantController::class, 'update']);
+        Route::patch('/{grant}', [GrantController::class, 'update']);
+        Route::get('/{grant}/disbursements', [GrantController::class, 'disbursements']);
+        Route::post('/{grant}/disbursements', [GrantController::class, 'addDisbursement']);
+        Route::post('/{grant}/close', [GrantController::class, 'close']);
+    });
+
     // ===== E-SIGNATURE MODULE =====
     Route::prefix('esignatures')->group(function () {
         Route::middleware('permission:contracts.view')->group(function () {
@@ -938,6 +968,38 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
         Route::put('/read-all', [NotificationController::class, 'markAllAsRead']);
         Route::delete('/{id}', [NotificationController::class, 'destroy']);
         Route::put('/preferences', [NotificationController::class, 'updatePreferences']);
+
+        // Push Subscriptions
+        Route::post('/push/subscribe', function (Request $request) {
+            $request->validate([
+                'endpoint' => 'required|url',
+                'keys.auth' => 'nullable|string',
+                'keys.p256dh' => 'nullable|string',
+            ]);
+
+            $user = $request->user();
+            $subscription = $user->pushSubscriptions()->updateOrCreate(
+                ['endpoint' => $request->endpoint],
+                [
+                    'keys_auth' => $request->input('keys.auth'),
+                    'keys_p256dh' => $request->input('keys.p256dh'),
+                ]
+            );
+
+            return response()->json(['success' => true, 'message' => 'Subscribed to push notifications']);
+        });
+
+        Route::delete('/push/unsubscribe', function (Request $request) {
+            $request->validate([
+                'endpoint' => 'required|url',
+            ]);
+
+            $request->user()->pushSubscriptions()
+                ->where('endpoint', $request->endpoint)
+                ->delete();
+
+            return response()->json(['success' => true, 'message' => 'Unsubscribed from push notifications']);
+        });
     });
 
     // ===== NOTIFICATION TEMPLATES =====
@@ -959,6 +1021,15 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
     Route::post('notifications-enhanced/preferences', [NotificationEnhancedController::class, 'savePreferences']);
     Route::post('notifications-enhanced/send', [NotificationEnhancedController::class, 'send']);
 
+    // ===== DEVELOPER PORTAL (API Key Management) =====
+    Route::prefix('developer')->group(function () {
+        Route::post('keys', [DeveloperPortalController::class, 'createApiKey']);
+        Route::get('keys', [DeveloperPortalController::class, 'listApiKeys']);
+        Route::delete('keys/{id}', [DeveloperPortalController::class, 'revokeApiKey']);
+        Route::get('keys/{id}/usage', [DeveloperPortalController::class, 'usageStats']);
+        Route::get('keys/{id}/usage/endpoints', [DeveloperPortalController::class, 'usageByEndpoint']);
+    });
+
     // ===== REPORTS =====
     Route::prefix('reports')->group(function () {
         Route::post('/generate', [ReportController::class, 'generate']);
@@ -975,12 +1046,38 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
         Route::get('/skills/available', [AgentSkillController::class, 'catalog']);
         Route::post('/skills/upload', [AgentSkillController::class, 'upload']);
 
+        // Skill Marketplace
+        Route::get('/marketplace/featured', [SkillMarketplaceController::class, 'featured']);
+        Route::get('/marketplace', [SkillMarketplaceController::class, 'index']);
+        Route::get('/marketplace/{id}', [SkillMarketplaceController::class, 'show']);
+        Route::post('/marketplace/{id}/install', [SkillMarketplaceController::class, 'install']);
+        Route::delete('/marketplace/{id}/uninstall', [SkillMarketplaceController::class, 'uninstall']);
+
+        // Agent Teams
+        Route::get('/teams', [AgentTeamController::class, 'index']);
+        Route::post('/teams', [AgentTeamController::class, 'store']);
+        Route::get('/teams/{id}', [AgentTeamController::class, 'show']);
+        Route::put('/teams/{id}', [AgentTeamController::class, 'update']);
+        Route::delete('/teams/{id}', [AgentTeamController::class, 'destroy']);
+        Route::post('/teams/{id}/members', [AgentTeamController::class, 'manageMembers']);
+        Route::post('/teams/{id}/execute', [AgentTeamController::class, 'execute']);
+        Route::get('/teams/{id}/executions', [AgentTeamController::class, 'listExecutions']);
+        Route::get('/teams/{id}/executions/{execId}', [AgentTeamController::class, 'getExecution']);
+
+        // Multi-Company Agent Sharing
+        Route::get('/shared', [AgentCompanyAccessController::class, 'index']);
+
         // Agent CRUD
         Route::get('/', [AgentController::class, 'index']);
         Route::post('/', [AgentController::class, 'store']);
         Route::get('/{id}', [AgentController::class, 'show']);
         Route::put('/{id}', [AgentController::class, 'update']);
         Route::delete('/{id}', [AgentController::class, 'destroy']);
+
+        // Multi-Company Agent Sharing (per-agent)
+        Route::post('/{id}/share', [AgentCompanyAccessController::class, 'grant']);
+        Route::delete('/{id}/share/{accessId}', [AgentCompanyAccessController::class, 'revoke']);
+        Route::put('/{id}/share/{accessId}', [AgentCompanyAccessController::class, 'updateAccess']);
 
         // Tokens
         Route::post('/{id}/tokens', [AgentTokenController::class, 'createToken']);
@@ -992,6 +1089,7 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
         Route::post('/{id}/skills/{slug}/run', [AgentSkillController::class, 'run']);
 
         // Executions (audit log)
+        Route::get('/executions/export', [AgentExecutionController::class, 'exportCsv']);
         Route::get('/{id}/executions', [AgentExecutionController::class, 'listExecutions']);
         Route::get('/{id}/executions/{execId}', [AgentExecutionController::class, 'getExecution']);
 
@@ -999,24 +1097,37 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
         Route::get('/{id}/schedules', [AgentScheduleController::class, 'listSchedules']);
         Route::post('/{id}/schedules', [AgentScheduleController::class, 'createSchedule']);
         Route::delete('/{id}/schedules/{schedId}', [AgentScheduleController::class, 'deleteSchedule']);
+
+        // A/B Tests
+        Route::get('/ab-tests', [AgentAbTestController::class, 'index']);
+        Route::post('/ab-tests', [AgentAbTestController::class, 'store']);
+        Route::get('/ab-tests/{id}', [AgentAbTestController::class, 'show']);
+        Route::post('/ab-tests/{id}/run', [AgentAbTestController::class, 'run']);
+        Route::patch('/ab-tests/{id}/winner', [AgentAbTestController::class, 'declareWinner']);
+
+        // Cost Tracking
+        Route::get('/costs/summary', [AgentCostController::class, 'summary']);
+        Route::get('/costs/by-agent', [AgentCostController::class, 'byAgent']);
+        Route::get('/costs/by-skill', [AgentCostController::class, 'bySkill']);
+        Route::get('/costs/daily', [AgentCostController::class, 'daily']);
     });
 
     // ===== GDPR =====
     Route::prefix('gdpr')->group(function () {
-        Route::get('/export', [\App\Http\Controllers\Api\GDPRController::class, 'exportData']);
-        Route::post('/erase', [\App\Http\Controllers\Api\GDPRController::class, 'requestErasure']);
-        Route::post('/rectify', [\App\Http\Controllers\Api\GDPRController::class, 'requestRectification']);
-        Route::get('/consents', [\App\Http\Controllers\Api\GDPRController::class, 'consents']);
-        Route::post('/consents/{type}/withdraw', [\App\Http\Controllers\Api\GDPRController::class, 'withdrawConsent']);
+        Route::get('/export', [GDPRController::class, 'exportData']);
+        Route::post('/erase', [GDPRController::class, 'requestErasure']);
+        Route::post('/rectify', [GDPRController::class, 'requestRectification']);
+        Route::get('/consents', [GDPRController::class, 'consents']);
+        Route::post('/consents/{type}/withdraw', [GDPRController::class, 'withdrawConsent']);
     });
 
     // ===== USER MANAGEMENT (admin only) =====
     Route::prefix('users')->middleware('role:admin')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Api\UserController::class, 'index']);
-        Route::post('/', [\App\Http\Controllers\Api\UserController::class, 'store']);
-        Route::get('/{user}', [\App\Http\Controllers\Api\UserController::class, 'show']);
-        Route::put('/{user}', [\App\Http\Controllers\Api\UserController::class, 'update']);
-        Route::delete('/{user}', [\App\Http\Controllers\Api\UserController::class, 'destroy']);
+        Route::get('/', [UserController::class, 'index']);
+        Route::post('/', [UserController::class, 'store']);
+        Route::get('/{user}', [UserController::class, 'show']);
+        Route::put('/{user}', [UserController::class, 'update']);
+        Route::delete('/{user}', [UserController::class, 'destroy']);
     });
 
     // ===== ROLE & PERMISSION MANAGEMENT (admin only) =====
@@ -1038,10 +1149,10 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'cors.tpt'])->prefix('v1')->g
 
     // ===== SECURITY (admin only) =====
     Route::prefix('security')->middleware('role:admin')->group(function () {
-        Route::get('/events', [\App\Http\Controllers\Api\SecurityController::class, 'events']);
-        Route::get('/dashboard', [\App\Http\Controllers\Api\SecurityController::class, 'dashboard']);
-        Route::get('/sessions', [\App\Http\Controllers\Api\SecurityController::class, 'sessions']);
-        Route::delete('/sessions/{session}', [\App\Http\Controllers\Api\SecurityController::class, 'terminateSession']);
+        Route::get('/events', [SecurityController::class, 'events']);
+        Route::get('/dashboard', [SecurityController::class, 'dashboard']);
+        Route::get('/sessions', [SecurityController::class, 'sessions']);
+        Route::delete('/sessions/{session}', [SecurityController::class, 'terminateSession']);
     });
 });
 

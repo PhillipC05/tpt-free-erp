@@ -13,7 +13,7 @@ class TransactionFactory extends Factory
     public function definition(): array
     {
         return [
-            'transaction_number' => 'TXN-' . date('Ymd') . '-' . str_pad(fake()->unique()->numberBetween(1, 99999), 5, '0', STR_PAD_LEFT),
+            'transaction_number' => 'TXN-'.date('Ymd').'-'.str_pad(fake()->unique()->numberBetween(1, 99999), 5, '0', STR_PAD_LEFT),
             'terminal_id' => null,
             'customer_id' => null,
             'employee_id' => null,
@@ -33,6 +33,7 @@ class TransactionFactory extends Factory
     {
         return $this->state(function () {
             $subtotal = fake()->randomFloat(2, 10, 500);
+
             return [
                 'status' => 'completed',
                 'subtotal' => $subtotal,

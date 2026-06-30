@@ -16,13 +16,13 @@ class ContractMilestoneFactory extends Factory
     public function definition(): array
     {
         return [
-            'contract_id'    => Contract::factory(),
-            'title'          => fake()->sentence(3),
-            'description'    => fake()->optional()->sentence(),
-            'due_date'       => fake()->dateTimeBetween('+1 week', '+6 months'),
+            'contract_id' => Contract::factory(),
+            'title' => fake()->sentence(3),
+            'description' => fake()->optional()->sentence(),
+            'due_date' => fake()->dateTimeBetween('+1 week', '+6 months'),
             'payment_amount' => fake()->randomFloat(2, 500, 20000),
-            'is_completed'   => false,
-            'completed_at'   => null,
+            'is_completed' => false,
+            'completed_at' => null,
         ];
     }
 

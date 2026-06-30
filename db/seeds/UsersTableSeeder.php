@@ -18,7 +18,7 @@ class UsersTableSeeder extends AbstractSeed
                 'is_verified' => true,
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => date('Y-m-d H:i:s'),
-            ]
+            ],
         ];
 
         $users = $this->table('users');

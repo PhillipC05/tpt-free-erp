@@ -12,8 +12,11 @@ use Illuminate\Support\Facades\Validator;
 abstract class BaseApiController extends Controller
 {
     protected ?Model $model;
+
     protected array $defaultIncludes = [];
+
     protected array $validationRules = [];
+
     protected array $validationMessages = [];
 
     /** Override in subclass to enable tag-based cache invalidation on mutations. */
@@ -38,6 +41,7 @@ abstract class BaseApiController extends Controller
         if ($data !== null) {
             $response['data'] = $data;
         }
+
         return $this->respond($response);
     }
 
@@ -47,6 +51,7 @@ abstract class BaseApiController extends Controller
         if ($errors) {
             $response['errors'] = $errors;
         }
+
         return $this->respond($response, $status);
     }
 
@@ -56,6 +61,7 @@ abstract class BaseApiController extends Controller
         if ($data !== null) {
             $response['data'] = $data;
         }
+
         return $this->respond($response, 201);
     }
 
@@ -82,6 +88,7 @@ abstract class BaseApiController extends Controller
             if ($tag) {
                 return Cache::tags([$tag])->remember($key, $ttl, $callback);
             }
+
             return Cache::remember($key, $ttl, $callback);
         } catch (\BadMethodCallException) {
             // Cache driver doesn't support tags — execute without caching.
@@ -93,7 +100,9 @@ abstract class BaseApiController extends Controller
     protected function cacheFlush(?string $tag = null): void
     {
         $tag ??= $this->cacheTag;
-        if (!$tag) return;
+        if (! $tag) {
+            return;
+        }
 
         try {
             Cache::tags([$tag])->flush();
@@ -145,6 +154,7 @@ abstract class BaseApiController extends Controller
 
         $item = $this->model->create($request->all());
         $this->cacheFlush();
+
         return $this->respondCreated($item);
     }
 
@@ -152,7 +162,7 @@ abstract class BaseApiController extends Controller
     {
         $item = $this->model->find($id);
 
-        if (!$item) {
+        if (! $item) {
             return $this->respondNotFound();
         }
 
@@ -163,7 +173,7 @@ abstract class BaseApiController extends Controller
     {
         $item = $this->model->find($id);
 
-        if (!$item) {
+        if (! $item) {
             return $this->respondNotFound();
         }
 
@@ -174,6 +184,7 @@ abstract class BaseApiController extends Controller
 
         $item->update($request->all());
         $this->cacheFlush();
+
         return $this->respondSuccess('Updated successfully', $item);
     }
 
@@ -181,12 +192,13 @@ abstract class BaseApiController extends Controller
     {
         $item = $this->model->find($id);
 
-        if (!$item) {
+        if (! $item) {
             return $this->respondNotFound();
         }
 
         $item->delete();
         $this->cacheFlush();
+
         return $this->respondSuccess('Deleted successfully');
     }
 }

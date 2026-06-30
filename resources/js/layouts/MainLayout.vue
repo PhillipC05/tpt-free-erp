@@ -96,6 +96,18 @@
                 </div>
 
                 <div class="flex items-center gap-3">
+                    <!-- Push Subscribe Button -->
+                    <button
+                        v-if="pushNotifications.isSupported.value && !pushNotifications.isSubscribed.value"
+                        @click="handlePushSubscribe"
+                        class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        title="Enable push notifications"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                    </button>
+
                     <!-- Notification Bell -->
                     <div class="relative" ref="notifRef">
                         <button
@@ -183,11 +195,13 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
+import { usePushNotifications } from '@/composables/usePushNotifications';
 import api from '@/api/axios';
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const pushNotifications = usePushNotifications();
 
 const isFullscreen = computed(() => !!route.meta.fullscreen);
 
@@ -201,6 +215,16 @@ function toggleSidebar() {
 async function logout() {
     await authStore.logout();
     router.push({ name: 'login' });
+}
+
+async function handlePushSubscribe() {
+    const permission = await pushNotifications.requestPermission();
+    if (permission === 'granted') {
+        const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
+        if (vapidKey) {
+            await pushNotifications.subscribe(vapidKey);
+        }
+    }
 }
 
 // ── Navigation groups ────────────────────────────────────────────────────────
@@ -219,6 +243,18 @@ const navigationGroups: NavGroup[] = [
         label: 'Dashboard',
         to: '/dashboard',
         icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>',
+    },
+    {
+        label: 'Analytics',
+        prefix: '/analytics',
+        icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>',
+        children: [
+            { to: '/analytics/finance', label: 'Finance' },
+            { to: '/analytics/inventory', label: 'Inventory' },
+            { to: '/analytics/sales', label: 'Sales' },
+            { to: '/analytics/hr', label: 'HR' },
+            { to: '/analytics/procurement', label: 'Procurement' },
+        ],
     },
     {
         label: 'Finance',
@@ -403,6 +439,21 @@ const navigationGroups: NavGroup[] = [
             { to: '/agents', label: 'Agents' },
             { to: '/agents/skills/catalog', label: 'Skill Catalog' },
         ],
+    },
+    {
+        label: 'Non-Profit',
+        prefix: '/donors',
+        roles: ['finance', 'finance_manager', 'admin', 'super_admin'],
+        icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>',
+        children: [
+            { to: '/donors', label: 'Donors' },
+            { to: '/grants', label: 'Grants' },
+        ],
+    },
+    {
+        label: 'Developer',
+        to: '/developer',
+        icon: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>',
     },
     {
         label: 'Settings',

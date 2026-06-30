@@ -16,11 +16,11 @@ class AssetRequest extends FormRequest
         $assetId = $this->route('id');
 
         return [
-            'asset_code' => 'required|string|max:50|unique:assets,asset_code,' . $assetId,
+            'asset_code' => 'required|string|max:50|unique:assets,asset_code,'.$assetId,
             'name' => 'required|string|max:200',
             'description' => 'nullable|string',
             'type' => 'required|string|max:100',
-            'serial_number' => 'nullable|string|max:100|unique:assets,serial_number,' . $assetId,
+            'serial_number' => 'nullable|string|max:100|unique:assets,serial_number,'.$assetId,
             'purchase_date' => 'required|date',
             'purchase_cost' => 'required|numeric|min:0',
             'current_value' => 'nullable|numeric|min:0',

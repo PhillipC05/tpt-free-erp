@@ -44,6 +44,7 @@ class PayrollManagementTest extends TestCase
             'status' => 'draft',
         ], $overrides));
     }
+
     private function assignAdminRole(): void
     {
         DB::table('roles')->insertOrIgnore([
@@ -65,7 +66,6 @@ class PayrollManagementTest extends TestCase
             'updated_at' => now(),
         ]);
     }
-
 
     public function test_can_create_payroll(): void
     {

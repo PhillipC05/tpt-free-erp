@@ -31,12 +31,12 @@ class RoleSeeder extends Seeder
         foreach ($modules as $module) {
             foreach ($actions as $action) {
                 $permissions[] = [
-                    'name'         => "{$module}.{$action}",
-                    'display_name' => ucfirst($action) . ' ' . ucwords(str_replace('_', ' ', $module)),
-                    'module'       => $module,
-                    'description'  => null,
-                    'created_at'   => now(),
-                    'updated_at'   => now(),
+                    'name' => "{$module}.{$action}",
+                    'display_name' => ucfirst($action).' '.ucwords(str_replace('_', ' ', $module)),
+                    'module' => $module,
+                    'description' => null,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ];
             }
         }
@@ -52,12 +52,12 @@ class RoleSeeder extends Seeder
 
         // Agent-specific permission
         DB::table('permissions')->insertOrIgnore([[
-            'name'         => 'agents.execute',
+            'name' => 'agents.execute',
             'display_name' => 'Execute Agents',
-            'module'       => 'agents',
-            'description'  => null,
-            'created_at'   => now(),
-            'updated_at'   => now(),
+            'module' => 'agents',
+            'description' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]]);
 
         $this->assignRolePermissions('admin', array_merge($this->allActions($modules), ['agents.execute']));
@@ -101,6 +101,7 @@ class RoleSeeder extends Seeder
                 $result[] = "{$module}.{$action}";
             }
         }
+
         return $result;
     }
 
@@ -113,7 +114,7 @@ class RoleSeeder extends Seeder
     private function assignRolePermissions(string $roleName, array $permissionNames): void
     {
         $roleId = DB::table('roles')->where('name', $roleName)->value('id');
-        if (!$roleId) {
+        if (! $roleId) {
             return;
         }
 
@@ -122,10 +123,10 @@ class RoleSeeder extends Seeder
             ->pluck('id');
 
         $rows = $permissionIds->map(fn ($pid) => [
-            'role_id'       => $roleId,
+            'role_id' => $roleId,
             'permission_id' => $pid,
-            'created_at'    => now(),
-            'updated_at'    => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ])->all();
 
         DB::table('role_permissions')->insertOrIgnore($rows);

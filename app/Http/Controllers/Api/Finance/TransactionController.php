@@ -34,54 +34,67 @@ class TransactionController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new Transaction());
+        parent::__construct(new Transaction);
     }
 
     public function store(Request $request): JsonResponse
     {
         $error = $this->validate($request->all());
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $data = $request->all();
         $data['created_by'] = $data['created_by'] ?? Auth::id();
 
         $transaction = Transaction::create($data);
+
         return $this->respondCreated($transaction, 'Transaction created successfully');
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
         $transaction = Transaction::find($id);
-        if (!$transaction) return $this->respondNotFound();
+        if (! $transaction) {
+            return $this->respondNotFound();
+        }
 
         if ($transaction->status === 'posted') {
             return $this->respondError('Cannot update a posted transaction', 422);
         }
 
         $error = $this->validate($request->all());
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $transaction->update($request->all());
+
         return $this->respondSuccess('Transaction updated', $transaction->fresh());
     }
 
     public function destroy(int $id): JsonResponse
     {
         $transaction = Transaction::find($id);
-        if (!$transaction) return $this->respondNotFound();
+        if (! $transaction) {
+            return $this->respondNotFound();
+        }
 
         if ($transaction->status === 'posted') {
             return $this->respondError('Cannot delete a posted transaction', 422);
         }
 
         $transaction->delete();
+
         return $this->respondSuccess('Transaction deleted successfully');
     }
 
     public function approve(Request $request, int $id): JsonResponse
     {
         $transaction = Transaction::find($id);
-        if (!$transaction) return $this->respondNotFound();
+        if (! $transaction) {
+            return $this->respondNotFound();
+        }
 
         if ($transaction->status !== 'pending') {
             return $this->respondError('Only pending transactions can be approved', 422);
@@ -99,13 +112,16 @@ class TransactionController extends BaseApiController
     public function void(int $id): JsonResponse
     {
         $transaction = Transaction::find($id);
-        if (!$transaction) return $this->respondNotFound();
+        if (! $transaction) {
+            return $this->respondNotFound();
+        }
 
         if ($transaction->status === 'void') {
             return $this->respondError('Transaction is already void', 422);
         }
 
         $transaction->update(['status' => 'void']);
+
         return $this->respondSuccess('Transaction voided', $transaction->fresh());
     }
 

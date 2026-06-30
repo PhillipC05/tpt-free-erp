@@ -5,7 +5,9 @@ namespace Tests\Feature\Documents;
 use App\Models\Documents\Document;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class DocumentTest extends TestCase
@@ -13,11 +15,13 @@ class DocumentTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
 
     protected function setUp(): void
     {
         parent::setUp();
+        Storage::fake('local');
         $this->user = User::factory()->create();
         $this->token = $this->user->createToken('test')->plainTextToken;
         $this->assignAdminRole();
@@ -52,12 +56,11 @@ class DocumentTest extends TestCase
 
     public function test_can_create_document_record(): void
     {
+        $file = UploadedFile::fake()->create('proposal.pdf', 100, 'application/pdf');
+
         $response = $this->postJson('/api/v1/documents', [
+            'file' => $file,
             'name' => 'Project Proposal',
-            'original_filename' => 'proposal.pdf',
-            'storage_path' => 'documents/2026/proposal.pdf',
-            'mime_type' => 'application/pdf',
-            'file_size' => 1024,
             'documentable_type' => 'App\\Models\\User',
             'documentable_id' => $this->user->id,
         ], $this->auth());
@@ -81,6 +84,8 @@ class DocumentTest extends TestCase
             'mime_type' => 'application/pdf',
             'file_size' => 512,
             'uploaded_by' => $this->user->id,
+            'documentable_type' => 'App\\Models\\User',
+            'documentable_id' => $this->user->id,
         ]);
 
         $response = $this->getJson('/api/v1/documents', $this->auth());
@@ -113,6 +118,8 @@ class DocumentTest extends TestCase
             'mime_type' => 'application/pdf',
             'file_size' => 256,
             'uploaded_by' => $this->user->id,
+            'documentable_type' => 'App\\Models\\User',
+            'documentable_id' => $this->user->id,
         ]);
 
         $response = $this->putJson("/api/v1/documents/{$document->id}", [
@@ -137,6 +144,8 @@ class DocumentTest extends TestCase
             'mime_type' => 'application/pdf',
             'file_size' => 128,
             'uploaded_by' => $this->user->id,
+            'documentable_type' => 'App\\Models\\User',
+            'documentable_id' => $this->user->id,
         ]);
 
         $response = $this->deleteJson("/api/v1/documents/{$document->id}", [], $this->auth());

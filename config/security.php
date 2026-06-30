@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Security Configuration
  * TPT Open ERP

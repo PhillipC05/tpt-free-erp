@@ -16,7 +16,7 @@ class TaskRequest extends FormRequest
         $taskId = $this->route('id');
 
         return [
-            'code' => 'required|string|max:20|unique:project_tasks,code,' . $taskId,
+            'code' => 'required|string|max:20|unique:project_tasks,code,'.$taskId,
             'project_id' => 'required|exists:projects,id',
             'title' => 'required|string|max:200',
             'description' => 'nullable|string',

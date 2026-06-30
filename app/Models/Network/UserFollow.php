@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserFollow extends Model
 {
-    protected $table = 'network_user_follows';
+    protected $table = 'user_follows';
 
     protected $fillable = ['follower_id', 'following_id'];
 

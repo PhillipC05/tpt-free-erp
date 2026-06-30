@@ -11,12 +11,14 @@ class AssetService
     public function createAsset(array $data): Asset
     {
         $data['status'] = $data['status'] ?? 'active';
+
         return Asset::create($data);
     }
 
     public function updateAsset(Asset $asset, array $data): Asset
     {
         $asset->update($data);
+
         return $asset->fresh();
     }
 
@@ -74,6 +76,7 @@ class AssetService
             'status' => 'completed',
             'completed_date' => now()->toDateString(),
         ]));
+
         return $record->fresh();
     }
 

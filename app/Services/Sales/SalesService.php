@@ -2,13 +2,12 @@
 
 namespace App\Services\Sales;
 
-use App\Models\Sales\Order;
-use App\Models\Sales\OrderItem;
-use App\Models\Sales\Invoice;
-use App\Models\Sales\Customer;
-use App\Models\Sales\CrmPipeline;
 use App\Models\Inventory\Stock;
 use App\Models\Inventory\StockMovement;
+use App\Models\Sales\CrmPipeline;
+use App\Models\Sales\Customer;
+use App\Models\Sales\Invoice;
+use App\Models\Sales\Order;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -18,6 +17,7 @@ class SalesService
     {
         $data['status'] = $data['status'] ?? 'draft';
         $data['created_by'] = $data['created_by'] ?? auth()->id();
+
         return Order::create($data);
     }
 
@@ -41,7 +41,9 @@ class SalesService
                     $quantityNeeded = (float) $item->quantity;
 
                     foreach ($stockItems as $stock) {
-                        if ($quantityNeeded <= 0) break;
+                        if ($quantityNeeded <= 0) {
+                            break;
+                        }
 
                         $available = (float) $stock->available_quantity;
                         $toReserve = min($available, $quantityNeeded);
@@ -66,6 +68,7 @@ class SalesService
             throw new \RuntimeException('Only confirmed orders can be shipped');
         }
         $order->update(['status' => 'shipped']);
+
         return $order->fresh();
     }
 
@@ -155,7 +158,7 @@ class SalesService
     public function createInvoiceFromOrder(Order $order): Invoice
     {
         return DB::transaction(function () use ($order) {
-            $invoiceNumber = 'INV-' . strtoupper(uniqid());
+            $invoiceNumber = 'INV-'.strtoupper(uniqid());
 
             $invoice = Invoice::create([
                 'invoice_number' => $invoiceNumber,

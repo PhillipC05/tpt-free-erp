@@ -2,10 +2,9 @@
 
 namespace App\Services\HR;
 
-use App\Models\HR\Employee;
 use App\Models\HR\Department;
+use App\Models\HR\Employee;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Hash;
 
 class EmployeeService
 {
@@ -17,6 +16,7 @@ class EmployeeService
     public function updateEmployee(Employee $employee, array $data): Employee
     {
         $employee->update($data);
+
         return $employee->fresh();
     }
 
@@ -39,7 +39,7 @@ class EmployeeService
         while ($current->manager) {
             $chain[] = [
                 'id' => $current->manager->id,
-                'name' => $current->manager->first_name . ' ' . $current->manager->last_name,
+                'name' => $current->manager->first_name.' '.$current->manager->last_name,
                 'position' => $current->manager->position,
             ];
             $current = $current->manager;

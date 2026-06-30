@@ -16,7 +16,7 @@ class WarehouseRequest extends FormRequest
         $warehouseId = $this->route('id');
 
         return [
-            'code' => 'required|string|max:20|unique:inventory_warehouses,code,' . $warehouseId,
+            'code' => 'required|string|max:20|unique:inventory_warehouses,code,'.$warehouseId,
             'name' => 'required|string|max:200',
             'address' => 'nullable|string',
             'city' => 'nullable|string|max:100',

@@ -33,6 +33,7 @@ class TransactionTest extends TestCase
     {
         return ['Authorization' => "Bearer {$this->token}"];
     }
+
     private function assignAdminRole(): void
     {
         DB::table('roles')->insertOrIgnore([
@@ -54,7 +55,6 @@ class TransactionTest extends TestCase
             'updated_at' => now(),
         ]);
     }
-
 
     public function test_can_list_transactions(): void
     {

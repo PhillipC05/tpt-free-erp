@@ -62,9 +62,9 @@ class CoaManufacturingSeeder extends Seeder
             ['code' => '2060', 'name' => 'Payroll Tax Payable',             'type' => 'liability', 'category' => 'Current Liabilities', 'description' => 'Payroll taxes withheld from employees'],
             ['code' => '2070', 'name' => 'Customer Deposits & Advances',    'type' => 'liability', 'category' => 'Current Liabilities', 'description' => 'Advance payments from customers'],
             ['code' => '2080', 'name' => 'Warranty Reserve',                'type' => 'liability', 'category' => 'Current Liabilities', 'description' => 'Estimated future warranty obligations'],
-            ['code' => '2500', 'name' => 'Long-term Loans Payable',         'type' => 'liability', 'category' => 'Long-term Liabilities','description' => 'Bank loans and long-term debt'],
-            ['code' => '2510', 'name' => 'Equipment Finance Leases',        'type' => 'liability', 'category' => 'Long-term Liabilities','description' => 'Finance lease obligations for equipment'],
-            ['code' => '2520', 'name' => 'Deferred Tax Liability',          'type' => 'liability', 'category' => 'Long-term Liabilities','description' => 'Future tax obligations from timing differences'],
+            ['code' => '2500', 'name' => 'Long-term Loans Payable',         'type' => 'liability', 'category' => 'Long-term Liabilities', 'description' => 'Bank loans and long-term debt'],
+            ['code' => '2510', 'name' => 'Equipment Finance Leases',        'type' => 'liability', 'category' => 'Long-term Liabilities', 'description' => 'Finance lease obligations for equipment'],
+            ['code' => '2520', 'name' => 'Deferred Tax Liability',          'type' => 'liability', 'category' => 'Long-term Liabilities', 'description' => 'Future tax obligations from timing differences'],
 
             // ── 3000s: Equity ──────────────────────────────────────────────
             ['code' => '3010', 'name' => 'Common Stock',                    'type' => 'equity',    'category' => 'Equity',              'description' => 'Par value of issued shares'],
@@ -126,13 +126,13 @@ class CoaManufacturingSeeder extends Seeder
 
         foreach ($accounts as $acct) {
             DB::table('finance_accounts')->insert(array_merge($acct, [
-                'parent_id'       => null,
-                'is_active'       => true,
-                'currency'        => 'USD',
+                'parent_id' => null,
+                'is_active' => true,
+                'currency' => 'USD',
                 'opening_balance' => 0,
                 'current_balance' => 0,
-                'created_at'      => $now,
-                'updated_at'      => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
             ]));
         }
     }

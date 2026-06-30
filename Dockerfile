@@ -1,26 +1,63 @@
-FROM php:8.3-apache
+# Stage 1: Build frontend assets
+FROM node:20-alpine AS build
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    libpq-dev \
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
+# Stage 2: PHP dependencies
+FROM composer:2 AS composer
+
+WORKDIR /app
+
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+
+# Stage 3: Production
+FROM php:8.3-fpm-alpine
+
+RUN apk add --no-cache \
+    nginx \
+    supervisor \
     libzip-dev \
-    libonig-dev \
-    libxml2-dev \
-    libcurl4-openssl-dev \
-    libgd-dev \
-    && docker-php-ext-install pdo pdo_pgsql zip mbstring xml curl gd
+    libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    oniguruma-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install \
+        mbstring \
+        xml \
+        ctype \
+        json \
+        bcmath \
+        pdo \
+        pdo_sqlite \
+        fileinfo \
+        sodium \
+        gd \
+        zip \
+        pcntl
 
-# Set working directory
 WORKDIR /var/www/html
 
-# Copy application code
-COPY . /var/www/html
+COPY --from=composer /app/vendor ./vendor
+COPY --from=build /app/public/build ./public/build
+COPY . .
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html
+RUN mkdir -p storage/framework/{cache,sessions,testing,views} \
+    && mkdir -p storage/logs \
+    && mkdir -p bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
 
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
+COPY docker/nginx.conf /etc/nginx/http.d/default.conf
+COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Expose port 80
 EXPOSE 80
+
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

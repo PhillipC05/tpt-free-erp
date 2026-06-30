@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class BudgetLine extends Model
 {
     use HasFactory;
+
     protected $table = 'budget_lines';
 
     protected $fillable = [

@@ -44,6 +44,7 @@ class LearningService
     public function dropEnrollment(Enrollment $enrollment): Enrollment
     {
         $enrollment->update(['status' => 'dropped']);
+
         return $enrollment->fresh();
     }
 }

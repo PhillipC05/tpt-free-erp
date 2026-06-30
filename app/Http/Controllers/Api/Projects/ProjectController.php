@@ -33,7 +33,7 @@ class ProjectController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new Project());
+        parent::__construct(new Project);
     }
 
     public function store(Request $request): JsonResponse
@@ -41,22 +41,27 @@ class ProjectController extends BaseApiController
         $error = $this->validate($request->all(), array_merge($this->validationRules, [
             'code' => 'required|string|max:20|unique:projects,code',
         ]));
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $data = $request->all();
         $data['status'] = $data['status'] ?? 'planning';
 
         $project = Project::create($data);
+
         return $this->respondCreated($project, 'Project created successfully');
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
         $project = Project::find($id);
-        if (!$project) return $this->respondNotFound();
+        if (! $project) {
+            return $this->respondNotFound();
+        }
 
         $error = $this->validate($request->all(), [
-            'code' => 'required|string|max:20|unique:projects,code,' . $id,
+            'code' => 'required|string|max:20|unique:projects,code,'.$id,
             'name' => 'required|string|max:200',
             'description' => 'nullable|string',
             'start_date' => 'required|date',
@@ -67,16 +72,21 @@ class ProjectController extends BaseApiController
             'budget' => 'nullable|numeric|min:0',
             'actual_cost' => 'nullable|numeric|min:0',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $project->update($request->all());
+
         return $this->respondSuccess('Project updated', $project->fresh());
     }
 
     public function show(int $id): JsonResponse
     {
         $project = Project::with(['manager', 'tasks'])->find($id);
-        if (!$project) return $this->respondNotFound();
+        if (! $project) {
+            return $this->respondNotFound();
+        }
 
         return $this->respond(['success' => true, 'data' => $project]);
     }
@@ -115,7 +125,9 @@ class ProjectController extends BaseApiController
     public function tasks(int $id): JsonResponse
     {
         $project = Project::with('tasks.assignee')->find($id);
-        if (!$project) return $this->respondNotFound();
+        if (! $project) {
+            return $this->respondNotFound();
+        }
 
         return $this->respond([
             'success' => true,
@@ -126,7 +138,9 @@ class ProjectController extends BaseApiController
     public function summary(int $id): JsonResponse
     {
         $project = Project::with('tasks')->find($id);
-        if (!$project) return $this->respondNotFound();
+        if (! $project) {
+            return $this->respondNotFound();
+        }
 
         $totalTasks = $project->tasks->count();
         $completedTasks = $project->tasks->where('status', 'completed')->count();

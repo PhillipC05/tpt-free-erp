@@ -4,6 +4,7 @@ namespace Database\Factories\Procurement;
 
 use App\Models\Procurement\PurchaseOrder;
 use App\Models\Procurement\Vendor;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class PurchaseOrderFactory extends Factory
@@ -24,7 +25,7 @@ class PurchaseOrderFactory extends Factory
             'tax_amount' => round($subtotal * 0.1, 2),
             'total_amount' => round($subtotal * 1.1, 2),
             'notes' => fake()->optional(0.3)->sentence(),
-            'created_by' => \App\Models\User::factory(),
+            'created_by' => User::factory(),
             'approved_by' => null,
             'approved_at' => null,
         ];

@@ -8,7 +8,6 @@ use App\Models\Network\UserProfile;
 use App\Models\Sales\CrmPipeline;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class DiscoveryController extends BaseApiController
 {
@@ -27,9 +26,9 @@ class DiscoveryController extends BaseApiController
             $keyword = $request->query('keyword');
             $query->where(function ($q) use ($keyword) {
                 $q->where('headline', 'like', "%{$keyword}%")
-                  ->orWhere('bio', 'like', "%{$keyword}%")
-                  ->orWhere('company', 'like', "%{$keyword}%")
-                  ->orWhere('job_title', 'like', "%{$keyword}%");
+                    ->orWhere('bio', 'like', "%{$keyword}%")
+                    ->orWhere('company', 'like', "%{$keyword}%")
+                    ->orWhere('job_title', 'like', "%{$keyword}%");
             });
         }
 
@@ -65,7 +64,7 @@ class DiscoveryController extends BaseApiController
     {
         $profile = UserProfile::with('user')->find($profileId);
 
-        if (!$profile) {
+        if (! $profile) {
             return $this->respondNotFound('Profile not found');
         }
 
@@ -85,7 +84,7 @@ class DiscoveryController extends BaseApiController
     {
         $profile = UserProfile::with('user')->find($profileId);
 
-        if (!$profile) {
+        if (! $profile) {
             return $this->respondNotFound('Profile not found');
         }
 

@@ -2,18 +2,21 @@
 
 namespace Tests\Feature\Network;
 
+use App\Models\Network\NetworkPost;
 use App\Models\Network\UserConnection;
+use App\Models\Network\UserFollow;
 use App\Models\Network\UserProfile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
 
 class NetworkTest extends TestCase
 {
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
 
     protected function setUp(): void
@@ -28,6 +31,7 @@ class NetworkTest extends TestCase
     {
         return ['Authorization' => "Bearer {$this->token}"];
     }
+
     private function assignAdminRole(): void
     {
         DB::table('roles')->insertOrIgnore([
@@ -50,7 +54,6 @@ class NetworkTest extends TestCase
         ]);
     }
 
-
     public function test_can_create_own_profile(): void
     {
         $response = $this->postJson('/api/v1/network/profile', [
@@ -62,7 +65,7 @@ class NetworkTest extends TestCase
         $response->assertCreated()
             ->assertJson(['success' => true]);
 
-        $this->assertDatabaseHas('network_user_profiles', [
+        $this->assertDatabaseHas('user_profiles', [
             'user_id' => $this->user->id,
             'company' => 'Acme Corp',
         ]);
@@ -83,7 +86,7 @@ class NetworkTest extends TestCase
         $response->assertOk()
             ->assertJson(['success' => true]);
 
-        $this->assertDatabaseHas('network_user_profiles', [
+        $this->assertDatabaseHas('user_profiles', [
             'user_id' => $this->user->id,
             'headline' => 'Updated headline',
         ]);
@@ -96,7 +99,7 @@ class NetworkTest extends TestCase
         $response->assertOk()
             ->assertJson(['success' => true]);
 
-        $this->assertDatabaseHas('network_user_profiles', [
+        $this->assertDatabaseHas('user_profiles', [
             'user_id' => $this->user->id,
             'is_discoverable' => 1,
         ]);
@@ -114,7 +117,7 @@ class NetworkTest extends TestCase
         $response->assertOk()
             ->assertJson(['success' => true]);
 
-        $this->assertDatabaseHas('network_user_profiles', [
+        $this->assertDatabaseHas('user_profiles', [
             'user_id' => $this->user->id,
             'is_discoverable' => 0,
         ]);
@@ -157,7 +160,7 @@ class NetworkTest extends TestCase
         $response->assertOk()
             ->assertJson(['success' => true]);
 
-        $this->assertDatabaseHas('network_user_follows', [
+        $this->assertDatabaseHas('user_follows', [
             'follower_id' => $this->user->id,
             'following_id' => $otherUser->id,
         ]);
@@ -167,7 +170,7 @@ class NetworkTest extends TestCase
     {
         $otherUser = User::factory()->create();
 
-        \App\Models\Network\UserFollow::create([
+        UserFollow::create([
             'follower_id' => $this->user->id,
             'following_id' => $otherUser->id,
         ]);
@@ -177,7 +180,7 @@ class NetworkTest extends TestCase
         $response->assertOk()
             ->assertJson(['success' => true]);
 
-        $this->assertDatabaseMissing('network_user_follows', [
+        $this->assertDatabaseMissing('user_follows', [
             'follower_id' => $this->user->id,
             'following_id' => $otherUser->id,
         ]);
@@ -192,7 +195,7 @@ class NetworkTest extends TestCase
         $response->assertCreated()
             ->assertJson(['success' => true]);
 
-        $this->assertDatabaseHas('network_user_connections', [
+        $this->assertDatabaseHas('user_connections', [
             'requester_id' => $this->user->id,
             'addressee_id' => $otherUser->id,
             'status' => 'pending',
@@ -216,7 +219,7 @@ class NetworkTest extends TestCase
         $response->assertOk()
             ->assertJson(['success' => true]);
 
-        $this->assertDatabaseHas('network_user_connections', [
+        $this->assertDatabaseHas('user_connections', [
             'id' => $connection->id,
             'status' => 'accepted',
         ]);
@@ -239,7 +242,7 @@ class NetworkTest extends TestCase
 
     public function test_can_view_public_posts_in_feed(): void
     {
-        \App\Models\Network\NetworkPost::create([
+        NetworkPost::create([
             'user_id' => $this->user->id,
             'body' => 'A public post',
             'type' => 'text',

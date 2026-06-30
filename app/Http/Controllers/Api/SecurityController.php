@@ -58,9 +58,12 @@ class SecurityController extends BaseApiController
             ->where('tokenable_id', auth()->id())
             ->first();
 
-        if (!$token) return $this->respondNotFound();
+        if (! $token) {
+            return $this->respondNotFound();
+        }
 
         $token->delete();
+
         return $this->respondSuccess('Session terminated');
     }
 }

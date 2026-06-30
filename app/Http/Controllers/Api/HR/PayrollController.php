@@ -86,8 +86,8 @@ class PayrollController extends BaseApiController
             'currency' => 'nullable|string|size:3',
             'payment_date' => 'nullable|date',
             'payment_method' => 'nullable|string|max:50',
-        'status' => 'sometimes|in:draft,approved,paid,cancelled',
-        'notes' => 'nullable|string',
+            'status' => 'sometimes|in:draft,approved,paid,cancelled',
+            'notes' => 'nullable|string',
             'notes' => 'nullable|string',
         ]);
         if ($error) {
@@ -156,7 +156,9 @@ class PayrollController extends BaseApiController
     public function process(int $id): JsonResponse
     {
         $payroll = Payroll::find($id);
-        if (!$payroll) return $this->respondNotFound();
+        if (! $payroll) {
+            return $this->respondNotFound();
+        }
 
         if ($payroll->status !== 'draft') {
             return $this->respondError('Only draft payrolls can be processed', 422);

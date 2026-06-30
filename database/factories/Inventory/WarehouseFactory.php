@@ -13,7 +13,7 @@ class WarehouseFactory extends Factory
     {
         return [
             'code' => fake()->unique()->bothify('WH-##'),
-            'name' => fake()->city() . ' Warehouse',
+            'name' => fake()->city().' Warehouse',
             'address' => fake()->streetAddress(),
             'city' => fake()->city(),
             'country' => fake()->country(),

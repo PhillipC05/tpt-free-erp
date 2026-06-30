@@ -6,14 +6,15 @@ use App\Models\Procurement\PurchaseOrder;
 use App\Models\Procurement\Vendor;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
 
 class PurchaseOrderTest extends TestCase
 {
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
 
     protected function setUp(): void
@@ -28,6 +29,7 @@ class PurchaseOrderTest extends TestCase
     {
         return ['Authorization' => "Bearer {$this->token}"];
     }
+
     private function assignAdminRole(): void
     {
         DB::table('roles')->insertOrIgnore([
@@ -49,7 +51,6 @@ class PurchaseOrderTest extends TestCase
             'updated_at' => now(),
         ]);
     }
-
 
     public function test_can_list_purchase_orders(): void
     {

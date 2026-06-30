@@ -19,10 +19,10 @@ class WebhookDeliveryJobTest extends TestCase
         $user = User::factory()->create();
 
         return Webhook::create(array_merge([
-            'user_id'   => $user->id,
-            'url'       => 'https://example.com/hook',
-            'secret'    => 'test-secret',
-            'events'    => ['finance.*'],
+            'user_id' => $user->id,
+            'url' => 'https://example.com/hook',
+            'secret' => 'test-secret',
+            'events' => ['finance.*'],
             'is_active' => true,
         ], $overrides));
     }
@@ -30,11 +30,11 @@ class WebhookDeliveryJobTest extends TestCase
     private function makeDelivery(Webhook $webhook, array $overrides = []): WebhookDelivery
     {
         return WebhookDelivery::create(array_merge([
-            'webhook_id'    => $webhook->id,
-            'event'         => 'finance.transaction_created',
-            'payload'       => ['id' => 1, 'amount' => 500],
-            'status'        => 'pending',
-            'attempts'      => 0,
+            'webhook_id' => $webhook->id,
+            'event' => 'finance.transaction_created',
+            'payload' => ['id' => 1, 'amount' => 500],
+            'status' => 'pending',
+            'attempts' => 0,
             'next_retry_at' => now(),
         ], $overrides));
     }
@@ -43,18 +43,18 @@ class WebhookDeliveryJobTest extends TestCase
     {
         Http::fake(['*' => Http::response('ok', 200)]);
 
-        $webhook  = $this->makeWebhook();
+        $webhook = $this->makeWebhook();
         $delivery = $this->makeDelivery($webhook);
 
         WebhookDeliveryJob::dispatchSync($delivery->id);
 
         $this->assertDatabaseHas('webhook_deliveries', [
-            'id'     => $delivery->id,
+            'id' => $delivery->id,
             'status' => 'delivered',
         ]);
 
         $this->assertDatabaseHas('webhooks', [
-            'id'            => $webhook->id,
+            'id' => $webhook->id,
             'failure_count' => 0,
         ]);
     }
@@ -63,18 +63,18 @@ class WebhookDeliveryJobTest extends TestCase
     {
         Http::fake(['*' => Http::response('error', 500)]);
 
-        $webhook  = $this->makeWebhook();
+        $webhook = $this->makeWebhook();
         $delivery = $this->makeDelivery($webhook);
 
         WebhookDeliveryJob::dispatchSync($delivery->id);
 
         $this->assertDatabaseHas('webhook_deliveries', [
-            'id'     => $delivery->id,
+            'id' => $delivery->id,
             'status' => 'pending', // not yet at max attempts
         ]);
 
         $this->assertDatabaseHas('webhooks', [
-            'id'            => $webhook->id,
+            'id' => $webhook->id,
             'failure_count' => 1,
         ]);
     }
@@ -83,14 +83,14 @@ class WebhookDeliveryJobTest extends TestCase
     {
         Http::fake(['*' => Http::response('error', 500)]);
 
-        $webhook  = $this->makeWebhook();
+        $webhook = $this->makeWebhook();
         // Start with attempts already at max - 1 so the next run pushes it over
         $delivery = $this->makeDelivery($webhook, ['attempts' => 2]);
 
         WebhookDeliveryJob::dispatchSync($delivery->id);
 
         $this->assertDatabaseHas('webhook_deliveries', [
-            'id'     => $delivery->id,
+            'id' => $delivery->id,
             'status' => 'failed',
         ]);
     }
@@ -99,13 +99,13 @@ class WebhookDeliveryJobTest extends TestCase
     {
         Http::fake(['*' => Http::response('error', 500)]);
 
-        $webhook  = $this->makeWebhook(['failure_count' => 9]);
+        $webhook = $this->makeWebhook(['failure_count' => 9]);
         $delivery = $this->makeDelivery($webhook, ['attempts' => 2]); // final attempt
 
         WebhookDeliveryJob::dispatchSync($delivery->id);
 
         $this->assertDatabaseHas('webhooks', [
-            'id'        => $webhook->id,
+            'id' => $webhook->id,
             'is_active' => false,
         ]);
     }
@@ -114,13 +114,13 @@ class WebhookDeliveryJobTest extends TestCase
     {
         Http::fake(); // should never be called
 
-        $webhook  = $this->makeWebhook(['is_active' => false]);
+        $webhook = $this->makeWebhook(['is_active' => false]);
         $delivery = $this->makeDelivery($webhook);
 
         WebhookDeliveryJob::dispatchSync($delivery->id);
 
         $this->assertDatabaseHas('webhook_deliveries', [
-            'id'     => $delivery->id,
+            'id' => $delivery->id,
             'status' => 'failed',
         ]);
 
@@ -131,14 +131,14 @@ class WebhookDeliveryJobTest extends TestCase
     {
         Http::fake();
 
-        $webhook  = $this->makeWebhook();
+        $webhook = $this->makeWebhook();
         $delivery = $this->makeDelivery($webhook, ['status' => 'delivered']);
 
         WebhookDeliveryJob::dispatchSync($delivery->id);
 
         // Status should remain delivered, no extra HTTP call
         $this->assertDatabaseHas('webhook_deliveries', [
-            'id'     => $delivery->id,
+            'id' => $delivery->id,
             'status' => 'delivered',
         ]);
 
@@ -147,14 +147,14 @@ class WebhookDeliveryJobTest extends TestCase
 
     public function test_job_failed_method_marks_delivery_as_failed(): void
     {
-        $webhook  = $this->makeWebhook();
+        $webhook = $this->makeWebhook();
         $delivery = $this->makeDelivery($webhook);
 
         $job = new WebhookDeliveryJob($delivery->id);
         $job->failed(new \RuntimeException('Queue infrastructure failure'));
 
         $this->assertDatabaseHas('webhook_deliveries', [
-            'id'     => $delivery->id,
+            'id' => $delivery->id,
             'status' => 'failed',
         ]);
     }
@@ -165,10 +165,11 @@ class WebhookDeliveryJobTest extends TestCase
 
         Http::fake(function ($request) use (&$capturedHeaders) {
             $capturedHeaders = $request->headers();
+
             return Http::response('ok', 200);
         });
 
-        $webhook  = $this->makeWebhook(['secret' => 'my-secret']);
+        $webhook = $this->makeWebhook(['secret' => 'my-secret']);
         $delivery = $this->makeDelivery($webhook);
 
         WebhookDeliveryJob::dispatchSync($delivery->id);

@@ -16,7 +16,7 @@ class BomRequest extends FormRequest
         $bomId = $this->route('id');
 
         return [
-            'code' => 'required|string|max:20|unique:manufacturing_boms,code,' . $bomId,
+            'code' => 'required|string|max:20|unique:manufacturing_boms,code,'.$bomId,
             'name' => 'required|string|max:200',
             'product_id' => 'required|exists:inventory_products,id',
             'quantity' => 'required|numeric|min:0.01',

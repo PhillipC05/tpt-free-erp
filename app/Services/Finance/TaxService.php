@@ -15,6 +15,7 @@ class TaxService
     public function updateTaxRate(TaxRate $taxRate, array $data): TaxRate
     {
         $taxRate->update($data);
+
         return $taxRate->fresh();
     }
 
@@ -35,7 +36,7 @@ class TaxService
             ->where('is_active', true)
             ->first();
 
-        if (!$taxRate) {
+        if (! $taxRate) {
             throw new \RuntimeException("Tax rate '{$taxCode}' not found or inactive");
         }
 
@@ -45,6 +46,7 @@ class TaxService
     public function computeTaxById(int $taxRateId, float $amount): float
     {
         $taxRate = TaxRate::findOrFail($taxRateId);
+
         return $taxRate->computeFor($amount);
     }
 }

@@ -3,9 +3,9 @@
 namespace App\Models\Agent;
 
 use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class AgentExecution extends Model
 {
@@ -18,7 +18,7 @@ class AgentExecution extends Model
     ];
 
     protected $casts = [
-        'input'  => 'array',
+        'input' => 'array',
         'output' => 'array',
     ];
 

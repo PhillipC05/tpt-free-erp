@@ -18,26 +18,31 @@ class JournalEntryController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new JournalEntry());
+        parent::__construct(new JournalEntry);
     }
 
     public function store(Request $request): JsonResponse
     {
         $error = $this->validate($request->all());
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $data = $request->all();
         $data['status'] = $data['status'] ?? 'draft';
         $data['created_by'] = auth()->id();
 
         $entry = JournalEntry::create($data);
+
         return $this->respondCreated($entry->load('lines'), 'Journal entry created successfully');
     }
 
     public function show(int $id): JsonResponse
     {
         $entry = JournalEntry::with(['lines', 'creator', 'approver'])->find($id);
-        if (!$entry) return $this->respondNotFound();
+        if (! $entry) {
+            return $this->respondNotFound();
+        }
 
         return $this->respond(['success' => true, 'data' => $entry]);
     }
@@ -45,21 +50,26 @@ class JournalEntryController extends BaseApiController
     public function update(Request $request, int $id): JsonResponse
     {
         $entry = JournalEntry::find($id);
-        if (!$entry) return $this->respondNotFound();
+        if (! $entry) {
+            return $this->respondNotFound();
+        }
 
         if ($entry->status === 'posted') {
             return $this->respondError('Posted journal entries cannot be modified', 422);
         }
 
         $error = $this->validate($request->all(), [
-            'entry_number' => 'required|string|max:50|unique:finance_journal_entries,entry_number,' . $id,
+            'entry_number' => 'required|string|max:50|unique:finance_journal_entries,entry_number,'.$id,
             'entry_date' => 'required|date',
             'description' => 'required|string',
             'status' => 'sometimes|in:draft,posted,void',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $entry->update($request->all());
+
         return $this->respondSuccess('Journal entry updated', $entry->fresh());
     }
 

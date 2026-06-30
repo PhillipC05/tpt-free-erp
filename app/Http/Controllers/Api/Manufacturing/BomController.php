@@ -28,7 +28,7 @@ class BomController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new Bom());
+        parent::__construct(new Bom);
     }
 
     public function store(Request $request): JsonResponse
@@ -36,35 +36,45 @@ class BomController extends BaseApiController
         $error = $this->validate($request->all(), array_merge($this->validationRules, [
             'code' => 'required|string|max:20|unique:manufacturing_boms,code',
         ]));
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $bom = Bom::create($request->all());
+
         return $this->respondCreated($bom, 'BOM created successfully');
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
         $bom = Bom::find($id);
-        if (!$bom) return $this->respondNotFound();
+        if (! $bom) {
+            return $this->respondNotFound();
+        }
 
         $error = $this->validate($request->all(), [
-            'code' => 'required|string|max:20|unique:manufacturing_boms,code,' . $id,
+            'code' => 'required|string|max:20|unique:manufacturing_boms,code,'.$id,
             'name' => 'required|string|max:200',
             'product_id' => 'required|exists:inventory_products,id',
             'quantity' => 'required|numeric|min:0.01',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $bom->update($request->all());
+
         return $this->respondSuccess('BOM updated', $bom->fresh());
     }
 
     public function show(int $id): JsonResponse
     {
         $bom = Bom::with(['product', 'components'])->find($id);
-        if (!$bom) return $this->respondNotFound();
+        if (! $bom) {
+            return $this->respondNotFound();
+        }
 
         return $this->respond(['success' => true, 'data' => $bom]);
     }
@@ -99,7 +109,9 @@ class BomController extends BaseApiController
     public function components(int $id): JsonResponse
     {
         $bom = Bom::with('components')->find($id);
-        if (!$bom) return $this->respondNotFound();
+        if (! $bom) {
+            return $this->respondNotFound();
+        }
 
         return $this->respond([
             'success' => true,

@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\ReportGenerationJob;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
-use App\Jobs\ReportGenerationJob;
 use Tests\TestCase;
 
 class ReportGenerationTest extends TestCase
@@ -14,6 +14,7 @@ class ReportGenerationTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
 
     protected function setUp(): void
@@ -48,7 +49,7 @@ class ReportGenerationTest extends TestCase
 
         $response = $this->postJson('/api/v1/reports/generate', [
             'report_type' => 'trial_balance',
-            'format'      => 'json',
+            'format' => 'json',
         ], $this->auth());
 
         $response->assertCreated()
@@ -58,9 +59,9 @@ class ReportGenerationTest extends TestCase
         Queue::assertPushed(ReportGenerationJob::class);
 
         $this->assertDatabaseHas('generated_reports', [
-            'user_id'     => $this->user->id,
+            'user_id' => $this->user->id,
             'report_type' => 'trial_balance',
-            'status'      => 'queued',
+            'status' => 'queued',
         ]);
     }
 
@@ -76,15 +77,15 @@ class ReportGenerationTest extends TestCase
     public function test_can_poll_report_status(): void
     {
         $reportId = DB::table('generated_reports')->insertGetId([
-            'user_id'     => $this->user->id,
+            'user_id' => $this->user->id,
             'report_type' => 'balance_sheet',
-            'parameters'  => json_encode([]),
-            'format'      => 'json',
-            'status'      => 'completed',
+            'parameters' => json_encode([]),
+            'format' => 'json',
+            'status' => 'completed',
             'result_data' => json_encode(['report' => 'balance_sheet', 'rows' => []]),
-            'expires_at'  => now()->addDays(7),
-            'created_at'  => now(),
-            'updated_at'  => now(),
+            'expires_at' => now()->addDays(7),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         $response = $this->getJson("/api/v1/reports/{$reportId}", $this->auth());
@@ -98,14 +99,14 @@ class ReportGenerationTest extends TestCase
     {
         $other = User::factory()->create();
         $reportId = DB::table('generated_reports')->insertGetId([
-            'user_id'     => $other->id,
+            'user_id' => $other->id,
             'report_type' => 'trial_balance',
-            'parameters'  => json_encode([]),
-            'format'      => 'json',
-            'status'      => 'completed',
+            'parameters' => json_encode([]),
+            'format' => 'json',
+            'status' => 'completed',
             'result_data' => json_encode(['rows' => []]),
-            'created_at'  => now(),
-            'updated_at'  => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         $response = $this->getJson("/api/v1/reports/{$reportId}", $this->auth());
@@ -120,15 +121,15 @@ class ReportGenerationTest extends TestCase
         ];
 
         $reportId = DB::table('generated_reports')->insertGetId([
-            'user_id'     => $this->user->id,
+            'user_id' => $this->user->id,
             'report_type' => 'trial_balance',
-            'parameters'  => json_encode([]),
-            'format'      => 'csv',
-            'status'      => 'completed',
+            'parameters' => json_encode([]),
+            'format' => 'csv',
+            'status' => 'completed',
             'result_data' => json_encode(['report' => 'trial_balance', 'rows' => $rows]),
-            'expires_at'  => now()->addDays(7),
-            'created_at'  => now(),
-            'updated_at'  => now(),
+            'expires_at' => now()->addDays(7),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         $response = $this->get("/api/v1/reports/{$reportId}/download", $this->auth());
@@ -140,13 +141,13 @@ class ReportGenerationTest extends TestCase
     public function test_download_pending_report_returns_422(): void
     {
         $reportId = DB::table('generated_reports')->insertGetId([
-            'user_id'     => $this->user->id,
+            'user_id' => $this->user->id,
             'report_type' => 'trial_balance',
-            'parameters'  => json_encode([]),
-            'format'      => 'json',
-            'status'      => 'queued',
-            'created_at'  => now(),
-            'updated_at'  => now(),
+            'parameters' => json_encode([]),
+            'format' => 'json',
+            'status' => 'queued',
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         $response = $this->getJson("/api/v1/reports/{$reportId}/download", $this->auth());
@@ -156,34 +157,34 @@ class ReportGenerationTest extends TestCase
     public function test_can_create_scheduled_report(): void
     {
         $response = $this->postJson('/api/v1/reports/scheduled', [
-            'name'        => 'Weekly P&L',
+            'name' => 'Weekly P&L',
             'report_type' => 'income_statement',
-            'frequency'   => 'weekly',
-            'format'      => 'csv',
+            'frequency' => 'weekly',
+            'format' => 'csv',
         ], $this->auth());
 
         $response->assertCreated()
             ->assertJsonStructure(['data' => ['id', 'next_run_at']]);
 
         $this->assertDatabaseHas('scheduled_reports', [
-            'user_id'     => $this->user->id,
+            'user_id' => $this->user->id,
             'report_type' => 'income_statement',
-            'frequency'   => 'weekly',
+            'frequency' => 'weekly',
         ]);
     }
 
     public function test_can_list_scheduled_reports(): void
     {
         DB::table('scheduled_reports')->insert([
-            'user_id'     => $this->user->id,
-            'name'        => 'Daily TB',
+            'user_id' => $this->user->id,
+            'name' => 'Daily TB',
             'report_type' => 'trial_balance',
-            'parameters'  => json_encode([]),
-            'format'      => 'json',
-            'frequency'   => 'daily',
-            'is_active'   => 1,
-            'created_at'  => now(),
-            'updated_at'  => now(),
+            'parameters' => json_encode([]),
+            'format' => 'json',
+            'frequency' => 'daily',
+            'is_active' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         $response = $this->getJson('/api/v1/reports/scheduled', $this->auth());
@@ -194,15 +195,15 @@ class ReportGenerationTest extends TestCase
     public function test_can_delete_scheduled_report(): void
     {
         $id = DB::table('scheduled_reports')->insertGetId([
-            'user_id'     => $this->user->id,
-            'name'        => 'To Delete',
+            'user_id' => $this->user->id,
+            'name' => 'To Delete',
             'report_type' => 'trial_balance',
-            'parameters'  => json_encode([]),
-            'format'      => 'json',
-            'frequency'   => 'daily',
-            'is_active'   => 1,
-            'created_at'  => now(),
-            'updated_at'  => now(),
+            'parameters' => json_encode([]),
+            'format' => 'json',
+            'frequency' => 'daily',
+            'is_active' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         $response = $this->deleteJson("/api/v1/reports/scheduled/{$id}", [], $this->auth());

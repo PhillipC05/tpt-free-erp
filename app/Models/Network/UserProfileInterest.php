@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserProfileInterest extends Model
 {
-    protected $table = 'network_user_profile_interests';
+    protected $table = 'user_profile_interests';
 
     protected $fillable = ['user_profile_id', 'type', 'value'];
 

@@ -55,7 +55,6 @@ class RecruitmentTest extends TestCase
         ]);
     }
 
-
     public function test_can_create_job(): void
     {
         $response = $this->postJson('/api/v1/recruitment/jobs', [

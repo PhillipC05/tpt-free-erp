@@ -2,10 +2,9 @@
 
 namespace App\Services\HR;
 
-use App\Models\HR\Payroll;
-use App\Models\HR\Employee;
 use App\Models\HR\Attendance;
-use Illuminate\Support\Collection;
+use App\Models\HR\Employee;
+use App\Models\HR\Payroll;
 use Illuminate\Support\Facades\DB;
 
 class PayrollService
@@ -55,6 +54,7 @@ class PayrollService
         }
 
         $payroll->update(array_merge($data, ['status' => 'paid']));
+
         return $payroll->fresh();
     }
 

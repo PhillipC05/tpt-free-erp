@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Department extends Model
 {
     use HasFactory;
+
     protected $table = 'hr_departments';
 
     protected $fillable = ['code', 'name', 'description', 'manager_id', 'parent_id', 'is_active'];

@@ -34,7 +34,7 @@ class InvoiceController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new Invoice());
+        parent::__construct(new Invoice);
     }
 
     public function store(Request $request): JsonResponse
@@ -42,27 +42,32 @@ class InvoiceController extends BaseApiController
         $error = $this->validate($request->all(), array_merge($this->validationRules, [
             'invoice_number' => 'required|string|max:50|unique:sales_invoices,invoice_number',
         ]));
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $data = $request->all();
         $data['status'] = $data['status'] ?? 'draft';
         $data['balance_due'] = $data['balance_due'] ?? $data['total_amount'];
 
         $invoice = Invoice::create($data);
+
         return $this->respondCreated($invoice, 'Invoice created successfully');
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
         $invoice = Invoice::find($id);
-        if (!$invoice) return $this->respondNotFound();
+        if (! $invoice) {
+            return $this->respondNotFound();
+        }
 
         if ($invoice->status === 'paid') {
             return $this->respondError('Cannot update a paid invoice', 422);
         }
 
         $error = $this->validate($request->all(), [
-            'invoice_number' => 'required|string|max:50|unique:sales_invoices,invoice_number,' . $id,
+            'invoice_number' => 'required|string|max:50|unique:sales_invoices,invoice_number,'.$id,
             'order_id' => 'nullable|exists:sales_orders,id',
             'customer_id' => 'required|exists:sales_customers,id',
             'invoice_date' => 'required|date',
@@ -74,29 +79,37 @@ class InvoiceController extends BaseApiController
             'balance_due' => 'nullable|numeric|min:0',
             'status' => 'sometimes|in:draft,sent,paid,overdue,cancelled,partially_paid',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $invoice->update($request->all());
+
         return $this->respondSuccess('Invoice updated', $invoice->fresh());
     }
 
     public function send(int $id): JsonResponse
     {
         $invoice = Invoice::find($id);
-        if (!$invoice) return $this->respondNotFound();
+        if (! $invoice) {
+            return $this->respondNotFound();
+        }
 
         if ($invoice->status !== 'draft') {
             return $this->respondError('Only draft invoices can be sent', 422);
         }
 
         $invoice->update(['status' => 'sent']);
+
         return $this->respondSuccess('Invoice sent', $invoice->fresh());
     }
 
     public function recordPayment(Request $request, int $id): JsonResponse
     {
         $invoice = Invoice::find($id);
-        if (!$invoice) return $this->respondNotFound();
+        if (! $invoice) {
+            return $this->respondNotFound();
+        }
 
         if (in_array($invoice->status, ['paid', 'cancelled'])) {
             return $this->respondError('Cannot record payment for this invoice', 422);
@@ -105,7 +118,9 @@ class InvoiceController extends BaseApiController
         $error = $this->validate($request->all(), [
             'amount' => 'required|numeric|min:0.01',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $amount = (float) $request->query('amount');
         $totalPaid = (float) $invoice->paid_amount + $amount;
@@ -126,13 +141,16 @@ class InvoiceController extends BaseApiController
     public function cancel(int $id): JsonResponse
     {
         $invoice = Invoice::find($id);
-        if (!$invoice) return $this->respondNotFound();
+        if (! $invoice) {
+            return $this->respondNotFound();
+        }
 
         if (in_array($invoice->status, ['paid', 'cancelled'])) {
             return $this->respondError('Invoice cannot be cancelled', 422);
         }
 
         $invoice->update(['status' => 'cancelled']);
+
         return $this->respondSuccess('Invoice cancelled', $invoice->fresh());
     }
 

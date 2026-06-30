@@ -16,7 +16,7 @@ class DepartmentRequest extends FormRequest
         $departmentId = $this->route('id');
 
         return [
-            'code' => 'required|string|max:20|unique:hr_departments,code,' . $departmentId,
+            'code' => 'required|string|max:20|unique:hr_departments,code,'.$departmentId,
             'name' => 'required|string|max:200',
             'description' => 'nullable|string',
             'manager_id' => 'nullable|exists:hr_employees,id',

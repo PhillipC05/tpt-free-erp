@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class MaintenanceRecord extends Model
 {
     use HasFactory;
+
     protected $table = 'asset_maintenance';
 
     protected $fillable = [

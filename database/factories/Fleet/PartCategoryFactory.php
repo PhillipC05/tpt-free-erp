@@ -4,6 +4,7 @@ namespace Database\Factories\Fleet;
 
 use App\Models\Fleet\PartCategory;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 class PartCategoryFactory extends Factory
 {
@@ -19,7 +20,7 @@ class PartCategoryFactory extends Factory
 
         return [
             'name' => $name,
-            'slug' => \Illuminate\Support\Str::slug($name),
+            'slug' => Str::slug($name),
             'description' => fake()->optional()->sentence(),
             'parent_id' => null,
             'is_active' => true,

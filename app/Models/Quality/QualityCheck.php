@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class QualityCheck extends Model
 {
     use HasFactory;
+
     protected $table = 'quality_checks';
 
     protected $fillable = [

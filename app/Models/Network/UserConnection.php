@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserConnection extends Model
 {
-    protected $table = 'network_user_connections';
+    protected $table = 'user_connections';
 
     protected $fillable = ['requester_id', 'addressee_id', 'status', 'message'];
 

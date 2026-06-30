@@ -2,6 +2,7 @@
 
 namespace Database\Factories\Quality;
 
+use App\Models\Inventory\Product;
 use App\Models\Quality\QualityCheck;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -13,7 +14,7 @@ class QualityCheckFactory extends Factory
     {
         return [
             'check_code' => fake()->unique()->bothify('QC-####'),
-            'product_id' => \App\Models\Inventory\Product::factory(),
+            'product_id' => Product::factory(),
             'reference_type' => fake()->randomElement(['work_order', 'purchase_order', 'incoming', null]),
             'reference_id' => null,
             'type' => fake()->randomElement(['incoming', 'in_process', 'final', 'audit']),

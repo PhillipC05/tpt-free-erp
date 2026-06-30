@@ -14,7 +14,9 @@ class EmployeeTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
+
     private Department $department;
 
     protected function setUp(): void

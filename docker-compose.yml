@@ -1,27 +1,41 @@
-version: '3.8'
-
 services:
-  web:
-    build: .
+  php-fpm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/var/www/html
+      - storage:/var/www/html/storage
+      - ./docker/nginx.conf:/etc/nginx/http.d/default.conf
+    env_file: .env
+    networks:
+      - tpt-erp
+
+  nginx:
+    image: nginx:alpine
     ports:
       - "8080:80"
     volumes:
       - .:/var/www/html
+      - storage:/var/www/html/storage
+      - ./docker/nginx.conf:/etc/nginx/http.d/default.conf
     depends_on:
-      - db
-    environment:
-      - APACHE_DOCUMENT_ROOT=/var/www/html/public
+      - php-fpm
+    networks:
+      - tpt-erp
 
-  db:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: tpt_open_erp
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+  redis:
+    image: redis:7-alpine
     ports:
-      - "5432:5432"
+      - "6379:6379"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - redis:/data
+    networks:
+      - tpt-erp
 
 volumes:
-  postgres_data:
+  storage:
+  redis:
+
+networks:
+  tpt-erp:

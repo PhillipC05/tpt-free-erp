@@ -53,30 +53,38 @@ class NotificationController extends BaseApiController
     public function unreadCount(): JsonResponse
     {
         $count = auth()->user()->unreadNotifications()->count();
+
         return $this->respondSuccess('Unread count', ['count' => $count]);
     }
 
     public function markAsRead(int $id): JsonResponse
     {
         $notification = auth()->user()->notifications()->find($id);
-        if (!$notification) return $this->respondNotFound();
+        if (! $notification) {
+            return $this->respondNotFound();
+        }
 
         $notification->markAsRead();
+
         return $this->respondSuccess('Notification marked as read');
     }
 
     public function markAllAsRead(): JsonResponse
     {
         auth()->user()->unreadNotifications()->update(['read_at' => now()]);
+
         return $this->respondSuccess('All notifications marked as read');
     }
 
     public function destroy(int $id): JsonResponse
     {
         $notification = auth()->user()->notifications()->find($id);
-        if (!$notification) return $this->respondNotFound();
+        if (! $notification) {
+            return $this->respondNotFound();
+        }
 
         $notification->delete();
+
         return $this->respondSuccess('Notification deleted');
     }
 
@@ -85,7 +93,9 @@ class NotificationController extends BaseApiController
         $error = $this->validate($request->all(), [
             'preferences' => 'required|array',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         return $this->respondSuccess('Preferences updated', $request->query('preferences'));
     }

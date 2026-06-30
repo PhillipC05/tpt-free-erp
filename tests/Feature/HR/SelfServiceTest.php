@@ -4,7 +4,6 @@ namespace Tests\Feature\HR;
 
 use App\Models\HR\Employee;
 use App\Models\HR\LeaveRequest;
-use App\Models\HR\Payroll;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -33,6 +32,7 @@ class SelfServiceTest extends TestCase
     {
         return ['Authorization' => "Bearer {$this->token}"];
     }
+
     private function assignAdminRole(): void
     {
         DB::table('roles')->insertOrIgnore([
@@ -54,7 +54,6 @@ class SelfServiceTest extends TestCase
             'updated_at' => now(),
         ]);
     }
-
 
     public function test_can_get_profile(): void
     {

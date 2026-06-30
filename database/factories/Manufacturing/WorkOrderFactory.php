@@ -2,6 +2,7 @@
 
 namespace Database\Factories\Manufacturing;
 
+use App\Models\Inventory\Product;
 use App\Models\Manufacturing\WorkOrder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -13,7 +14,7 @@ class WorkOrderFactory extends Factory
     {
         return [
             'wo_number' => fake()->unique()->bothify('WO-####-??'),
-            'product_id' => \App\Models\Inventory\Product::factory(),
+            'product_id' => Product::factory(),
             'bom_id' => null,
             'planned_quantity' => fake()->randomFloat(2, 1, 500),
             'produced_quantity' => 0,

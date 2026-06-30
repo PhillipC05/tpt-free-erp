@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Task extends Model
 {
     use HasFactory;
+
     protected $table = 'project_tasks';
 
     protected $fillable = [

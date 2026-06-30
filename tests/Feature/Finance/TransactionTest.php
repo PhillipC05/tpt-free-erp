@@ -6,15 +6,17 @@ use App\Models\Finance\Account;
 use App\Models\Finance\Transaction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
 
 class TransactionTest extends TestCase
 {
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
+
     private Account $account;
 
     protected function setUp(): void
@@ -41,6 +43,7 @@ class TransactionTest extends TestCase
             'transaction_date' => '2026-01-15',
         ], $overrides);
     }
+
     private function assignAdminRole(): void
     {
         DB::table('roles')->insertOrIgnore([
@@ -62,7 +65,6 @@ class TransactionTest extends TestCase
             'updated_at' => now(),
         ]);
     }
-
 
     public function test_can_create_transaction(): void
     {

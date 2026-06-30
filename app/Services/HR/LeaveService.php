@@ -10,6 +10,7 @@ class LeaveService
     public function createLeaveRequest(array $data): LeaveRequest
     {
         $data['status'] = $data['status'] ?? 'pending';
+
         return LeaveRequest::create($data);
     }
 
@@ -44,11 +45,12 @@ class LeaveService
 
     public function cancelLeave(LeaveRequest $leaveRequest): LeaveRequest
     {
-        if (!in_array($leaveRequest->status, ['pending', 'approved'])) {
+        if (! in_array($leaveRequest->status, ['pending', 'approved'])) {
             throw new \RuntimeException('Leave request cannot be cancelled');
         }
 
         $leaveRequest->update(['status' => 'cancelled']);
+
         return $leaveRequest->fresh();
     }
 

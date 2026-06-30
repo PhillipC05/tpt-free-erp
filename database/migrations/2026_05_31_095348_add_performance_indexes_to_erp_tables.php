@@ -186,31 +186,31 @@ return new class extends Migration
     public function down(): void
     {
         // Drop indexes by name (Laravel auto-names them as table_column_index)
-        Schema::table('finance_accounts',           fn (Blueprint $t) => $t->dropIndex(['type', 'is_active', 'parent_id']));
-        Schema::table('finance_transactions',       fn (Blueprint $t) => $t->dropIndex(['account_id', 'type', 'transaction_date']));
-        Schema::table('finance_journal_entries',    fn (Blueprint $t) => $t->dropIndex(['status', 'entry_date']));
-        Schema::table('inventory_products',         fn (Blueprint $t) => $t->dropIndex(['is_active', 'category_id']));
-        Schema::table('inventory_stock_movements',  fn (Blueprint $t) => $t->dropIndex(['product_id', 'warehouse_id', 'type', 'movement_date']));
-        Schema::table('hr_employees',               fn (Blueprint $t) => $t->dropIndex(['department_id', 'status', 'employment_type', 'manager_id']));
-        Schema::table('hr_leave_requests',          fn (Blueprint $t) => $t->dropIndex(['employee_id', 'status', 'start_date']));
-        Schema::table('hr_attendance',              fn (Blueprint $t) => $t->dropIndex(['employee_id', 'date']));
-        Schema::table('sales_customers',            fn (Blueprint $t) => $t->dropIndex(['status', 'assigned_to']));
-        Schema::table('sales_orders',               fn (Blueprint $t) => $t->dropIndex(['customer_id', 'status', 'order_date']));
-        Schema::table('sales_invoices',             fn (Blueprint $t) => $t->dropIndex(['customer_id', 'order_id', 'status', 'due_date']));
-        Schema::table('procurement_vendors',        fn (Blueprint $t) => $t->dropIndex(['status']));
+        Schema::table('finance_accounts', fn (Blueprint $t) => $t->dropIndex(['type', 'is_active', 'parent_id']));
+        Schema::table('finance_transactions', fn (Blueprint $t) => $t->dropIndex(['account_id', 'type', 'transaction_date']));
+        Schema::table('finance_journal_entries', fn (Blueprint $t) => $t->dropIndex(['status', 'entry_date']));
+        Schema::table('inventory_products', fn (Blueprint $t) => $t->dropIndex(['is_active', 'category_id']));
+        Schema::table('inventory_stock_movements', fn (Blueprint $t) => $t->dropIndex(['product_id', 'warehouse_id', 'type', 'movement_date']));
+        Schema::table('hr_employees', fn (Blueprint $t) => $t->dropIndex(['department_id', 'status', 'employment_type', 'manager_id']));
+        Schema::table('hr_leave_requests', fn (Blueprint $t) => $t->dropIndex(['employee_id', 'status', 'start_date']));
+        Schema::table('hr_attendance', fn (Blueprint $t) => $t->dropIndex(['employee_id', 'date']));
+        Schema::table('sales_customers', fn (Blueprint $t) => $t->dropIndex(['status', 'assigned_to']));
+        Schema::table('sales_orders', fn (Blueprint $t) => $t->dropIndex(['customer_id', 'status', 'order_date']));
+        Schema::table('sales_invoices', fn (Blueprint $t) => $t->dropIndex(['customer_id', 'order_id', 'status', 'due_date']));
+        Schema::table('procurement_vendors', fn (Blueprint $t) => $t->dropIndex(['status']));
         Schema::table('procurement_purchase_orders', fn (Blueprint $t) => $t->dropIndex(['vendor_id', 'status', 'order_date']));
-        Schema::table('manufacturing_boms',         fn (Blueprint $t) => $t->dropIndex(['product_id', 'is_active']));
-        Schema::table('manufacturing_work_orders',  fn (Blueprint $t) => $t->dropIndex(['product_id', 'bom_id', 'status', 'start_date', 'assigned_to']));
-        Schema::table('projects',                   fn (Blueprint $t) => $t->dropIndex(['status', 'priority', 'project_manager_id']));
-        Schema::table('project_tasks',              fn (Blueprint $t) => $t->dropIndex(['project_id', 'assigned_to', 'status', 'priority', 'parent_id']));
-        Schema::table('project_time_entries',       fn (Blueprint $t) => $t->dropIndex(['task_id', 'employee_id', 'date']));
-        Schema::table('quality_checks',             fn (Blueprint $t) => $t->dropIndex(['product_id', 'type', 'result', 'inspected_by']));
-        Schema::table('quality_non_conformances',   fn (Blueprint $t) => $t->dropIndex(['check_id', 'severity', 'status', 'assigned_to']));
-        Schema::table('assets',                     fn (Blueprint $t) => $t->dropIndex(['type', 'status', 'assigned_to', 'location_id']));
-        Schema::table('asset_maintenance',          fn (Blueprint $t) => $t->dropIndex(['asset_id', 'type', 'status', 'scheduled_date']));
-        Schema::table('field_service_tickets',      fn (Blueprint $t) => $t->dropIndex(['customer_id', 'status', 'priority', 'assigned_to']));
-        Schema::table('lms_courses',                fn (Blueprint $t) => $t->dropIndex(['is_active', 'type']));
-        Schema::table('lms_enrollments',            fn (Blueprint $t) => $t->dropIndex(['course_id', 'employee_id', 'status']));
+        Schema::table('manufacturing_boms', fn (Blueprint $t) => $t->dropIndex(['product_id', 'is_active']));
+        Schema::table('manufacturing_work_orders', fn (Blueprint $t) => $t->dropIndex(['product_id', 'bom_id', 'status', 'start_date', 'assigned_to']));
+        Schema::table('projects', fn (Blueprint $t) => $t->dropIndex(['status', 'priority', 'project_manager_id']));
+        Schema::table('project_tasks', fn (Blueprint $t) => $t->dropIndex(['project_id', 'assigned_to', 'status', 'priority', 'parent_id']));
+        Schema::table('project_time_entries', fn (Blueprint $t) => $t->dropIndex(['task_id', 'employee_id', 'date']));
+        Schema::table('quality_checks', fn (Blueprint $t) => $t->dropIndex(['product_id', 'type', 'result', 'inspected_by']));
+        Schema::table('quality_non_conformances', fn (Blueprint $t) => $t->dropIndex(['check_id', 'severity', 'status', 'assigned_to']));
+        Schema::table('assets', fn (Blueprint $t) => $t->dropIndex(['type', 'status', 'assigned_to', 'location_id']));
+        Schema::table('asset_maintenance', fn (Blueprint $t) => $t->dropIndex(['asset_id', 'type', 'status', 'scheduled_date']));
+        Schema::table('field_service_tickets', fn (Blueprint $t) => $t->dropIndex(['customer_id', 'status', 'priority', 'assigned_to']));
+        Schema::table('lms_courses', fn (Blueprint $t) => $t->dropIndex(['is_active', 'type']));
+        Schema::table('lms_enrollments', fn (Blueprint $t) => $t->dropIndex(['course_id', 'employee_id', 'status']));
     }
 };
 

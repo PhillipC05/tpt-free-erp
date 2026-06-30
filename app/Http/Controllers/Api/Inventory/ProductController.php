@@ -30,7 +30,7 @@ class ProductController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new Product());
+        parent::__construct(new Product);
     }
 
     public function store(Request $request): JsonResponse
@@ -38,20 +38,25 @@ class ProductController extends BaseApiController
         $error = $this->validate($request->all(), array_merge($this->validationRules, [
             'sku' => 'required|string|max:50|unique:inventory_products,sku',
         ]));
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $product = Product::create($request->all());
+
         return $this->respondCreated($product, 'Product created successfully');
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
         $product = Product::find($id);
-        if (!$product) return $this->respondNotFound();
+        if (! $product) {
+            return $this->respondNotFound();
+        }
 
         $error = $this->validate($request->all(), [
-            'sku' => 'required|string|max:50|unique:inventory_products,sku,' . $id,
-            'barcode' => 'nullable|string|max:100|unique:inventory_products,barcode,' . $id,
+            'sku' => 'required|string|max:50|unique:inventory_products,sku,'.$id,
+            'barcode' => 'nullable|string|max:100|unique:inventory_products,barcode,'.$id,
             'name' => 'required|string|max:200',
             'description' => 'nullable|string',
             'category_id' => 'nullable|exists:inventory_categories,id',
@@ -65,16 +70,21 @@ class ProductController extends BaseApiController
             'min_stock_level' => 'numeric|min:0',
             'max_stock_level' => 'numeric|min:0',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $product->update($request->all());
+
         return $this->respondSuccess('Product updated', $product->fresh());
     }
 
     public function stockLevels(int $id): JsonResponse
     {
         $product = Product::with('stock.warehouse')->find($id);
-        if (!$product) return $this->respondNotFound();
+        if (! $product) {
+            return $this->respondNotFound();
+        }
 
         $totalStock = $product->stock->sum('quantity');
 
@@ -104,8 +114,8 @@ class ProductController extends BaseApiController
             $search = $request->query('search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('sku', 'like', "%{$search}%")
-                  ->orWhere('barcode', 'like', "%{$search}%");
+                    ->orWhere('sku', 'like', "%{$search}%")
+                    ->orWhere('barcode', 'like', "%{$search}%");
             });
         }
 

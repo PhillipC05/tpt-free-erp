@@ -13,6 +13,7 @@ class EmployeeCrudTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
 
     protected function setUp(): void
@@ -27,6 +28,7 @@ class EmployeeCrudTest extends TestCase
     {
         return ['Authorization' => "Bearer {$this->token}"];
     }
+
     private function assignAdminRole(): void
     {
         DB::table('roles')->insertOrIgnore([
@@ -48,7 +50,6 @@ class EmployeeCrudTest extends TestCase
             'updated_at' => now(),
         ]);
     }
-
 
     public function test_can_list_employees(): void
     {

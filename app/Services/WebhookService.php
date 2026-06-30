@@ -21,11 +21,11 @@ class WebhookService
 
         foreach ($webhooks as $webhook) {
             $delivery = WebhookDelivery::create([
-                'webhook_id'    => $webhook->id,
-                'event'         => $event,
-                'payload'       => $payload,
-                'status'        => 'pending',
-                'attempts'      => 0,
+                'webhook_id' => $webhook->id,
+                'event' => $event,
+                'payload' => $payload,
+                'status' => 'pending',
+                'attempts' => 0,
                 'next_retry_at' => now(),
             ]);
 
@@ -37,14 +37,14 @@ class WebhookService
     {
         $delivery = WebhookDelivery::create([
             'webhook_id' => $webhook->id,
-            'event'      => 'webhook.test',
-            'payload'    => [
-                'event'     => 'webhook.test',
+            'event' => 'webhook.test',
+            'payload' => [
+                'event' => 'webhook.test',
                 'timestamp' => now()->toIso8601String(),
-                'message'   => 'This is a test delivery from TPT Free ERP.',
+                'message' => 'This is a test delivery from TPT Free ERP.',
             ],
-            'status'        => 'pending',
-            'attempts'      => 0,
+            'status' => 'pending',
+            'attempts' => 0,
             'next_retry_at' => now(),
         ]);
 

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 class RunScheduledReports extends Command
 {
     protected $signature = 'reports:run-scheduled';
+
     protected $description = 'Execute all due scheduled reports';
 
     public function handle(): void
@@ -30,11 +31,11 @@ class RunScheduledReports extends Command
 
             $frequency = $scheduled->frequency;
             $nextRun = match ($frequency) {
-                'hourly'  => now()->addHour(),
-                'daily'   => now()->addDay(),
-                'weekly'  => now()->addWeek(),
+                'hourly' => now()->addHour(),
+                'daily' => now()->addDay(),
+                'weekly' => now()->addWeek(),
                 'monthly' => now()->addMonth(),
-                default   => now()->addDay(),
+                default => now()->addDay(),
             };
 
             DB::table('scheduled_reports')

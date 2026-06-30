@@ -360,6 +360,49 @@ class TrainingController extends BaseApiController
         return $this->respondSuccess('Certification renewed', $cert->fresh(['employee', 'program']));
     }
 
+    // ── COMPLETION REPORT ─────────────────────────────────────────────────
+
+    public function completionReport(): JsonResponse
+    {
+        $totalEnrollments = Enrollment::count();
+        $completedEnrollments = Enrollment::where('status', 'completed')->count();
+        $completionRate = $totalEnrollments > 0
+            ? round(($completedEnrollments / $totalEnrollments) * 100, 1)
+            : 0;
+
+        $avgCompletionTime = Enrollment::where('status', 'completed')
+            ->whereNotNull('completed_at')
+            ->whereNotNull('created_at')
+            ->selectRaw('AVG(julianday(completed_at) - julianday(created_at)) as avg_days')
+            ->value('avg_days');
+
+        $topPrograms = Program::withCount(['enrollments' => function ($q) {
+            $q->where('status', 'completed');
+        }])
+            ->withCount('enrollments')
+            ->orderByDesc('enrollments_count')
+            ->limit(5)
+            ->get()
+            ->map(fn ($p) => [
+                'id' => $p->id,
+                'name' => $p->name,
+                'code' => $p->code,
+                'total_enrollments' => $p->enrollments_count,
+                'completed_enrollments' => $p->enrollments_count,
+            ]);
+
+        return $this->respond([
+            'success' => true,
+            'data' => [
+                'total_enrollments' => $totalEnrollments,
+                'completed_enrollments' => $completedEnrollments,
+                'completion_rate' => $completionRate,
+                'average_completion_time_days' => $avgCompletionTime !== null ? round((float) $avgCompletionTime, 1) : null,
+                'top_programs' => $topPrograms,
+            ],
+        ]);
+    }
+
     // ── DASHBOARD ─────────────────────────────────────────────────────────
 
     public function dashboard(): JsonResponse

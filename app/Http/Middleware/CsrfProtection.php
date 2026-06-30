@@ -38,5 +38,3 @@ class CsrfProtection
         return ! in_array($request->method(), ['GET', 'HEAD', 'OPTIONS'], true);
     }
 }
-
-?>

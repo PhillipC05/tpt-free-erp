@@ -16,7 +16,7 @@ class QualityCheckRequest extends FormRequest
         $checkId = $this->route('id');
 
         return [
-            'check_code' => 'required|string|max:50|unique:quality_checks,check_code,' . $checkId,
+            'check_code' => 'required|string|max:50|unique:quality_checks,check_code,'.$checkId,
             'product_id' => 'required|exists:inventory_products,id',
             'reference_type' => 'nullable|string|max:50',
             'reference_id' => 'nullable|integer',

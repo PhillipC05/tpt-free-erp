@@ -26,26 +26,26 @@ class AccountController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new Account());
+        parent::__construct(new Account);
     }
 
     public function balance(int $id): JsonResponse
     {
         $account = Account::find($id);
-        if (!$account) {
+        if (! $account) {
             return $this->respondNotFound();
         }
 
         $data = $this->cacheRemember("account_balance_{$id}", function () use ($id, $account) {
-            $totalDebits  = Transaction::where('account_id', $id)->where('type', 'debit')->sum('amount');
+            $totalDebits = Transaction::where('account_id', $id)->where('type', 'debit')->sum('amount');
             $totalCredits = Transaction::where('account_id', $id)->where('type', 'credit')->sum('amount');
 
             return [
-                'account'             => $account,
-                'total_debits'        => $totalDebits,
-                'total_credits'       => $totalCredits,
-                'calculated_balance'  => $totalDebits - $totalCredits,
-                'current_balance'     => $account->current_balance,
+                'account' => $account,
+                'total_debits' => $totalDebits,
+                'total_credits' => $totalCredits,
+                'calculated_balance' => $totalDebits - $totalCredits,
+                'current_balance' => $account->current_balance,
             ];
         }, ttl: 300); // 5-minute TTL for live balance data
 
@@ -57,25 +57,33 @@ class AccountController extends BaseApiController
         $error = $this->validate($request->all(), array_merge($this->validationRules, [
             'code' => 'required|string|max:20|unique:finance_accounts,code',
         ]));
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $account = Account::create($request->all());
         $this->cacheFlush();
+
         return $this->respondCreated($account, 'Account created successfully');
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
         $account = Account::find($id);
-        if (!$account) return $this->respondNotFound();
+        if (! $account) {
+            return $this->respondNotFound();
+        }
 
         $error = $this->validate($request->all(), array_merge($this->validationRules, [
-            'code' => 'required|string|max:20|unique:finance_accounts,code,' . $id,
+            'code' => 'required|string|max:20|unique:finance_accounts,code,'.$id,
         ]));
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $account->update($request->all());
         $this->cacheFlush();
+
         return $this->respondSuccess('Account updated', $account->fresh());
     }
 }

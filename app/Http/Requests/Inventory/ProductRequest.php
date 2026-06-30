@@ -16,8 +16,8 @@ class ProductRequest extends FormRequest
         $productId = $this->route('id');
 
         return [
-            'sku' => 'required|string|max:50|unique:inventory_products,sku,' . $productId,
-            'barcode' => 'nullable|string|max:100|unique:inventory_products,barcode,' . $productId,
+            'sku' => 'required|string|max:50|unique:inventory_products,sku,'.$productId,
+            'barcode' => 'nullable|string|max:100|unique:inventory_products,barcode,'.$productId,
             'name' => 'required|string|max:200',
             'description' => 'nullable|string',
             'category_id' => 'nullable|exists:inventory_categories,id',

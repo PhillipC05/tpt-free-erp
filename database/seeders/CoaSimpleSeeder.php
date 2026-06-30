@@ -31,7 +31,7 @@ class CoaSimpleSeeder extends Seeder
             ['code' => '2100', 'name' => 'Accrued Liabilities',       'type' => 'liability', 'category' => 'Current Liabilities', 'description' => 'Expenses incurred but unpaid'],
             ['code' => '2200', 'name' => 'Tax Payable',               'type' => 'liability', 'category' => 'Current Liabilities', 'description' => 'Sales and income taxes owed'],
             ['code' => '2300', 'name' => 'Payroll Liabilities',       'type' => 'liability', 'category' => 'Current Liabilities', 'description' => 'Wages and payroll taxes owed'],
-            ['code' => '2500', 'name' => 'Loans Payable',             'type' => 'liability', 'category' => 'Long-term Liabilities','description' => 'Business loans and credit lines'],
+            ['code' => '2500', 'name' => 'Loans Payable',             'type' => 'liability', 'category' => 'Long-term Liabilities', 'description' => 'Business loans and credit lines'],
 
             // Equity
             ['code' => '3000', 'name' => 'Owner\'s Equity',           'type' => 'equity',    'category' => 'Equity',              'description' => 'Owner\'s investment in the business'],
@@ -58,13 +58,13 @@ class CoaSimpleSeeder extends Seeder
 
         foreach ($accounts as $acct) {
             DB::table('finance_accounts')->insert(array_merge($acct, [
-                'parent_id'       => null,
-                'is_active'       => true,
-                'currency'        => 'USD',
+                'parent_id' => null,
+                'is_active' => true,
+                'currency' => 'USD',
                 'opening_balance' => 0,
                 'current_balance' => 0,
-                'created_at'      => $now,
-                'updated_at'      => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
             ]));
         }
     }

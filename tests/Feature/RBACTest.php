@@ -12,6 +12,7 @@ class RBACTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
 
     protected function setUp(): void
@@ -86,6 +87,7 @@ class RBACTest extends TestCase
             'updated_at' => now(),
         ]);
     }
+
     private function assignAdminRole(): void
     {
         DB::table('roles')->insertOrIgnore([
@@ -107,7 +109,6 @@ class RBACTest extends TestCase
             'updated_at' => now(),
         ]);
     }
-
 
     public function test_unauthenticated_user_cannot_access_finance_endpoints(): void
     {

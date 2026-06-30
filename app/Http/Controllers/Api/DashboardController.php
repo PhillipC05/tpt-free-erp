@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\User;
 use App\Models\Finance\Account;
 use App\Models\Finance\Transaction;
+use App\Models\HR\Attendance;
+use App\Models\HR\Employee;
+use App\Models\HR\LeaveRequest;
 use App\Models\Inventory\Product;
 use App\Models\Inventory\StockMovement;
-use App\Models\HR\Employee;
-use App\Models\HR\Attendance;
-use App\Models\HR\LeaveRequest;
-use App\Models\Sales\Customer;
-use App\Models\Sales\Order;
 use App\Models\Projects\Project;
 use App\Models\Projects\Task;
+use App\Models\Sales\Customer;
+use App\Models\Sales\Order;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

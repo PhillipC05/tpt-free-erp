@@ -2,6 +2,7 @@
 
 namespace App\Models\Procurement;
 
+use App\Models\Inventory\Product;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -21,6 +22,6 @@ class POItem extends Model
 
     public function product()
     {
-        return $this->belongsTo(\App\Models\Inventory\Product::class);
+        return $this->belongsTo(Product::class);
     }
 }

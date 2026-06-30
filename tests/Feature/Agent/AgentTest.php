@@ -2,14 +2,13 @@
 
 namespace Tests\Feature\Agent;
 
-use App\Models\Agent\AgentProfile;
+use App\Jobs\AgentSkillJob;
 use App\Models\Agent\AgentExecution;
-use App\Models\Agent\AgentSkillAssignment;
+use App\Models\Agent\AgentProfile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
-use App\Jobs\AgentSkillJob;
 use Tests\TestCase;
 
 class AgentTest extends TestCase
@@ -17,6 +16,7 @@ class AgentTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
 
     protected function setUp(): void
@@ -64,7 +64,7 @@ class AgentTest extends TestCase
     public function test_can_create_agent(): void
     {
         $response = $this->postJson('/api/v1/agents', [
-            'name'       => 'HR Assistant',
+            'name' => 'HR Assistant',
             'agent_type' => 'local',
             'description' => 'Handles HR tasks',
         ], $this->auth());
@@ -134,8 +134,10 @@ class AgentTest extends TestCase
 
         // Create a minimal skill file so SkillRegistry can find it
         $skillDir = storage_path('app/skills/finance');
-        if (!is_dir($skillDir)) mkdir($skillDir, 0755, true);
-        file_put_contents($skillDir . '/test_skill.md', implode("\n", [
+        if (! is_dir($skillDir)) {
+            mkdir($skillDir, 0755, true);
+        }
+        file_put_contents($skillDir.'/test_skill.md', implode("\n", [
             '---',
             'name: Test Skill',
             'slug: finance.test_skill',
@@ -167,8 +169,8 @@ class AgentTest extends TestCase
         $response->assertOk()->assertJsonPath('data.is_enabled', true);
         $this->assertDatabaseHas('agent_skill_assignments', [
             'agent_profile_id' => $agent->id,
-            'skill_slug'       => 'finance.test_skill',
-            'is_enabled'       => 1,
+            'skill_slug' => 'finance.test_skill',
+            'is_enabled' => 1,
         ]);
     }
 
@@ -198,9 +200,9 @@ class AgentTest extends TestCase
 
         AgentExecution::create([
             'agent_profile_id' => $agent->id,
-            'skill_slug'       => 'finance.extract_invoice',
-            'trigger_type'     => 'manual',
-            'status'           => 'completed',
+            'skill_slug' => 'finance.extract_invoice',
+            'trigger_type' => 'manual',
+            'status' => 'completed',
         ]);
 
         $response = $this->getJson("/api/v1/agents/{$agent->id}/executions", $this->auth());
@@ -213,8 +215,10 @@ class AgentTest extends TestCase
         Queue::fake();
 
         $skillDir = storage_path('app/skills/finance');
-        if (!is_dir($skillDir)) mkdir($skillDir, 0755, true);
-        file_put_contents($skillDir . '/test_skill.md', implode("\n", [
+        if (! is_dir($skillDir)) {
+            mkdir($skillDir, 0755, true);
+        }
+        file_put_contents($skillDir.'/test_skill.md', implode("\n", [
             '---',
             'name: Test Skill',
             'slug: finance.test_skill',

@@ -16,7 +16,7 @@ class ServiceTicketRequest extends FormRequest
         $ticketId = $this->route('id');
 
         return [
-            'ticket_number' => 'required|string|max:50|unique:field_service_tickets,ticket_number,' . $ticketId,
+            'ticket_number' => 'required|string|max:50|unique:field_service_tickets,ticket_number,'.$ticketId,
             'customer_id' => 'required|exists:sales_customers,id',
             'title' => 'required|string|max:200',
             'description' => 'nullable|string',

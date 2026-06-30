@@ -11,7 +11,7 @@ class Webhook extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'url', 'secret', 'events', 'is_active'];
+    protected $fillable = ['user_id', 'url', 'secret', 'events', 'is_active', 'failure_count'];
 
     protected $casts = [
         'events' => 'array',

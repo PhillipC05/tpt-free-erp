@@ -32,6 +32,7 @@ class MaintenanceTrackingTest extends TestCase
     {
         return ['Authorization' => "Bearer {$this->token}"];
     }
+
     private function assignAdminRole(): void
     {
         DB::table('roles')->insertOrIgnore([
@@ -53,7 +54,6 @@ class MaintenanceTrackingTest extends TestCase
             'updated_at' => now(),
         ]);
     }
-
 
     public function test_dashboard_returns_summary(): void
     {

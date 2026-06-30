@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Console\Commands\CheckCertificationExpiry;
 use App\Console\Commands\CheckContractExpiry;
 use App\Console\Commands\CleanExpiredReports;
 use App\Console\Commands\NotifyContractExpiry;
@@ -15,6 +16,7 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 class Kernel extends ConsoleKernel
 {
     protected $commands = [
+        CheckCertificationExpiry::class,
         CheckContractExpiry::class,
         CleanExpiredReports::class,
         NotifyContractExpiry::class,
@@ -36,6 +38,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('contracts:notify-expiry')->dailyAt('08:00');
         // Create expiry warning notifications for contracts ending within 30 days
         $schedule->command('contracts:check-expiry')->dailyAt('09:00');
+        // Check certifications expiring within 30 days
+        $schedule->command('certifications:check-expiry')->dailyAt('08:30');
         // Seed yesterday's campaign analytics rows for all active campaigns
         $schedule->command('marketing:seed-analytics')->dailyAt('01:00');
     }

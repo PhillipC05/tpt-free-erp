@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class UserProfile extends Model
 {
-    protected $table = 'network_user_profiles';
+    protected $table = 'user_profiles';
 
     protected $fillable = [
         'user_id', 'headline', 'bio', 'company', 'job_title', 'website',

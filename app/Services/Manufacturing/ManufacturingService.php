@@ -2,14 +2,12 @@
 
 namespace App\Services\Manufacturing;
 
-use App\Models\Manufacturing\Bom;
-use App\Models\Manufacturing\BomComponent;
-use App\Models\Manufacturing\WorkOrder;
-use App\Models\Manufacturing\ProductionSchedule;
-use App\Models\Inventory\Product;
 use App\Models\Inventory\Stock;
 use App\Models\Inventory\StockMovement;
-use Illuminate\Support\Collection;
+use App\Models\Manufacturing\Bom;
+use App\Models\Manufacturing\BomComponent;
+use App\Models\Manufacturing\ProductionSchedule;
+use App\Models\Manufacturing\WorkOrder;
 use Illuminate\Support\Facades\DB;
 
 class ManufacturingService
@@ -55,6 +53,7 @@ class ManufacturingService
     public function createWorkOrder(array $data): WorkOrder
     {
         $data['status'] = $data['status'] ?? 'planned';
+
         return WorkOrder::create($data);
     }
 
@@ -84,7 +83,9 @@ class ManufacturingService
 
                     $needed = $quantity;
                     foreach ($stocks as $stock) {
-                        if ($needed <= 0) break;
+                        if ($needed <= 0) {
+                            break;
+                        }
                         $available = (float) $stock->available_quantity;
                         $toConsume = min($available, $needed);
 
@@ -166,6 +167,7 @@ class ManufacturingService
     {
         $produced = (float) $workOrder->produced_quantity + $quantity;
         $workOrder->update(['produced_quantity' => $produced]);
+
         return $workOrder->fresh();
     }
 

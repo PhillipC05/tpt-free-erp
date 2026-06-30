@@ -2,9 +2,9 @@
 
 namespace App\Models\Agent;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class AgentSchedule extends Model
 {
@@ -17,9 +17,9 @@ class AgentSchedule extends Model
 
     protected $casts = [
         'input_template' => 'array',
-        'is_active'      => 'boolean',
-        'last_run_at'    => 'datetime',
-        'next_run_at'    => 'datetime',
+        'is_active' => 'boolean',
+        'last_run_at' => 'datetime',
+        'next_run_at' => 'datetime',
     ];
 
     public function agentProfile(): BelongsTo

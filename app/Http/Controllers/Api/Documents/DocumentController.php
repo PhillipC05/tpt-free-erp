@@ -96,7 +96,7 @@ class DocumentController extends BaseApiController
     {
         $document = Document::find($id);
 
-        if (!$document) {
+        if (! $document) {
             return $this->respondNotFound('Document not found');
         }
 
@@ -107,7 +107,7 @@ class DocumentController extends BaseApiController
     {
         $document = Document::find($id);
 
-        if (!$document) {
+        if (! $document) {
             return $this->respondNotFound('Document not found');
         }
 
@@ -151,7 +151,7 @@ class DocumentController extends BaseApiController
     {
         $document = Document::find($id);
 
-        if (!$document) {
+        if (! $document) {
             return $this->respondNotFound('Document not found');
         }
 
@@ -167,11 +167,11 @@ class DocumentController extends BaseApiController
     {
         $document = Document::find($id);
 
-        if (!$document) {
+        if (! $document) {
             return $this->respondNotFound('Document not found');
         }
 
-        if (!Storage::disk('local')->exists($document->storage_path)) {
+        if (! Storage::disk('local')->exists($document->storage_path)) {
             return $this->respondError('File not found on disk', 404);
         }
 
@@ -186,7 +186,7 @@ class DocumentController extends BaseApiController
     {
         $document = Document::find($id);
 
-        if (!$document) {
+        if (! $document) {
             return $this->respondNotFound('Document not found');
         }
 
@@ -224,13 +224,13 @@ class DocumentController extends BaseApiController
     {
         $payload = cache()->get("doc_share_{$token}");
 
-        if (!$payload) {
+        if (! $payload) {
             return response()->json(['success' => false, 'message' => 'Share link is invalid or has expired'], 404);
         }
 
         $document = Document::find($payload['document_id']);
 
-        if (!$document || !Storage::disk('local')->exists($document->storage_path)) {
+        if (! $document || ! Storage::disk('local')->exists($document->storage_path)) {
             return response()->json(['success' => false, 'message' => 'Document not found'], 404);
         }
 
@@ -257,7 +257,7 @@ class DocumentController extends BaseApiController
     {
         $document = Document::find($id);
 
-        if (!$document) {
+        if (! $document) {
             return $this->respondNotFound('Document not found');
         }
 

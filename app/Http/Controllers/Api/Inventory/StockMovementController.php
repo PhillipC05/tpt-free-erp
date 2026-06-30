@@ -26,18 +26,21 @@ class StockMovementController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new StockMovement());
+        parent::__construct(new StockMovement);
     }
 
     public function store(Request $request): JsonResponse
     {
         $error = $this->validate($request->all());
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $data = $request->all();
         $data['created_by'] = $data['created_by'] ?? Auth::id();
 
         $movement = StockMovement::create($data);
+
         return $this->respondCreated($movement, 'Stock movement recorded successfully');
     }
 

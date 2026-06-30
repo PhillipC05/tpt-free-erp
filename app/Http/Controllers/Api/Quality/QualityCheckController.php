@@ -31,7 +31,7 @@ class QualityCheckController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new QualityCheck());
+        parent::__construct(new QualityCheck);
     }
 
     public function store(Request $request): JsonResponse
@@ -39,22 +39,27 @@ class QualityCheckController extends BaseApiController
         $error = $this->validate($request->all(), array_merge($this->validationRules, [
             'check_code' => 'required|string|max:50|unique:quality_checks,check_code',
         ]));
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $data = $request->all();
         $data['inspected_at'] = $data['inspected_at'] ?? now();
 
         $check = QualityCheck::create($data);
+
         return $this->respondCreated($check, 'Quality check created successfully');
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
         $check = QualityCheck::find($id);
-        if (!$check) return $this->respondNotFound();
+        if (! $check) {
+            return $this->respondNotFound();
+        }
 
         $error = $this->validate($request->all(), [
-            'check_code' => 'required|string|max:50|unique:quality_checks,check_code,' . $id,
+            'check_code' => 'required|string|max:50|unique:quality_checks,check_code,'.$id,
             'product_id' => 'required|exists:inventory_products,id',
             'reference_type' => 'nullable|string|max:50',
             'reference_id' => 'nullable|integer',
@@ -64,16 +69,21 @@ class QualityCheckController extends BaseApiController
             'inspected_by' => 'nullable|exists:hr_employees,id',
             'inspected_at' => 'nullable|date',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $check->update($request->all());
+
         return $this->respondSuccess('Quality check updated', $check->fresh());
     }
 
     public function show(int $id): JsonResponse
     {
         $check = QualityCheck::with(['product', 'inspector', 'items', 'nonConformances'])->find($id);
-        if (!$check) return $this->respondNotFound();
+        if (! $check) {
+            return $this->respondNotFound();
+        }
 
         return $this->respond(['success' => true, 'data' => $check]);
     }

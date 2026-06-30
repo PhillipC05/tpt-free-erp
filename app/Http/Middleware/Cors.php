@@ -13,7 +13,7 @@ class Cors
         $response = $next($request);
 
         $cors = config('security.cors', []);
-        if (!($cors['enabled'] ?? false)) {
+        if (! ($cors['enabled'] ?? false)) {
             return $response;
         }
 
@@ -21,7 +21,7 @@ class Cors
         $allowedOrigins = $cors['allowed_origins'] ?? ['*'];
 
         $isAllowed = in_array('*', $allowedOrigins, true);
-        if (!$isAllowed && $origin) {
+        if (! $isAllowed && $origin) {
             $isAllowed = in_array($origin, $allowedOrigins, true);
         }
 
@@ -34,7 +34,7 @@ class Cors
 
         $response->headers->set('Access-Control-Allow-Headers', implode(', ', $cors['allowed_headers'] ?? ['*']));
         $response->headers->set('Access-Control-Allow-Methods', implode(', ', $cors['allowed_methods'] ?? ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']));
-        $response->headers->set('Access-Control-Max-Age', (string)($cors['max_age'] ?? 86400));
+        $response->headers->set('Access-Control-Max-Age', (string) ($cors['max_age'] ?? 86400));
 
         if ($request->getMethod() === 'OPTIONS') {
             $response->setStatusCode(204);

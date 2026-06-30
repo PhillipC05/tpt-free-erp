@@ -20,13 +20,13 @@ class CoaStandardSeeder extends Seeder
         $accounts = [
             // ── 1000s: Current Assets ──────────────────────────────────────
             ['code' => '1000', 'name' => 'Current Assets',               'type' => 'asset',     'category' => 'Current Assets',  'description' => 'Total current assets',                      'parent_id' => null],
-            ['code' => '1010', 'name' => 'Cash – Operating Account',     'type' => 'asset',     'category' => 'Cash & Equivalents','description' => 'Primary operating bank account',           'parent_id' => null],
-            ['code' => '1020', 'name' => 'Cash – Payroll Account',       'type' => 'asset',     'category' => 'Cash & Equivalents','description' => 'Dedicated payroll bank account',           'parent_id' => null],
-            ['code' => '1030', 'name' => 'Petty Cash',                   'type' => 'asset',     'category' => 'Cash & Equivalents','description' => 'On-hand petty cash fund',                  'parent_id' => null],
-            ['code' => '1050', 'name' => 'Short-term Investments',       'type' => 'asset',     'category' => 'Cash & Equivalents','description' => 'Investments maturing within 90 days',      'parent_id' => null],
+            ['code' => '1010', 'name' => 'Cash – Operating Account',     'type' => 'asset',     'category' => 'Cash & Equivalents', 'description' => 'Primary operating bank account',           'parent_id' => null],
+            ['code' => '1020', 'name' => 'Cash – Payroll Account',       'type' => 'asset',     'category' => 'Cash & Equivalents', 'description' => 'Dedicated payroll bank account',           'parent_id' => null],
+            ['code' => '1030', 'name' => 'Petty Cash',                   'type' => 'asset',     'category' => 'Cash & Equivalents', 'description' => 'On-hand petty cash fund',                  'parent_id' => null],
+            ['code' => '1050', 'name' => 'Short-term Investments',       'type' => 'asset',     'category' => 'Cash & Equivalents', 'description' => 'Investments maturing within 90 days',      'parent_id' => null],
             ['code' => '1100', 'name' => 'Accounts Receivable',          'type' => 'asset',     'category' => 'Receivables',     'description' => 'Amounts owed by customers',                 'parent_id' => null],
             ['code' => '1110', 'name' => 'Allowance for Doubtful Accts', 'type' => 'asset',     'category' => 'Receivables',     'description' => 'Estimated uncollectible receivables (contra)', 'parent_id' => null],
-            ['code' => '1150', 'name' => 'Notes Receivable – Current',   'type' => 'asset',     'category' => 'Receivables',     'description' => 'Short-term promissory notes due within 1 year','parent_id' => null],
+            ['code' => '1150', 'name' => 'Notes Receivable – Current',   'type' => 'asset',     'category' => 'Receivables',     'description' => 'Short-term promissory notes due within 1 year', 'parent_id' => null],
             ['code' => '1200', 'name' => 'Inventory',                    'type' => 'asset',     'category' => 'Inventory',       'description' => 'Goods held for sale or production',         'parent_id' => null],
             ['code' => '1210', 'name' => 'Raw Materials Inventory',      'type' => 'asset',     'category' => 'Inventory',       'description' => 'Materials not yet in production',           'parent_id' => null],
             ['code' => '1220', 'name' => 'Work-in-Process Inventory',    'type' => 'asset',     'category' => 'Inventory',       'description' => 'Partially completed goods',                 'parent_id' => null],
@@ -54,31 +54,31 @@ class CoaStandardSeeder extends Seeder
             ['code' => '1620', 'name' => 'Goodwill',                     'type' => 'asset',     'category' => 'Intangibles',     'description' => 'Goodwill from acquisitions',                'parent_id' => null],
 
             // ── 2000s: Current Liabilities ─────────────────────────────────
-            ['code' => '2000', 'name' => 'Current Liabilities',          'type' => 'liability', 'category' => 'Current Liabilities','description' => 'Obligations due within 12 months',       'parent_id' => null],
-            ['code' => '2010', 'name' => 'Accounts Payable',             'type' => 'liability', 'category' => 'Current Liabilities','description' => 'Amounts owed to suppliers',              'parent_id' => null],
-            ['code' => '2020', 'name' => 'Accrued Liabilities',          'type' => 'liability', 'category' => 'Current Liabilities','description' => 'Expenses incurred but not yet paid',     'parent_id' => null],
-            ['code' => '2030', 'name' => 'Accrued Payroll',              'type' => 'liability', 'category' => 'Current Liabilities','description' => 'Wages earned but not yet paid',          'parent_id' => null],
-            ['code' => '2040', 'name' => 'Accrued Taxes Payable',        'type' => 'liability', 'category' => 'Current Liabilities','description' => 'Tax obligations not yet remitted',       'parent_id' => null],
-            ['code' => '2050', 'name' => 'Sales Tax Payable',            'type' => 'liability', 'category' => 'Current Liabilities','description' => 'Sales tax collected from customers',     'parent_id' => null],
-            ['code' => '2060', 'name' => 'Payroll Tax Payable',          'type' => 'liability', 'category' => 'Current Liabilities','description' => 'Payroll taxes withheld',                 'parent_id' => null],
-            ['code' => '2070', 'name' => 'Short-term Notes Payable',     'type' => 'liability', 'category' => 'Current Liabilities','description' => 'Notes payable due within 1 year',        'parent_id' => null],
-            ['code' => '2080', 'name' => 'Current Portion – LT Debt',   'type' => 'liability', 'category' => 'Current Liabilities','description' => 'Current portion of long-term debt',      'parent_id' => null],
-            ['code' => '2090', 'name' => 'Deferred Revenue',             'type' => 'liability', 'category' => 'Current Liabilities','description' => 'Revenue received but not yet earned',    'parent_id' => null],
-            ['code' => '2100', 'name' => 'Customer Deposits',            'type' => 'liability', 'category' => 'Current Liabilities','description' => 'Deposits received from customers',       'parent_id' => null],
+            ['code' => '2000', 'name' => 'Current Liabilities',          'type' => 'liability', 'category' => 'Current Liabilities', 'description' => 'Obligations due within 12 months',       'parent_id' => null],
+            ['code' => '2010', 'name' => 'Accounts Payable',             'type' => 'liability', 'category' => 'Current Liabilities', 'description' => 'Amounts owed to suppliers',              'parent_id' => null],
+            ['code' => '2020', 'name' => 'Accrued Liabilities',          'type' => 'liability', 'category' => 'Current Liabilities', 'description' => 'Expenses incurred but not yet paid',     'parent_id' => null],
+            ['code' => '2030', 'name' => 'Accrued Payroll',              'type' => 'liability', 'category' => 'Current Liabilities', 'description' => 'Wages earned but not yet paid',          'parent_id' => null],
+            ['code' => '2040', 'name' => 'Accrued Taxes Payable',        'type' => 'liability', 'category' => 'Current Liabilities', 'description' => 'Tax obligations not yet remitted',       'parent_id' => null],
+            ['code' => '2050', 'name' => 'Sales Tax Payable',            'type' => 'liability', 'category' => 'Current Liabilities', 'description' => 'Sales tax collected from customers',     'parent_id' => null],
+            ['code' => '2060', 'name' => 'Payroll Tax Payable',          'type' => 'liability', 'category' => 'Current Liabilities', 'description' => 'Payroll taxes withheld',                 'parent_id' => null],
+            ['code' => '2070', 'name' => 'Short-term Notes Payable',     'type' => 'liability', 'category' => 'Current Liabilities', 'description' => 'Notes payable due within 1 year',        'parent_id' => null],
+            ['code' => '2080', 'name' => 'Current Portion – LT Debt',   'type' => 'liability', 'category' => 'Current Liabilities', 'description' => 'Current portion of long-term debt',      'parent_id' => null],
+            ['code' => '2090', 'name' => 'Deferred Revenue',             'type' => 'liability', 'category' => 'Current Liabilities', 'description' => 'Revenue received but not yet earned',    'parent_id' => null],
+            ['code' => '2100', 'name' => 'Customer Deposits',            'type' => 'liability', 'category' => 'Current Liabilities', 'description' => 'Deposits received from customers',       'parent_id' => null],
 
             // ── 2500s: Long-term Liabilities ───────────────────────────────
-            ['code' => '2500', 'name' => 'Long-term Liabilities',        'type' => 'liability', 'category' => 'Long-term Liabilities','description' => 'Obligations due beyond 12 months',    'parent_id' => null],
-            ['code' => '2510', 'name' => 'Long-term Notes Payable',      'type' => 'liability', 'category' => 'Long-term Liabilities','description' => 'Notes payable due beyond 1 year',     'parent_id' => null],
-            ['code' => '2520', 'name' => 'Bonds Payable',                'type' => 'liability', 'category' => 'Long-term Liabilities','description' => 'Bonds issued by the company',         'parent_id' => null],
-            ['code' => '2530', 'name' => 'Lease Obligations – LT',       'type' => 'liability', 'category' => 'Long-term Liabilities','description' => 'Long-term lease liabilities',         'parent_id' => null],
-            ['code' => '2540', 'name' => 'Deferred Tax Liability',       'type' => 'liability', 'category' => 'Long-term Liabilities','description' => 'Future tax obligations from timing differences','parent_id' => null],
+            ['code' => '2500', 'name' => 'Long-term Liabilities',        'type' => 'liability', 'category' => 'Long-term Liabilities', 'description' => 'Obligations due beyond 12 months',    'parent_id' => null],
+            ['code' => '2510', 'name' => 'Long-term Notes Payable',      'type' => 'liability', 'category' => 'Long-term Liabilities', 'description' => 'Notes payable due beyond 1 year',     'parent_id' => null],
+            ['code' => '2520', 'name' => 'Bonds Payable',                'type' => 'liability', 'category' => 'Long-term Liabilities', 'description' => 'Bonds issued by the company',         'parent_id' => null],
+            ['code' => '2530', 'name' => 'Lease Obligations – LT',       'type' => 'liability', 'category' => 'Long-term Liabilities', 'description' => 'Long-term lease liabilities',         'parent_id' => null],
+            ['code' => '2540', 'name' => 'Deferred Tax Liability',       'type' => 'liability', 'category' => 'Long-term Liabilities', 'description' => 'Future tax obligations from timing differences', 'parent_id' => null],
 
             // ── 3000s: Equity ──────────────────────────────────────────────
             ['code' => '3000', 'name' => 'Equity',                       'type' => 'equity',    'category' => 'Equity',          'description' => 'Total owners equity',                       'parent_id' => null],
             ['code' => '3010', 'name' => 'Common Stock',                 'type' => 'equity',    'category' => 'Equity',          'description' => 'Par value of issued common shares',         'parent_id' => null],
             ['code' => '3020', 'name' => 'Additional Paid-in Capital',   'type' => 'equity',    'category' => 'Equity',          'description' => 'Excess over par value from stock issuances', 'parent_id' => null],
             ['code' => '3030', 'name' => 'Retained Earnings',            'type' => 'equity',    'category' => 'Equity',          'description' => 'Cumulative undistributed profits',          'parent_id' => null],
-            ['code' => '3040', 'name' => 'Owner\'s Draw / Distributions','type' => 'equity',    'category' => 'Equity',          'description' => 'Withdrawals by owners',                     'parent_id' => null],
+            ['code' => '3040', 'name' => 'Owner\'s Draw / Distributions', 'type' => 'equity',    'category' => 'Equity',          'description' => 'Withdrawals by owners',                     'parent_id' => null],
             ['code' => '3050', 'name' => 'Treasury Stock',               'type' => 'equity',    'category' => 'Equity',          'description' => 'Repurchased company shares (contra)',        'parent_id' => null],
 
             // ── 4000s: Revenue ─────────────────────────────────────────────
@@ -95,19 +95,19 @@ class CoaStandardSeeder extends Seeder
             // ── 5000s: Cost of Goods Sold ──────────────────────────────────
             ['code' => '5000', 'name' => 'Cost of Goods Sold',           'type' => 'expense',   'category' => 'COGS',            'description' => 'Direct cost of goods sold',                 'parent_id' => null],
             ['code' => '5010', 'name' => 'Purchases',                    'type' => 'expense',   'category' => 'COGS',            'description' => 'Cost of inventory purchased',               'parent_id' => null],
-            ['code' => '5020', 'name' => 'Purchase Returns & Allowances','type' => 'expense',   'category' => 'COGS',            'description' => 'Contra purchases account',                  'parent_id' => null],
+            ['code' => '5020', 'name' => 'Purchase Returns & Allowances', 'type' => 'expense',   'category' => 'COGS',            'description' => 'Contra purchases account',                  'parent_id' => null],
             ['code' => '5030', 'name' => 'Freight-in',                   'type' => 'expense',   'category' => 'COGS',            'description' => 'Shipping costs to receive inventory',       'parent_id' => null],
 
             // ── 6000s: Operating Expenses ──────────────────────────────────
-            ['code' => '6000', 'name' => 'Operating Expenses',           'type' => 'expense',   'category' => 'Operating Expenses','description' => 'Total operating expenses',               'parent_id' => null],
+            ['code' => '6000', 'name' => 'Operating Expenses',           'type' => 'expense',   'category' => 'Operating Expenses', 'description' => 'Total operating expenses',               'parent_id' => null],
             ['code' => '6010', 'name' => 'Salaries & Wages',             'type' => 'expense',   'category' => 'Payroll',         'description' => 'Employee salaries and wages',               'parent_id' => null],
             ['code' => '6020', 'name' => 'Payroll Taxes – Employer',     'type' => 'expense',   'category' => 'Payroll',         'description' => 'Employer portion of payroll taxes',         'parent_id' => null],
-            ['code' => '6030', 'name' => 'Employee Benefits',            'type' => 'expense',   'category' => 'Payroll',         'description' => 'Health insurance, 401k, and other benefits','parent_id' => null],
+            ['code' => '6030', 'name' => 'Employee Benefits',            'type' => 'expense',   'category' => 'Payroll',         'description' => 'Health insurance, 401k, and other benefits', 'parent_id' => null],
             ['code' => '6040', 'name' => 'Rent Expense',                 'type' => 'expense',   'category' => 'Facilities',      'description' => 'Office and facility rent',                  'parent_id' => null],
             ['code' => '6050', 'name' => 'Utilities',                    'type' => 'expense',   'category' => 'Facilities',      'description' => 'Electric, gas, water, and internet',        'parent_id' => null],
             ['code' => '6060', 'name' => 'Office Supplies',              'type' => 'expense',   'category' => 'Administrative',  'description' => 'Consumable office supplies',                'parent_id' => null],
             ['code' => '6070', 'name' => 'Repairs & Maintenance',        'type' => 'expense',   'category' => 'Facilities',      'description' => 'Costs to maintain property and equipment',  'parent_id' => null],
-            ['code' => '6080', 'name' => 'Marketing & Advertising',      'type' => 'expense',   'category' => 'Sales & Marketing','description' => 'Advertising, promotions, and campaigns',  'parent_id' => null],
+            ['code' => '6080', 'name' => 'Marketing & Advertising',      'type' => 'expense',   'category' => 'Sales & Marketing', 'description' => 'Advertising, promotions, and campaigns',  'parent_id' => null],
             ['code' => '6090', 'name' => 'Travel & Entertainment',       'type' => 'expense',   'category' => 'Administrative',  'description' => 'Business travel and client entertainment',  'parent_id' => null],
             ['code' => '6100', 'name' => 'Professional Fees',            'type' => 'expense',   'category' => 'Administrative',  'description' => 'Legal, accounting, and consulting fees',    'parent_id' => null],
             ['code' => '6110', 'name' => 'Insurance Expense',            'type' => 'expense',   'category' => 'Administrative',  'description' => 'Business insurance premiums',               'parent_id' => null],
@@ -129,12 +129,12 @@ class CoaStandardSeeder extends Seeder
 
         foreach ($accounts as $acct) {
             DB::table('finance_accounts')->insert(array_merge($acct, [
-                'is_active'       => true,
-                'currency'        => 'USD',
+                'is_active' => true,
+                'currency' => 'USD',
                 'opening_balance' => 0,
                 'current_balance' => 0,
-                'created_at'      => $now,
-                'updated_at'      => $now,
+                'created_at' => $now,
+                'updated_at' => $now,
             ]));
         }
     }

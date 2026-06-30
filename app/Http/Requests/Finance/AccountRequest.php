@@ -16,7 +16,7 @@ class AccountRequest extends FormRequest
         $accountId = $this->route('id');
 
         return [
-            'code' => 'required|string|max:20|unique:finance_accounts,code,' . $accountId,
+            'code' => 'required|string|max:20|unique:finance_accounts,code,'.$accountId,
             'name' => 'required|string|max:200',
             'type' => 'required|in:asset,liability,equity,revenue,expense',
             'category' => 'nullable|string|max:100',

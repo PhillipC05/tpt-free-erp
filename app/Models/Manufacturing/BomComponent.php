@@ -2,6 +2,7 @@
 
 namespace App\Models\Manufacturing;
 
+use App\Models\Inventory\Product;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -18,6 +19,6 @@ class BomComponent extends Model
 
     public function componentProduct()
     {
-        return $this->belongsTo(\App\Models\Inventory\Product::class, 'component_product_id');
+        return $this->belongsTo(Product::class, 'component_product_id');
     }
 }

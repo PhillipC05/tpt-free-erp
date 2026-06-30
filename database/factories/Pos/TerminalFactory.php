@@ -13,7 +13,7 @@ class TerminalFactory extends Factory
     {
         return [
             'terminal_code' => fake()->unique()->bothify('POS-####'),
-            'name' => 'Terminal ' . fake()->randomLetter(),
+            'name' => 'Terminal '.fake()->randomLetter(),
             'warehouse_id' => null,
             'assigned_to' => null,
             'status' => 'active',

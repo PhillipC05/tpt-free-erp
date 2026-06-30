@@ -12,6 +12,7 @@ class SkillRegistryTest extends TestCase
     use RefreshDatabase;
 
     private SkillRegistry $registry;
+
     private string $skillsDir;
 
     protected function setUp(): void
@@ -25,7 +26,7 @@ class SkillRegistryTest extends TestCase
     protected function tearDown(): void
     {
         // Clean up test skill files recursively
-        $testDir = $this->skillsDir . '/test';
+        $testDir = $this->skillsDir.'/test';
         if (is_dir($testDir)) {
             $files = new \RecursiveIteratorIterator(
                 new \RecursiveDirectoryIterator($testDir, \RecursiveDirectoryIterator::SKIP_DOTS),
@@ -46,22 +47,24 @@ class SkillRegistryTest extends TestCase
 
     private function writeSkillFile(string $category, string $slug, array $overrides = []): string
     {
-        $dir = $this->skillsDir . '/' . $category;
-        if (!is_dir($dir)) mkdir($dir, 0755, true);
+        $dir = $this->skillsDir.'/'.$category;
+        if (! is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
 
         $defaults = [
-            'name'                 => 'Test Skill',
-            'slug'                 => $slug,
-            'version'              => '"1.0"',
-            'category'             => $category,
-            'description'          => 'A test skill for unit testing.',
+            'name' => 'Test Skill',
+            'slug' => $slug,
+            'version' => '"1.0"',
+            'category' => $category,
+            'description' => 'A test skill for unit testing.',
             'required_permissions' => ['finance.view'],
-            'affected_modules'     => ['finance'],
-            'model_tier'           => 'fast',
-            'estimated_tokens'     => 500,
-            'cost_tier'            => 'low',
-            'enabled_by_default'   => false,
-            'tags'                 => ['test'],
+            'affected_modules' => ['finance'],
+            'model_tier' => 'fast',
+            'estimated_tokens' => 500,
+            'cost_tier' => 'low',
+            'enabled_by_default' => false,
+            'tags' => ['test'],
         ];
         $meta = array_merge($defaults, $overrides);
 
@@ -73,15 +76,16 @@ class SkillRegistryTest extends TestCase
                     $yaml .= "  - {$item}\n";
                 }
             } elseif (is_bool($value)) {
-                $yaml .= "{$key}: " . ($value ? 'true' : 'false') . "\n";
+                $yaml .= "{$key}: ".($value ? 'true' : 'false')."\n";
             } else {
                 $yaml .= "{$key}: {$value}\n";
             }
         }
         $yaml .= "---\n\n## Task\n\nReturn JSON: {\"result\": \"ok\"}\n";
 
-        $path = $dir . '/' . str_replace('.', '_', $slug) . '.md';
+        $path = $dir.'/'.str_replace('.', '_', $slug).'.md';
         file_put_contents($path, $yaml);
+
         return $path;
     }
 
@@ -172,9 +176,11 @@ class SkillRegistryTest extends TestCase
 
     public function test_skill_without_frontmatter_is_skipped(): void
     {
-        $dir = $this->skillsDir . '/test';
-        if (!is_dir($dir)) mkdir($dir, 0755, true);
-        file_put_contents($dir . '/invalid.md', "# No frontmatter here\n\nJust a plain markdown file.\n");
+        $dir = $this->skillsDir.'/test';
+        if (! is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        file_put_contents($dir.'/invalid.md', "# No frontmatter here\n\nJust a plain markdown file.\n");
         $this->registry->clearCache();
 
         $skills = $this->registry->all();

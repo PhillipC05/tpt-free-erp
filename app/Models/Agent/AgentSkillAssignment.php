@@ -2,9 +2,9 @@
 
 namespace App\Models\Agent;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class AgentSkillAssignment extends Model
 {
@@ -15,7 +15,7 @@ class AgentSkillAssignment extends Model
     ];
 
     protected $casts = [
-        'is_enabled'       => 'boolean',
+        'is_enabled' => 'boolean',
         'config_overrides' => 'array',
     ];
 

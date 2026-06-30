@@ -35,7 +35,7 @@ class CrmController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new CrmPipeline());
+        parent::__construct(new CrmPipeline);
     }
 
     public function store(Request $request): JsonResponse
@@ -43,22 +43,27 @@ class CrmController extends BaseApiController
         $error = $this->validate($request->all(), array_merge($this->validationRules, [
             'code' => 'required|string|max:20|unique:sales_crm_pipelines,code',
         ]));
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $data = $request->all();
         $data['status'] = $data['status'] ?? 'active';
 
         $pipeline = CrmPipeline::create($data);
+
         return $this->respondCreated($pipeline, 'Pipeline entry created successfully');
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
         $pipeline = CrmPipeline::find($id);
-        if (!$pipeline) return $this->respondNotFound();
+        if (! $pipeline) {
+            return $this->respondNotFound();
+        }
 
         $error = $this->validate($request->all(), [
-            'code' => 'required|string|max:20|unique:sales_crm_pipelines,code,' . $id,
+            'code' => 'required|string|max:20|unique:sales_crm_pipelines,code,'.$id,
             'name' => 'required|string|max:200',
             'customer_id' => 'required|exists:sales_customers,id',
             'contact_name' => 'nullable|string|max:200',
@@ -73,9 +78,12 @@ class CrmController extends BaseApiController
             'assigned_to' => 'nullable|exists:users,id',
             'status' => 'sometimes|in:active,inactive',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $pipeline->update($request->all());
+
         return $this->respondSuccess('Pipeline entry updated', $pipeline->fresh());
     }
 

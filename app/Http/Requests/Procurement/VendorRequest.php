@@ -16,9 +16,9 @@ class VendorRequest extends FormRequest
         $vendorId = $this->route('id');
 
         return [
-            'code' => 'required|string|max:20|unique:procurement_vendors,code,' . $vendorId,
+            'code' => 'required|string|max:20|unique:procurement_vendors,code,'.$vendorId,
             'name' => 'required|string|max:200',
-            'email' => 'required|email|max:200|unique:procurement_vendors,email,' . $vendorId,
+            'email' => 'required|email|max:200|unique:procurement_vendors,email,'.$vendorId,
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
             'tax_number' => 'nullable|string|max:50',

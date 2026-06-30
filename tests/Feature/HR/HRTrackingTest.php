@@ -29,6 +29,7 @@ class HRTrackingTest extends TestCase
     {
         return ['Authorization' => "Bearer {$this->token}"];
     }
+
     private function assignAdminRole(): void
     {
         DB::table('roles')->insertOrIgnore([
@@ -50,7 +51,6 @@ class HRTrackingTest extends TestCase
             'updated_at' => now(),
         ]);
     }
-
 
     public function test_dashboard_returns_all_sections(): void
     {

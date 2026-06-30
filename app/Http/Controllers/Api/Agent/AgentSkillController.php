@@ -24,6 +24,7 @@ class AgentSkillController extends BaseApiController
     public function catalog(): JsonResponse
     {
         $skills = $this->registry->all();
+
         return $this->respondSuccess('Skill catalog', $skills);
     }
 
@@ -31,13 +32,16 @@ class AgentSkillController extends BaseApiController
     public function listSkills(int $agentId): JsonResponse
     {
         $agent = AgentProfile::find($agentId);
-        if (!$agent) return $this->respondNotFound();
+        if (! $agent) {
+            return $this->respondNotFound();
+        }
 
         $assignments = AgentSkillAssignment::where('agent_profile_id', $agentId)->get();
-        $allSkills   = $this->registry->all();
+        $allSkills = $this->registry->all();
 
         $result = $assignments->map(function ($assignment) use ($allSkills) {
             $meta = collect($allSkills)->firstWhere('slug', $assignment->skill_slug);
+
             return array_merge($assignment->toArray(), ['skill_meta' => $meta]);
         });
 
@@ -48,21 +52,27 @@ class AgentSkillController extends BaseApiController
     public function updateSkill(Request $request, int $agentId, string $slug): JsonResponse
     {
         $agent = AgentProfile::find($agentId);
-        if (!$agent) return $this->respondNotFound();
+        if (! $agent) {
+            return $this->respondNotFound();
+        }
 
         $skill = $this->registry->find($slug);
-        if (!$skill) return $this->respondError('Skill not found in registry', 404);
+        if (! $skill) {
+            return $this->respondError('Skill not found in registry', 404);
+        }
 
         $error = $this->validate($request->all(), [
-            'is_enabled'       => 'nullable|boolean',
+            'is_enabled' => 'nullable|boolean',
             'config_overrides' => 'nullable|array',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $assignment = AgentSkillAssignment::updateOrCreate(
             ['agent_profile_id' => $agentId, 'skill_slug' => $slug],
             [
-                'is_enabled'       => $request->is_enabled ?? true,
+                'is_enabled' => $request->is_enabled ?? true,
                 'config_overrides' => $request->config_overrides,
             ]
         );
@@ -76,7 +86,9 @@ class AgentSkillController extends BaseApiController
         $error = $this->validate($request->all(), [
             'input' => 'nullable|array',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         try {
             $execution = $this->executionService->execute(
@@ -92,15 +104,15 @@ class AgentSkillController extends BaseApiController
 
         return $this->respondCreated([
             'execution_id' => $execution->id,
-            'status'       => $execution->status,
-            'message'      => 'Execution queued. Poll GET /api/v1/agents/' . $agentId . '/executions/' . $execution->id,
+            'status' => $execution->status,
+            'message' => 'Execution queued. Poll GET /api/v1/agents/'.$agentId.'/executions/'.$execution->id,
         ]);
     }
 
     // POST /agents/skills/upload — admin only
     public function upload(Request $request): JsonResponse
     {
-        if (!$request->hasFile('skill_file') || !$request->file('skill_file')->isValid()) {
+        if (! $request->hasFile('skill_file') || ! $request->file('skill_file')->isValid()) {
             return $this->respondError('A valid skill_file is required', 422);
         }
 
@@ -128,18 +140,18 @@ class AgentSkillController extends BaseApiController
             }
         }
 
-        if (!empty($missing)) {
-            return $this->respondError('Missing required fields: ' . implode(', ', $missing), 422);
+        if (! empty($missing)) {
+            return $this->respondError('Missing required fields: '.implode(', ', $missing), 422);
         }
 
         // Validate slug format: category.name (no spaces, lowercase)
-        if (!preg_match('/^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$/', $parsed['slug'])) {
+        if (! preg_match('/^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$/', $parsed['slug'])) {
             return $this->respondError('Slug must be in format category.name (lowercase, underscores only)', 422);
         }
 
         $category = $parsed['category'];
         $slug = $parsed['slug'];
-        $filename = str_replace($category . '.', '', $slug) . '.md';
+        $filename = str_replace($category.'.', '', $slug).'.md';
         $path = "skills/{$category}/{$filename}";
 
         Storage::put($path, $content);

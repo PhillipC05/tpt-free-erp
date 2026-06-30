@@ -21,7 +21,7 @@ class BudgetLineController extends BaseApiController
     {
         $budget = Budget::find($budgetId);
 
-        if (!$budget) {
+        if (! $budget) {
             return $this->respondNotFound('Budget not found');
         }
 
@@ -34,7 +34,7 @@ class BudgetLineController extends BaseApiController
     {
         $budget = Budget::find($budgetId);
 
-        if (!$budget) {
+        if (! $budget) {
             return $this->respondNotFound('Budget not found');
         }
 
@@ -77,7 +77,7 @@ class BudgetLineController extends BaseApiController
     {
         $line = BudgetLine::where('budget_id', $budgetId)->find($lineId);
 
-        if (!$line) {
+        if (! $line) {
             return $this->respondNotFound('Budget line not found');
         }
 
@@ -88,7 +88,7 @@ class BudgetLineController extends BaseApiController
     {
         $budget = Budget::find($budgetId);
 
-        if (!$budget) {
+        if (! $budget) {
             return $this->respondNotFound('Budget not found');
         }
 
@@ -98,7 +98,7 @@ class BudgetLineController extends BaseApiController
 
         $line = BudgetLine::where('budget_id', $budgetId)->find($lineId);
 
-        if (!$line) {
+        if (! $line) {
             return $this->respondNotFound('Budget line not found');
         }
 
@@ -123,7 +123,7 @@ class BudgetLineController extends BaseApiController
     {
         $budget = Budget::find($budgetId);
 
-        if (!$budget) {
+        if (! $budget) {
             return $this->respondNotFound('Budget not found');
         }
 
@@ -133,7 +133,7 @@ class BudgetLineController extends BaseApiController
 
         $line = BudgetLine::where('budget_id', $budgetId)->find($lineId);
 
-        if (!$line) {
+        if (! $line) {
             return $this->respondNotFound('Budget line not found');
         }
 
@@ -147,7 +147,7 @@ class BudgetLineController extends BaseApiController
     {
         $budget = Budget::with('lines')->find($budgetId);
 
-        if (!$budget) {
+        if (! $budget) {
             return $this->respondNotFound('Budget not found');
         }
 

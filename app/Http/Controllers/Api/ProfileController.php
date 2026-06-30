@@ -13,7 +13,7 @@ class ProfileController extends Controller
     {
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|email|unique:users,email,' . $request->user()->id,
+            'email' => 'sometimes|email|unique:users,email,'.$request->user()->id,
             'phone' => 'nullable|string|max:30',
             'timezone' => 'nullable|string|max:50',
             'language' => 'nullable|string|max:10',

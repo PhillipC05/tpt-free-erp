@@ -2,12 +2,12 @@
 
 namespace App\Services\Procurement;
 
-use App\Models\Procurement\PurchaseOrder;
-use App\Models\Procurement\POItem;
-use App\Models\Procurement\Requisition;
-use App\Models\Procurement\Vendor;
 use App\Models\Inventory\Stock;
 use App\Models\Inventory\StockMovement;
+use App\Models\Procurement\POItem;
+use App\Models\Procurement\PurchaseOrder;
+use App\Models\Procurement\Requisition;
+use App\Models\Procurement\Vendor;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -17,6 +17,7 @@ class ProcurementService
     {
         $data['status'] = $data['status'] ?? 'draft';
         $data['created_by'] = $data['created_by'] ?? auth()->id();
+
         return PurchaseOrder::create($data);
     }
 
@@ -26,6 +27,7 @@ class ProcurementService
             throw new \RuntimeException('Only draft purchase orders can be sent');
         }
         $po->update(['status' => 'sent']);
+
         return $po->fresh();
     }
 
@@ -39,6 +41,7 @@ class ProcurementService
             'approved_by' => auth()->id(),
             'approved_at' => now(),
         ]);
+
         return $po->fresh();
     }
 
@@ -102,6 +105,7 @@ class ProcurementService
             'approved_by' => auth()->id(),
             'approved_at' => now(),
         ]);
+
         return $po->fresh();
     }
 
@@ -111,12 +115,14 @@ class ProcurementService
             throw new \RuntimeException('Purchase order cannot be cancelled');
         }
         $po->update(['status' => 'cancelled']);
+
         return $po->fresh();
     }
 
     public function createRequisition(array $data): Requisition
     {
         $data['status'] = $data['status'] ?? 'pending';
+
         return Requisition::create($data);
     }
 
@@ -130,6 +136,7 @@ class ProcurementService
             'approved_by' => auth()->id(),
             'approved_at' => now(),
         ]);
+
         return $requisition->fresh();
     }
 
@@ -142,6 +149,7 @@ class ProcurementService
             'status' => 'rejected',
             'rejection_reason' => $reason,
         ]);
+
         return $requisition->fresh();
     }
 

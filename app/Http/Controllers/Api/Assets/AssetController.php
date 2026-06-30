@@ -37,7 +37,7 @@ class AssetController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new Asset());
+        parent::__construct(new Asset);
     }
 
     public function store(Request $request): JsonResponse
@@ -46,27 +46,32 @@ class AssetController extends BaseApiController
             'asset_code' => 'required|string|max:50|unique:assets,asset_code',
             'serial_number' => 'nullable|string|max:100|unique:assets,serial_number',
         ]));
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $data = $request->all();
         $data['status'] = $data['status'] ?? 'active';
         $data['current_value'] = $data['current_value'] ?? $data['purchase_cost'];
 
         $asset = Asset::create($data);
+
         return $this->respondCreated($asset, 'Asset created successfully');
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
         $asset = Asset::find($id);
-        if (!$asset) return $this->respondNotFound();
+        if (! $asset) {
+            return $this->respondNotFound();
+        }
 
         $error = $this->validate($request->all(), [
-            'asset_code' => 'required|string|max:50|unique:assets,asset_code,' . $id,
+            'asset_code' => 'required|string|max:50|unique:assets,asset_code,'.$id,
             'name' => 'required|string|max:200',
             'description' => 'nullable|string',
             'type' => 'required|string|max:100',
-            'serial_number' => 'nullable|string|max:100|unique:assets,serial_number,' . $id,
+            'serial_number' => 'nullable|string|max:100|unique:assets,serial_number,'.$id,
             'purchase_date' => 'required|date',
             'purchase_cost' => 'required|numeric|min:0',
             'current_value' => 'nullable|numeric|min:0',
@@ -77,16 +82,21 @@ class AssetController extends BaseApiController
             'assigned_to' => 'nullable|exists:hr_employees,id',
             'location_id' => 'nullable|exists:inventory_warehouses,id',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $asset->update($request->all());
+
         return $this->respondSuccess('Asset updated', $asset->fresh());
     }
 
     public function show(int $id): JsonResponse
     {
         $asset = Asset::with(['assignedTo', 'location', 'maintenanceRecords'])->find($id);
-        if (!$asset) return $this->respondNotFound();
+        if (! $asset) {
+            return $this->respondNotFound();
+        }
 
         return $this->respond(['success' => true, 'data' => $asset]);
     }
@@ -111,8 +121,8 @@ class AssetController extends BaseApiController
             $search = $request->query('search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('asset_code', 'like', "%{$search}%")
-                  ->orWhere('serial_number', 'like', "%{$search}%");
+                    ->orWhere('asset_code', 'like', "%{$search}%")
+                    ->orWhere('serial_number', 'like', "%{$search}%");
             });
         }
 
@@ -134,9 +144,11 @@ class AssetController extends BaseApiController
     public function calculateDepreciation(int $id): JsonResponse
     {
         $asset = Asset::find($id);
-        if (!$asset) return $this->respondNotFound();
+        if (! $asset) {
+            return $this->respondNotFound();
+        }
 
-        if (!$asset->useful_life_years || !$asset->depreciation_method) {
+        if (! $asset->useful_life_years || ! $asset->depreciation_method) {
             return $this->respondError('Asset is missing depreciation configuration', 422);
         }
 

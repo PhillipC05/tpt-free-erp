@@ -19,26 +19,26 @@ use OpenApi\Attributes as OA;
     bearerFormat: 'Sanctum',
     description: 'Laravel Sanctum token. Obtain via POST /api/auth/login.'
 )]
-#[OA\Tag(name: 'Auth',          description: 'Authentication — login, register, logout')]
-#[OA\Tag(name: 'Finance',       description: 'Chart of accounts, transactions, journal entries, budgets')]
-#[OA\Tag(name: 'Inventory',     description: 'Products, categories, warehouses, stock movements')]
-#[OA\Tag(name: 'HR',            description: 'Employees, departments, leave, payroll, attendance')]
-#[OA\Tag(name: 'Sales',         description: 'Customers, orders, invoices, CRM pipeline')]
-#[OA\Tag(name: 'Procurement',   description: 'Vendors, purchase orders')]
+#[OA\Tag(name: 'Auth', description: 'Authentication — login, register, logout')]
+#[OA\Tag(name: 'Finance', description: 'Chart of accounts, transactions, journal entries, budgets')]
+#[OA\Tag(name: 'Inventory', description: 'Products, categories, warehouses, stock movements')]
+#[OA\Tag(name: 'HR', description: 'Employees, departments, leave, payroll, attendance')]
+#[OA\Tag(name: 'Sales', description: 'Customers, orders, invoices, CRM pipeline')]
+#[OA\Tag(name: 'Procurement', description: 'Vendors, purchase orders')]
 #[OA\Tag(name: 'Manufacturing', description: 'Bills of materials, work orders')]
-#[OA\Tag(name: 'Projects',      description: 'Projects, tasks, time entries')]
-#[OA\Tag(name: 'Quality',       description: 'Quality checks, non-conformances')]
-#[OA\Tag(name: 'Assets',        description: 'Asset lifecycle, depreciation, maintenance')]
-#[OA\Tag(name: 'FieldService',  description: 'Service tickets')]
-#[OA\Tag(name: 'LMS',           description: 'Courses and enrollments')]
-#[OA\Tag(name: 'Reports',       description: 'Async report generation, scheduling, and download')]
-#[OA\Tag(name: 'Agents',        description: 'AI agent profiles, skill assignments, executions, and schedules')]
-#[OA\Tag(name: 'Marketing',     description: 'Campaigns, leads, analytics, ROI')]
-#[OA\Tag(name: 'Network',       description: 'User profiles, discovery, follows, connections, feed')]
-#[OA\Tag(name: 'POS',           description: 'Point of Sale — terminals, transactions, payments, checkout')]
-#[OA\Tag(name: 'Fleet',         description: 'Fleet management — vehicles, drivers, trips, fuel logs, maintenance')]
-#[OA\Tag(name: 'Subscription',  description: 'SaaS subscriptions — plans, billing, usage metering, upgrades/downgrades')]
-#[OA\Tag(name: 'Webhooks',      description: 'Manage outbound webhooks with event filtering and delivery history')]
+#[OA\Tag(name: 'Projects', description: 'Projects, tasks, time entries')]
+#[OA\Tag(name: 'Quality', description: 'Quality checks, non-conformances')]
+#[OA\Tag(name: 'Assets', description: 'Asset lifecycle, depreciation, maintenance')]
+#[OA\Tag(name: 'FieldService', description: 'Service tickets')]
+#[OA\Tag(name: 'LMS', description: 'Courses and enrollments')]
+#[OA\Tag(name: 'Reports', description: 'Async report generation, scheduling, and download')]
+#[OA\Tag(name: 'Agents', description: 'AI agent profiles, skill assignments, executions, and schedules')]
+#[OA\Tag(name: 'Marketing', description: 'Campaigns, leads, analytics, ROI')]
+#[OA\Tag(name: 'Network', description: 'User profiles, discovery, follows, connections, feed')]
+#[OA\Tag(name: 'POS', description: 'Point of Sale — terminals, transactions, payments, checkout')]
+#[OA\Tag(name: 'Fleet', description: 'Fleet management — vehicles, drivers, trips, fuel logs, maintenance')]
+#[OA\Tag(name: 'Subscription', description: 'SaaS subscriptions — plans, billing, usage metering, upgrades/downgrades')]
+#[OA\Tag(name: 'Webhooks', description: 'Manage outbound webhooks with event filtering and delivery history')]
 class OpenApiSpec
 {
     // ── Reusable response schemas ───────────────────────────────────────────
@@ -46,22 +46,22 @@ class OpenApiSpec
     #[OA\Schema(schema: 'SuccessResponse', properties: [
         new OA\Property(property: 'success', type: 'boolean', example: true),
         new OA\Property(property: 'message', type: 'string'),
-        new OA\Property(property: 'data',    type: 'object'),
+        new OA\Property(property: 'data', type: 'object'),
     ])]
     public function successResponse(): void {}
 
     #[OA\Schema(schema: 'ErrorResponse', properties: [
         new OA\Property(property: 'success', type: 'boolean', example: false),
         new OA\Property(property: 'message', type: 'string'),
-        new OA\Property(property: 'errors',  type: 'object'),
+        new OA\Property(property: 'errors', type: 'object'),
     ])]
     public function errorResponse(): void {}
 
     #[OA\Schema(schema: 'PaginationMeta', properties: [
         new OA\Property(property: 'current_page', type: 'integer'),
-        new OA\Property(property: 'last_page',    type: 'integer'),
-        new OA\Property(property: 'per_page',     type: 'integer'),
-        new OA\Property(property: 'total',        type: 'integer'),
+        new OA\Property(property: 'last_page', type: 'integer'),
+        new OA\Property(property: 'per_page', type: 'integer'),
+        new OA\Property(property: 'total', type: 'integer'),
     ])]
     public function paginationMeta(): void {}
 
@@ -71,7 +71,7 @@ class OpenApiSpec
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
             required: ['email', 'password'],
             properties: [
-                new OA\Property(property: 'email',    type: 'string', format: 'email'),
+                new OA\Property(property: 'email', type: 'string', format: 'email'),
                 new OA\Property(property: 'password', type: 'string', format: 'password'),
             ]
         )),
@@ -86,9 +86,9 @@ class OpenApiSpec
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
             required: ['name', 'email', 'password', 'password_confirmation'],
             properties: [
-                new OA\Property(property: 'name',                  type: 'string'),
-                new OA\Property(property: 'email',                 type: 'string', format: 'email'),
-                new OA\Property(property: 'password',              type: 'string', format: 'password'),
+                new OA\Property(property: 'name', type: 'string'),
+                new OA\Property(property: 'email', type: 'string', format: 'email'),
+                new OA\Property(property: 'password', type: 'string', format: 'password'),
                 new OA\Property(property: 'password_confirmation', type: 'string', format: 'password'),
             ]
         )),
@@ -113,7 +113,7 @@ class OpenApiSpec
     #[OA\Get(path: '/finance/accounts', tags: ['Finance'], summary: 'List chart of accounts',
         security: [['bearerAuth' => []]],
         parameters: [
-            new OA\Parameter(name: 'type',     in: 'query', schema: new OA\Schema(type: 'string', enum: ['asset', 'liability', 'equity', 'revenue', 'expense'])),
+            new OA\Parameter(name: 'type', in: 'query', schema: new OA\Schema(type: 'string', enum: ['asset', 'liability', 'equity', 'revenue', 'expense'])),
             new OA\Parameter(name: 'per_page', in: 'query', schema: new OA\Schema(type: 'integer', default: 15)),
         ],
         responses: [new OA\Response(response: 200, description: 'Paginated account list')]
@@ -125,9 +125,9 @@ class OpenApiSpec
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
             required: ['code', 'name', 'type'],
             properties: [
-                new OA\Property(property: 'code',     type: 'string', example: '1000'),
-                new OA\Property(property: 'name',     type: 'string', example: 'Cash'),
-                new OA\Property(property: 'type',     type: 'string', enum: ['asset', 'liability', 'equity', 'revenue', 'expense']),
+                new OA\Property(property: 'code', type: 'string', example: '1000'),
+                new OA\Property(property: 'name', type: 'string', example: 'Cash'),
+                new OA\Property(property: 'type', type: 'string', enum: ['asset', 'liability', 'equity', 'revenue', 'expense']),
                 new OA\Property(property: 'currency', type: 'string', example: 'USD'),
             ]
         )),
@@ -181,9 +181,9 @@ class OpenApiSpec
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
             required: ['account_id', 'amount', 'type', 'transaction_date'],
             properties: [
-                new OA\Property(property: 'account_id',       type: 'integer'),
-                new OA\Property(property: 'amount',           type: 'number'),
-                new OA\Property(property: 'type',             type: 'string', enum: ['debit', 'credit']),
+                new OA\Property(property: 'account_id', type: 'integer'),
+                new OA\Property(property: 'amount', type: 'number'),
+                new OA\Property(property: 'type', type: 'string', enum: ['debit', 'credit']),
                 new OA\Property(property: 'transaction_date', type: 'string', format: 'date'),
             ]
         )),
@@ -211,9 +211,9 @@ class OpenApiSpec
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
             required: ['entry_date', 'description'],
             properties: [
-                new OA\Property(property: 'entry_date',   type: 'string', format: 'date'),
-                new OA\Property(property: 'description',  type: 'string'),
-                new OA\Property(property: 'reference',    type: 'string'),
+                new OA\Property(property: 'entry_date', type: 'string', format: 'date'),
+                new OA\Property(property: 'description', type: 'string'),
+                new OA\Property(property: 'reference', type: 'string'),
             ]
         )),
         responses: [new OA\Response(response: 201, description: 'Created')]
@@ -225,9 +225,9 @@ class OpenApiSpec
     #[OA\Get(path: '/inventory/products', tags: ['Inventory'], summary: 'List products',
         security: [['bearerAuth' => []]],
         parameters: [
-            new OA\Parameter(name: 'search',    in: 'query', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'search', in: 'query', schema: new OA\Schema(type: 'string')),
             new OA\Parameter(name: 'is_active', in: 'query', schema: new OA\Schema(type: 'boolean')),
-            new OA\Parameter(name: 'per_page',  in: 'query', schema: new OA\Schema(type: 'integer', default: 15)),
+            new OA\Parameter(name: 'per_page', in: 'query', schema: new OA\Schema(type: 'integer', default: 15)),
         ],
         responses: [new OA\Response(response: 200, description: 'Paginated product list')]
     )]
@@ -238,10 +238,10 @@ class OpenApiSpec
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
             required: ['sku', 'name', 'unit'],
             properties: [
-                new OA\Property(property: 'sku',              type: 'string'),
-                new OA\Property(property: 'name',             type: 'string'),
-                new OA\Property(property: 'unit',             type: 'string'),
-                new OA\Property(property: 'unit_price',       type: 'number'),
+                new OA\Property(property: 'sku', type: 'string'),
+                new OA\Property(property: 'name', type: 'string'),
+                new OA\Property(property: 'unit', type: 'string'),
+                new OA\Property(property: 'unit_price', type: 'number'),
                 new OA\Property(property: 'valuation_method', type: 'string', enum: ['fifo', 'lifo', 'average']),
             ]
         )),
@@ -293,10 +293,10 @@ class OpenApiSpec
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
             required: ['product_id', 'warehouse_id', 'type', 'quantity'],
             properties: [
-                new OA\Property(property: 'product_id',   type: 'integer'),
+                new OA\Property(property: 'product_id', type: 'integer'),
                 new OA\Property(property: 'warehouse_id', type: 'integer'),
-                new OA\Property(property: 'type',         type: 'string', enum: ['in', 'out', 'transfer', 'adjustment']),
-                new OA\Property(property: 'quantity',     type: 'number'),
+                new OA\Property(property: 'type', type: 'string', enum: ['in', 'out', 'transfer', 'adjustment']),
+                new OA\Property(property: 'quantity', type: 'number'),
             ]
         )),
         responses: [new OA\Response(response: 201, description: 'Movement recorded')]
@@ -308,10 +308,10 @@ class OpenApiSpec
     #[OA\Get(path: '/hr/employees', tags: ['HR'], summary: 'List employees',
         security: [['bearerAuth' => []]],
         parameters: [
-            new OA\Parameter(name: 'search',          in: 'query', schema: new OA\Schema(type: 'string')),
-            new OA\Parameter(name: 'status',          in: 'query', schema: new OA\Schema(type: 'string', enum: ['active', 'on_leave', 'terminated'])),
+            new OA\Parameter(name: 'search', in: 'query', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'status', in: 'query', schema: new OA\Schema(type: 'string', enum: ['active', 'on_leave', 'terminated'])),
             new OA\Parameter(name: 'employment_type', in: 'query', schema: new OA\Schema(type: 'string', enum: ['full_time', 'part_time', 'contract', 'intern'])),
-            new OA\Parameter(name: 'per_page',        in: 'query', schema: new OA\Schema(type: 'integer', default: 15)),
+            new OA\Parameter(name: 'per_page', in: 'query', schema: new OA\Schema(type: 'integer', default: 15)),
         ],
         responses: [new OA\Response(response: 200, description: 'Paginated employee list')]
     )]
@@ -322,11 +322,11 @@ class OpenApiSpec
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
             required: ['employee_code', 'first_name', 'last_name', 'email', 'hire_date', 'employment_type'],
             properties: [
-                new OA\Property(property: 'employee_code',   type: 'string'),
-                new OA\Property(property: 'first_name',      type: 'string'),
-                new OA\Property(property: 'last_name',       type: 'string'),
-                new OA\Property(property: 'email',           type: 'string', format: 'email'),
-                new OA\Property(property: 'hire_date',       type: 'string', format: 'date'),
+                new OA\Property(property: 'employee_code', type: 'string'),
+                new OA\Property(property: 'first_name', type: 'string'),
+                new OA\Property(property: 'last_name', type: 'string'),
+                new OA\Property(property: 'email', type: 'string', format: 'email'),
+                new OA\Property(property: 'hire_date', type: 'string', format: 'date'),
                 new OA\Property(property: 'employment_type', type: 'string', enum: ['full_time', 'part_time', 'contract', 'intern']),
             ]
         )),
@@ -368,9 +368,9 @@ class OpenApiSpec
             required: ['employee_id', 'leave_type', 'start_date', 'end_date'],
             properties: [
                 new OA\Property(property: 'employee_id', type: 'integer'),
-                new OA\Property(property: 'leave_type',  type: 'string', enum: ['annual', 'sick', 'personal', 'maternity', 'paternity', 'other']),
-                new OA\Property(property: 'start_date',  type: 'string', format: 'date'),
-                new OA\Property(property: 'end_date',    type: 'string', format: 'date'),
+                new OA\Property(property: 'leave_type', type: 'string', enum: ['annual', 'sick', 'personal', 'maternity', 'paternity', 'other']),
+                new OA\Property(property: 'start_date', type: 'string', format: 'date'),
+                new OA\Property(property: 'end_date', type: 'string', format: 'date'),
             ]
         )),
         responses: [new OA\Response(response: 201, description: 'Leave request submitted')]
@@ -687,9 +687,9 @@ class OpenApiSpec
             required: ['report_type', 'format'],
             properties: [
                 new OA\Property(property: 'report_type', type: 'string', enum: ['trial_balance', 'income_statement', 'balance_sheet', 'cash_flow', 'hr_attendance', 'hr_payroll', 'sales_summary', 'procurement']),
-                new OA\Property(property: 'format',      type: 'string', enum: ['json', 'csv', 'pdf']),
-                new OA\Property(property: 'date_from',   type: 'string', format: 'date'),
-                new OA\Property(property: 'date_to',     type: 'string', format: 'date'),
+                new OA\Property(property: 'format', type: 'string', enum: ['json', 'csv', 'pdf']),
+                new OA\Property(property: 'date_from', type: 'string', format: 'date'),
+                new OA\Property(property: 'date_to', type: 'string', format: 'date'),
             ]
         )),
         responses: [
@@ -730,10 +730,10 @@ class OpenApiSpec
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
             required: ['name', 'report_type', 'format', 'frequency'],
             properties: [
-                new OA\Property(property: 'name',        type: 'string'),
+                new OA\Property(property: 'name', type: 'string'),
                 new OA\Property(property: 'report_type', type: 'string'),
-                new OA\Property(property: 'format',      type: 'string', enum: ['json', 'csv', 'pdf']),
-                new OA\Property(property: 'frequency',   type: 'string', enum: ['daily', 'weekly', 'monthly']),
+                new OA\Property(property: 'format', type: 'string', enum: ['json', 'csv', 'pdf']),
+                new OA\Property(property: 'frequency', type: 'string', enum: ['daily', 'weekly', 'monthly']),
                 new OA\Property(property: 'delivery_email', type: 'string', format: 'email'),
             ]
         )),
@@ -761,11 +761,11 @@ class OpenApiSpec
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
             required: ['name', 'agent_type'],
             properties: [
-                new OA\Property(property: 'name',            type: 'string', example: 'Finance Bot'),
-                new OA\Property(property: 'description',     type: 'string'),
-                new OA\Property(property: 'agent_type',      type: 'string', enum: ['local', 'openrouter', 'api', 'human_subcontractor']),
+                new OA\Property(property: 'name', type: 'string', example: 'Finance Bot'),
+                new OA\Property(property: 'description', type: 'string'),
+                new OA\Property(property: 'agent_type', type: 'string', enum: ['local', 'openrouter', 'api', 'human_subcontractor']),
                 new OA\Property(property: 'provider_config', type: 'object', description: 'Model/API configuration'),
-                new OA\Property(property: 'is_active',       type: 'boolean', default: true),
+                new OA\Property(property: 'is_active', type: 'boolean', default: true),
             ]
         )),
         responses: [
@@ -803,11 +803,11 @@ class OpenApiSpec
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
             required: ['name'],
             properties: [
-                new OA\Property(property: 'name',                 type: 'string'),
-                new OA\Property(property: 'abilities',            type: 'array', items: new OA\Items(type: 'string')),
-                new OA\Property(property: 'allowed_skill_slugs',  type: 'array', items: new OA\Items(type: 'string')),
+                new OA\Property(property: 'name', type: 'string'),
+                new OA\Property(property: 'abilities', type: 'array', items: new OA\Items(type: 'string')),
+                new OA\Property(property: 'allowed_skill_slugs', type: 'array', items: new OA\Items(type: 'string')),
                 new OA\Property(property: 'rate_limit_per_minute', type: 'integer', default: 10),
-                new OA\Property(property: 'expires_at',           type: 'string', format: 'date-time'),
+                new OA\Property(property: 'expires_at', type: 'string', format: 'date-time'),
             ]
         )),
         responses: [new OA\Response(response: 201, description: 'Token created — plain_token shown once')]
@@ -817,7 +817,7 @@ class OpenApiSpec
     #[OA\Delete(path: '/v1/agents/{id}/tokens/{tokenId}', tags: ['Agents'], summary: 'Revoke an agent token',
         security: [['bearerAuth' => []]],
         parameters: [
-            new OA\Parameter(name: 'id',      in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
             new OA\Parameter(name: 'tokenId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
         ],
         responses: [new OA\Response(response: 200, description: 'Token revoked')]
@@ -854,12 +854,12 @@ class OpenApiSpec
     #[OA\Put(path: '/v1/agents/{id}/skills/{slug}', tags: ['Agents'], summary: 'Enable or disable a skill for an agent',
         security: [['bearerAuth' => []]],
         parameters: [
-            new OA\Parameter(name: 'id',   in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
             new OA\Parameter(name: 'slug', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
         ],
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'is_enabled',       type: 'boolean'),
+                new OA\Property(property: 'is_enabled', type: 'boolean'),
                 new OA\Property(property: 'config_overrides', type: 'object'),
             ]
         )),
@@ -870,7 +870,7 @@ class OpenApiSpec
     #[OA\Post(path: '/v1/agents/{id}/skills/{slug}/run', tags: ['Agents'], summary: 'Manually trigger a skill execution',
         security: [['bearerAuth' => []]],
         parameters: [
-            new OA\Parameter(name: 'id',   in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
             new OA\Parameter(name: 'slug', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
         ],
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
@@ -888,9 +888,9 @@ class OpenApiSpec
     #[OA\Get(path: '/v1/agents/{id}/executions', tags: ['Agents'], summary: 'Paginated execution audit log for an agent',
         security: [['bearerAuth' => []]],
         parameters: [
-            new OA\Parameter(name: 'id',     in: 'path',  required: true,  schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
             new OA\Parameter(name: 'status', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['queued', 'running', 'completed', 'failed'])),
-            new OA\Parameter(name: 'skill',  in: 'query', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'skill', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
         ],
         responses: [new OA\Response(response: 200, description: 'Paginated execution log')]
     )]
@@ -899,7 +899,7 @@ class OpenApiSpec
     #[OA\Get(path: '/v1/agents/{id}/executions/{execId}', tags: ['Agents'], summary: 'Get single execution detail',
         security: [['bearerAuth' => []]],
         parameters: [
-            new OA\Parameter(name: 'id',     in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
             new OA\Parameter(name: 'execId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
         ],
         responses: [new OA\Response(response: 200, description: 'Execution detail'), new OA\Response(response: 404, description: 'Not found')]
@@ -919,10 +919,10 @@ class OpenApiSpec
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
             required: ['skill_slug'],
             properties: [
-                new OA\Property(property: 'skill_slug',       type: 'string', example: 'finance.extract_invoice'),
-                new OA\Property(property: 'cron_expression',  type: 'string', example: '0 9 * * 1'),
-                new OA\Property(property: 'input_template',   type: 'object'),
-                new OA\Property(property: 'is_active',        type: 'boolean', default: true),
+                new OA\Property(property: 'skill_slug', type: 'string', example: 'finance.extract_invoice'),
+                new OA\Property(property: 'cron_expression', type: 'string', example: '0 9 * * 1'),
+                new OA\Property(property: 'input_template', type: 'object'),
+                new OA\Property(property: 'is_active', type: 'boolean', default: true),
             ]
         )),
         responses: [new OA\Response(response: 201, description: 'Schedule created')]
@@ -932,7 +932,7 @@ class OpenApiSpec
     #[OA\Delete(path: '/v1/agents/{id}/schedules/{schedId}', tags: ['Agents'], summary: 'Delete an agent schedule',
         security: [['bearerAuth' => []]],
         parameters: [
-            new OA\Parameter(name: 'id',      in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
             new OA\Parameter(name: 'schedId', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
         ],
         responses: [new OA\Response(response: 200, description: 'Deleted')]
@@ -947,17 +947,17 @@ class OpenApiSpec
         responses: [new OA\Response(response: 200, description: 'ROI metrics', content: new OA\JsonContent(properties: [
             new OA\Property(property: 'success', type: 'boolean'),
             new OA\Property(property: 'data', type: 'object', properties: [
-                new OA\Property(property: 'campaign_id',          type: 'integer'),
-                new OA\Property(property: 'campaign_name',        type: 'string'),
-                new OA\Property(property: 'budget',               type: 'number'),
-                new OA\Property(property: 'total_cost',           type: 'number'),
-                new OA\Property(property: 'total_revenue',        type: 'number'),
-                new OA\Property(property: 'roi_percent',          type: 'number', nullable: true),
-                new OA\Property(property: 'roas',                 type: 'number', nullable: true),
-                new OA\Property(property: 'cost_per_click',       type: 'number', nullable: true),
+                new OA\Property(property: 'campaign_id', type: 'integer'),
+                new OA\Property(property: 'campaign_name', type: 'string'),
+                new OA\Property(property: 'budget', type: 'number'),
+                new OA\Property(property: 'total_cost', type: 'number'),
+                new OA\Property(property: 'total_revenue', type: 'number'),
+                new OA\Property(property: 'roi_percent', type: 'number', nullable: true),
+                new OA\Property(property: 'roas', type: 'number', nullable: true),
+                new OA\Property(property: 'cost_per_click', type: 'number', nullable: true),
                 new OA\Property(property: 'cost_per_acquisition', type: 'number', nullable: true),
-                new OA\Property(property: 'total_conversions',    type: 'integer'),
-                new OA\Property(property: 'total_clicks',         type: 'integer'),
+                new OA\Property(property: 'total_conversions', type: 'integer'),
+                new OA\Property(property: 'total_clicks', type: 'integer'),
             ]),
         ]))]
     )]
@@ -1002,9 +1002,9 @@ class OpenApiSpec
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
             required: ['url', 'events'],
             properties: [
-                new OA\Property(property: 'url',       type: 'string', format: 'uri'),
-                new OA\Property(property: 'secret',    type: 'string'),
-                new OA\Property(property: 'events',    type: 'array', items: new OA\Items(type: 'string'), example: ['sales.*']),
+                new OA\Property(property: 'url', type: 'string', format: 'uri'),
+                new OA\Property(property: 'secret', type: 'string'),
+                new OA\Property(property: 'events', type: 'array', items: new OA\Items(type: 'string'), example: ['sales.*']),
                 new OA\Property(property: 'is_active', type: 'boolean', default: true),
             ]
         )),
@@ -1023,8 +1023,8 @@ class OpenApiSpec
         security: [['bearerAuth' => []]],
         parameters: [new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))],
         requestBody: new OA\RequestBody(required: false, content: new OA\JsonContent(properties: [
-            new OA\Property(property: 'url',       type: 'string', format: 'uri'),
-            new OA\Property(property: 'events',    type: 'array', items: new OA\Items(type: 'string')),
+            new OA\Property(property: 'url', type: 'string', format: 'uri'),
+            new OA\Property(property: 'events', type: 'array', items: new OA\Items(type: 'string')),
             new OA\Property(property: 'is_active', type: 'boolean'),
         ])),
         responses: [new OA\Response(response: 200, description: 'Updated')]
@@ -1057,8 +1057,8 @@ class OpenApiSpec
     #[OA\Get(path: '/v1/pos/terminals', tags: ['POS'], summary: 'List POS terminals',
         security: [['bearerAuth' => []]],
         parameters: [
-            new OA\Parameter(name: 'status',  in: 'query', schema: new OA\Schema(type: 'string', enum: ['active', 'inactive', 'maintenance'])),
-            new OA\Parameter(name: 'search',  in: 'query', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'status', in: 'query', schema: new OA\Schema(type: 'string', enum: ['active', 'inactive', 'maintenance'])),
+            new OA\Parameter(name: 'search', in: 'query', schema: new OA\Schema(type: 'string')),
             new OA\Parameter(name: 'per_page', in: 'query', schema: new OA\Schema(type: 'integer', default: 15)),
         ],
         responses: [new OA\Response(response: 200, description: 'Paginated terminal list')])]
@@ -1070,10 +1070,10 @@ class OpenApiSpec
             required: ['terminal_code', 'name'],
             properties: [
                 new OA\Property(property: 'terminal_code', type: 'string'),
-                new OA\Property(property: 'name',          type: 'string'),
-                new OA\Property(property: 'warehouse_id',  type: 'integer'),
-                new OA\Property(property: 'assigned_to',   type: 'integer'),
-                new OA\Property(property: 'status',        type: 'string', enum: ['active', 'inactive', 'maintenance']),
+                new OA\Property(property: 'name', type: 'string'),
+                new OA\Property(property: 'warehouse_id', type: 'integer'),
+                new OA\Property(property: 'assigned_to', type: 'integer'),
+                new OA\Property(property: 'status', type: 'string', enum: ['active', 'inactive', 'maintenance']),
             ]
         )),
         responses: [new OA\Response(response: 201, description: 'Created')])]
@@ -1104,11 +1104,11 @@ class OpenApiSpec
         security: [['bearerAuth' => []]],
         parameters: [
             new OA\Parameter(name: 'terminal_id', in: 'query', schema: new OA\Schema(type: 'integer')),
-            new OA\Parameter(name: 'status',      in: 'query', schema: new OA\Schema(type: 'string', enum: ['open', 'completed', 'voided', 'refunded'])),
+            new OA\Parameter(name: 'status', in: 'query', schema: new OA\Schema(type: 'string', enum: ['open', 'completed', 'voided', 'refunded'])),
             new OA\Parameter(name: 'customer_id', in: 'query', schema: new OA\Schema(type: 'integer')),
-            new OA\Parameter(name: 'start_date',  in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
-            new OA\Parameter(name: 'end_date',    in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
-            new OA\Parameter(name: 'per_page',    in: 'query', schema: new OA\Schema(type: 'integer', default: 15)),
+            new OA\Parameter(name: 'start_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'end_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'per_page', in: 'query', schema: new OA\Schema(type: 'integer', default: 15)),
         ],
         responses: [new OA\Response(response: 200, description: 'Paginated transaction list')])]
     public function posTransactionIndex(): void {}
@@ -1121,7 +1121,7 @@ class OpenApiSpec
                 new OA\Property(property: 'terminal_id', type: 'integer'),
                 new OA\Property(property: 'customer_id', type: 'integer'),
                 new OA\Property(property: 'employee_id', type: 'integer'),
-                new OA\Property(property: 'currency',    type: 'string', example: 'USD'),
+                new OA\Property(property: 'currency', type: 'string', example: 'USD'),
             ]
         )),
         responses: [new OA\Response(response: 201, description: 'Transaction opened')])]
@@ -1139,12 +1139,12 @@ class OpenApiSpec
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
             required: ['description', 'quantity', 'unit_price'],
             properties: [
-                new OA\Property(property: 'product_id',      type: 'integer'),
-                new OA\Property(property: 'description',     type: 'string'),
-                new OA\Property(property: 'quantity',         type: 'number'),
-                new OA\Property(property: 'unit_price',      type: 'number'),
+                new OA\Property(property: 'product_id', type: 'integer'),
+                new OA\Property(property: 'description', type: 'string'),
+                new OA\Property(property: 'quantity', type: 'number'),
+                new OA\Property(property: 'unit_price', type: 'number'),
                 new OA\Property(property: 'discount_percent', type: 'number', default: 0),
-                new OA\Property(property: 'tax_percent',     type: 'number', default: 0),
+                new OA\Property(property: 'tax_percent', type: 'number', default: 0),
             ]
         )),
         responses: [new OA\Response(response: 201, description: 'Item added'), new OA\Response(response: 422, description: 'Transaction not open')])]
@@ -1158,8 +1158,8 @@ class OpenApiSpec
             properties: [
                 new OA\Property(property: 'payments', type: 'array', items: new OA\Items(
                     properties: [
-                        new OA\Property(property: 'method',    type: 'string', enum: ['cash', 'card', 'bank_transfer', 'digital_wallet', 'other']),
-                        new OA\Property(property: 'amount',    type: 'number'),
+                        new OA\Property(property: 'method', type: 'string', enum: ['cash', 'card', 'bank_transfer', 'digital_wallet', 'other']),
+                        new OA\Property(property: 'amount', type: 'number'),
                         new OA\Property(property: 'reference', type: 'string'),
                     ]
                 )),
@@ -1172,8 +1172,8 @@ class OpenApiSpec
         security: [['bearerAuth' => []]],
         parameters: [
             new OA\Parameter(name: 'terminal_id', in: 'query', schema: new OA\Schema(type: 'integer')),
-            new OA\Parameter(name: 'start_date',  in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
-            new OA\Parameter(name: 'end_date',    in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'start_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'end_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
         ],
         responses: [new OA\Response(response: 200, description: 'Summary metrics')])]
     public function posTransactionSummary(): void {}
@@ -1207,9 +1207,9 @@ class OpenApiSpec
     #[OA\Get(path: '/v1/fleet/vehicles', tags: ['Fleet'], summary: 'List fleet vehicles',
         security: [['bearerAuth' => []]],
         parameters: [
-            new OA\Parameter(name: 'status',  in: 'query', schema: new OA\Schema(type: 'string', enum: ['active', 'inactive', 'maintenance', 'retired'])),
-            new OA\Parameter(name: 'type',    in: 'query', schema: new OA\Schema(type: 'string', enum: ['car', 'truck', 'van', 'motorcycle', 'bus', 'trailer', 'other'])),
-            new OA\Parameter(name: 'search',  in: 'query', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'status', in: 'query', schema: new OA\Schema(type: 'string', enum: ['active', 'inactive', 'maintenance', 'retired'])),
+            new OA\Parameter(name: 'type', in: 'query', schema: new OA\Schema(type: 'string', enum: ['car', 'truck', 'van', 'motorcycle', 'bus', 'trailer', 'other'])),
+            new OA\Parameter(name: 'search', in: 'query', schema: new OA\Schema(type: 'string')),
             new OA\Parameter(name: 'per_page', in: 'query', schema: new OA\Schema(type: 'integer', default: 15)),
         ],
         responses: [new OA\Response(response: 200, description: 'Paginated vehicle list')])]
@@ -1221,13 +1221,13 @@ class OpenApiSpec
             required: ['vehicle_code', 'make', 'model', 'year', 'license_plate'],
             properties: [
                 new OA\Property(property: 'vehicle_code', type: 'string'),
-                new OA\Property(property: 'make',         type: 'string'),
-                new OA\Property(property: 'model',        type: 'string'),
-                new OA\Property(property: 'year',         type: 'integer'),
+                new OA\Property(property: 'make', type: 'string'),
+                new OA\Property(property: 'model', type: 'string'),
+                new OA\Property(property: 'year', type: 'integer'),
                 new OA\Property(property: 'license_plate', type: 'string'),
-                new OA\Property(property: 'vin',          type: 'string'),
-                new OA\Property(property: 'type',         type: 'string', enum: ['car', 'truck', 'van', 'motorcycle', 'bus', 'trailer', 'other']),
-                new OA\Property(property: 'fuel_type',    type: 'string', enum: ['gasoline', 'diesel', 'electric', 'hybrid', 'other']),
+                new OA\Property(property: 'vin', type: 'string'),
+                new OA\Property(property: 'type', type: 'string', enum: ['car', 'truck', 'van', 'motorcycle', 'bus', 'trailer', 'other']),
+                new OA\Property(property: 'fuel_type', type: 'string', enum: ['gasoline', 'diesel', 'electric', 'hybrid', 'other']),
             ]
         )),
         responses: [new OA\Response(response: 201, description: 'Created')])]
@@ -1244,7 +1244,7 @@ class OpenApiSpec
     #[OA\Get(path: '/v1/fleet/drivers', tags: ['Fleet'], summary: 'List registered drivers',
         security: [['bearerAuth' => []]],
         parameters: [
-            new OA\Parameter(name: 'status',        in: 'query', schema: new OA\Schema(type: 'string', enum: ['active', 'inactive', 'suspended'])),
+            new OA\Parameter(name: 'status', in: 'query', schema: new OA\Schema(type: 'string', enum: ['active', 'inactive', 'suspended'])),
             new OA\Parameter(name: 'expiring_soon', in: 'query', schema: new OA\Schema(type: 'integer', description: 'Days until license expiry')),
         ],
         responses: [new OA\Response(response: 200, description: 'Paginated driver list')])]
@@ -1255,9 +1255,9 @@ class OpenApiSpec
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
             required: ['employee_id', 'license_number', 'license_expiry'],
             properties: [
-                new OA\Property(property: 'employee_id',    type: 'integer'),
+                new OA\Property(property: 'employee_id', type: 'integer'),
                 new OA\Property(property: 'license_number', type: 'string'),
-                new OA\Property(property: 'license_class',  type: 'string'),
+                new OA\Property(property: 'license_class', type: 'string'),
                 new OA\Property(property: 'license_expiry', type: 'string', format: 'date'),
             ]
         )),
@@ -1270,10 +1270,10 @@ class OpenApiSpec
         security: [['bearerAuth' => []]],
         parameters: [
             new OA\Parameter(name: 'vehicle_id', in: 'query', schema: new OA\Schema(type: 'integer')),
-            new OA\Parameter(name: 'driver_id',  in: 'query', schema: new OA\Schema(type: 'integer')),
-            new OA\Parameter(name: 'status',     in: 'query', schema: new OA\Schema(type: 'string', enum: ['scheduled', 'in_progress', 'completed', 'cancelled'])),
+            new OA\Parameter(name: 'driver_id', in: 'query', schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'status', in: 'query', schema: new OA\Schema(type: 'string', enum: ['scheduled', 'in_progress', 'completed', 'cancelled'])),
             new OA\Parameter(name: 'start_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
-            new OA\Parameter(name: 'end_date',   in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'end_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
         ],
         responses: [new OA\Response(response: 200, description: 'Paginated trip list')])]
     public function fleetTripIndex(): void {}
@@ -1283,12 +1283,12 @@ class OpenApiSpec
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
             required: ['vehicle_id', 'driver_id', 'start_location', 'start_odometer', 'start_time'],
             properties: [
-                new OA\Property(property: 'vehicle_id',      type: 'integer'),
-                new OA\Property(property: 'driver_id',       type: 'integer'),
-                new OA\Property(property: 'start_location',  type: 'string'),
-                new OA\Property(property: 'start_odometer',  type: 'number'),
-                new OA\Property(property: 'start_time',      type: 'string', format: 'date-time'),
-                new OA\Property(property: 'purpose',         type: 'string'),
+                new OA\Property(property: 'vehicle_id', type: 'integer'),
+                new OA\Property(property: 'driver_id', type: 'integer'),
+                new OA\Property(property: 'start_location', type: 'string'),
+                new OA\Property(property: 'start_odometer', type: 'number'),
+                new OA\Property(property: 'start_time', type: 'string', format: 'date-time'),
+                new OA\Property(property: 'purpose', type: 'string'),
             ]
         )),
         responses: [new OA\Response(response: 201, description: 'Created')])]
@@ -1319,9 +1319,9 @@ class OpenApiSpec
         security: [['bearerAuth' => []]],
         parameters: [
             new OA\Parameter(name: 'vehicle_id', in: 'query', schema: new OA\Schema(type: 'integer')),
-            new OA\Parameter(name: 'fuel_type',  in: 'query', schema: new OA\Schema(type: 'string', enum: ['gasoline', 'diesel', 'electric', 'hybrid', 'other'])),
+            new OA\Parameter(name: 'fuel_type', in: 'query', schema: new OA\Schema(type: 'string', enum: ['gasoline', 'diesel', 'electric', 'hybrid', 'other'])),
             new OA\Parameter(name: 'start_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
-            new OA\Parameter(name: 'end_date',   in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'end_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
         ],
         responses: [new OA\Response(response: 200, description: 'Paginated fuel log list')])]
     public function fleetFuelLogIndex(): void {}
@@ -1332,11 +1332,11 @@ class OpenApiSpec
             required: ['vehicle_id', 'date', 'quantity', 'unit_cost', 'fuel_type', 'odometer'],
             properties: [
                 new OA\Property(property: 'vehicle_id', type: 'integer'),
-                new OA\Property(property: 'date',       type: 'string', format: 'date'),
-                new OA\Property(property: 'quantity',   type: 'number'),
-                new OA\Property(property: 'unit_cost',  type: 'number'),
-                new OA\Property(property: 'fuel_type',  type: 'string', enum: ['gasoline', 'diesel', 'electric', 'hybrid', 'other']),
-                new OA\Property(property: 'odometer',   type: 'number'),
+                new OA\Property(property: 'date', type: 'string', format: 'date'),
+                new OA\Property(property: 'quantity', type: 'number'),
+                new OA\Property(property: 'unit_cost', type: 'number'),
+                new OA\Property(property: 'fuel_type', type: 'string', enum: ['gasoline', 'diesel', 'electric', 'hybrid', 'other']),
+                new OA\Property(property: 'odometer', type: 'number'),
             ]
         )),
         responses: [new OA\Response(response: 201, description: 'Recorded')])]
@@ -1348,7 +1348,7 @@ class OpenApiSpec
         security: [['bearerAuth' => []]],
         parameters: [
             new OA\Parameter(name: 'start_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
-            new OA\Parameter(name: 'end_date',   in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'end_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
         ],
         responses: [new OA\Response(response: 200, description: 'Dashboard data')])]
     public function fuelTrackingDashboard(): void {}
@@ -1365,7 +1365,7 @@ class OpenApiSpec
         security: [['bearerAuth' => []]],
         parameters: [
             new OA\Parameter(name: 'start_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
-            new OA\Parameter(name: 'end_date',   in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'end_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
         ],
         responses: [new OA\Response(response: 200, description: 'Consumption per vehicle')])]
     public function fuelTrackingConsumption(): void {}
@@ -1373,9 +1373,9 @@ class OpenApiSpec
     #[OA\Get(path: '/v1/fleet/fuel-tracking/price-history', tags: ['Fleet'], summary: 'Fuel price history over time',
         security: [['bearerAuth' => []]],
         parameters: [
-            new OA\Parameter(name: 'fuel_type',  in: 'query', schema: new OA\Schema(type: 'string', enum: ['gasoline', 'diesel', 'electric', 'hybrid', 'other'], default: 'gasoline')),
+            new OA\Parameter(name: 'fuel_type', in: 'query', schema: new OA\Schema(type: 'string', enum: ['gasoline', 'diesel', 'electric', 'hybrid', 'other'], default: 'gasoline')),
             new OA\Parameter(name: 'start_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
-            new OA\Parameter(name: 'end_date',   in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'end_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
         ],
         responses: [new OA\Response(response: 200, description: 'Daily price trend with min/max/avg')])]
     public function fuelTrackingPriceHistory(): void {}
@@ -1386,8 +1386,8 @@ class OpenApiSpec
         security: [['bearerAuth' => []]],
         parameters: [
             new OA\Parameter(name: 'vehicle_id', in: 'query', schema: new OA\Schema(type: 'integer')),
-            new OA\Parameter(name: 'status',     in: 'query', schema: new OA\Schema(type: 'string', enum: ['scheduled', 'in_progress', 'completed', 'cancelled'])),
-            new OA\Parameter(name: 'type',       in: 'query', schema: new OA\Schema(type: 'string', enum: ['preventive', 'corrective', 'emergency', 'inspection'])),
+            new OA\Parameter(name: 'status', in: 'query', schema: new OA\Schema(type: 'string', enum: ['scheduled', 'in_progress', 'completed', 'cancelled'])),
+            new OA\Parameter(name: 'type', in: 'query', schema: new OA\Schema(type: 'string', enum: ['preventive', 'corrective', 'emergency', 'inspection'])),
         ],
         responses: [new OA\Response(response: 200, description: 'Paginated maintenance list')])]
     public function fleetMaintenanceIndex(): void {}
@@ -1397,9 +1397,9 @@ class OpenApiSpec
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
             required: ['vehicle_id', 'type', 'title'],
             properties: [
-                new OA\Property(property: 'vehicle_id',     type: 'integer'),
-                new OA\Property(property: 'type',           type: 'string', enum: ['preventive', 'corrective', 'emergency', 'inspection']),
-                new OA\Property(property: 'title',          type: 'string'),
+                new OA\Property(property: 'vehicle_id', type: 'integer'),
+                new OA\Property(property: 'type', type: 'string', enum: ['preventive', 'corrective', 'emergency', 'inspection']),
+                new OA\Property(property: 'title', type: 'string'),
                 new OA\Property(property: 'scheduled_date', type: 'string', format: 'date'),
             ]
         )),
@@ -1428,7 +1428,7 @@ class OpenApiSpec
         security: [['bearerAuth' => []]],
         parameters: [
             new OA\Parameter(name: 'start_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
-            new OA\Parameter(name: 'end_date',   in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'end_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
         ],
         responses: [new OA\Response(response: 200, description: 'Cost report with breakdowns by type, vehicle, provider, and month')])]
     public function maintenanceTrackingCostReport(): void {}
@@ -1439,9 +1439,9 @@ class OpenApiSpec
         security: [['bearerAuth' => []]],
         parameters: [
             new OA\Parameter(name: 'category_id', in: 'query', schema: new OA\Schema(type: 'integer')),
-            new OA\Parameter(name: 'search',      in: 'query', schema: new OA\Schema(type: 'string')),
-            new OA\Parameter(name: 'low_stock',   in: 'query', schema: new OA\Schema(type: 'string', enum: ['true', 'false'])),
-            new OA\Parameter(name: 'per_page',    in: 'query', schema: new OA\Schema(type: 'integer', default: 15)),
+            new OA\Parameter(name: 'search', in: 'query', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'low_stock', in: 'query', schema: new OA\Schema(type: 'string', enum: ['true', 'false'])),
+            new OA\Parameter(name: 'per_page', in: 'query', schema: new OA\Schema(type: 'integer', default: 15)),
         ],
         responses: [new OA\Response(response: 200, description: 'Paginated parts list')])]
     public function fleetPartIndex(): void {}
@@ -1452,11 +1452,11 @@ class OpenApiSpec
             required: ['part_number', 'name', 'unit_cost'],
             properties: [
                 new OA\Property(property: 'part_number', type: 'string'),
-                new OA\Property(property: 'name',        type: 'string'),
+                new OA\Property(property: 'name', type: 'string'),
                 new OA\Property(property: 'category_id', type: 'integer'),
-                new OA\Property(property: 'unit_cost',   type: 'number'),
+                new OA\Property(property: 'unit_cost', type: 'number'),
                 new OA\Property(property: 'quantity_on_hand', type: 'number', default: 0),
-                new OA\Property(property: 'reorder_level',    type: 'number', default: 0),
+                new OA\Property(property: 'reorder_level', type: 'number', default: 0),
             ]
         )),
         responses: [new OA\Response(response: 201, description: 'Created')])]
@@ -1474,7 +1474,7 @@ class OpenApiSpec
             required: ['adjustment', 'reason'],
             properties: [
                 new OA\Property(property: 'adjustment', type: 'number', description: 'Positive to add, negative to subtract'),
-                new OA\Property(property: 'reason',     type: 'string'),
+                new OA\Property(property: 'reason', type: 'string'),
             ]
         )),
         responses: [new OA\Response(response: 200, description: 'Adjusted'), new OA\Response(response: 422, description: 'Would result in negative stock')])]
@@ -1485,12 +1485,12 @@ class OpenApiSpec
         requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(
             required: ['part_id', 'vehicle_id', 'quantity', 'used_date'],
             properties: [
-                new OA\Property(property: 'part_id',       type: 'integer'),
-                new OA\Property(property: 'vehicle_id',    type: 'integer'),
+                new OA\Property(property: 'part_id', type: 'integer'),
+                new OA\Property(property: 'vehicle_id', type: 'integer'),
                 new OA\Property(property: 'maintenance_id', type: 'integer'),
-                new OA\Property(property: 'quantity',      type: 'number'),
-                new OA\Property(property: 'unit_cost',     type: 'number'),
-                new OA\Property(property: 'used_date',     type: 'string', format: 'date'),
+                new OA\Property(property: 'quantity', type: 'number'),
+                new OA\Property(property: 'unit_cost', type: 'number'),
+                new OA\Property(property: 'used_date', type: 'string', format: 'date'),
             ]
         )),
         responses: [new OA\Response(response: 201, description: 'Recorded'), new OA\Response(response: 422, description: 'Insufficient stock')])]
@@ -1499,10 +1499,10 @@ class OpenApiSpec
     #[OA\Get(path: '/v1/fleet/parts/usage', tags: ['Fleet'], summary: 'List part usage records',
         security: [['bearerAuth' => []]],
         parameters: [
-            new OA\Parameter(name: 'part_id',    in: 'query', schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'part_id', in: 'query', schema: new OA\Schema(type: 'integer')),
             new OA\Parameter(name: 'vehicle_id', in: 'query', schema: new OA\Schema(type: 'integer')),
             new OA\Parameter(name: 'start_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
-            new OA\Parameter(name: 'end_date',   in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'end_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
         ],
         responses: [new OA\Response(response: 200, description: 'Paginated usage list')])]
     public function fleetPartUsageIndex(): void {}
@@ -1511,7 +1511,7 @@ class OpenApiSpec
         security: [['bearerAuth' => []]],
         parameters: [
             new OA\Parameter(name: 'start_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
-            new OA\Parameter(name: 'end_date',   in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'end_date', in: 'query', schema: new OA\Schema(type: 'string', format: 'date')),
         ],
         responses: [new OA\Response(response: 200, description: 'Usage summary with top parts and cost by vehicle')])]
     public function fleetPartUsageSummary(): void {}

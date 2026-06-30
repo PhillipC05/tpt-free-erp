@@ -4,6 +4,7 @@ namespace Database\Factories\Sales;
 
 use App\Models\Sales\Customer;
 use App\Models\Sales\Order;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class OrderFactory extends Factory
@@ -25,7 +26,7 @@ class OrderFactory extends Factory
             'discount_amount' => 0,
             'total_amount' => round($subtotal * 1.1, 2),
             'notes' => fake()->optional(0.3)->sentence(),
-            'created_by' => \App\Models\User::factory(),
+            'created_by' => User::factory(),
         ];
     }
 

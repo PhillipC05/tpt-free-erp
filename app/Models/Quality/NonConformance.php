@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class NonConformance extends Model
 {
     use HasFactory;
+
     protected $table = 'quality_non_conformances';
 
     protected $fillable = [

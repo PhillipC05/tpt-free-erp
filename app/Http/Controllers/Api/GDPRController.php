@@ -30,7 +30,9 @@ class GDPRController extends BaseApiController
             'reason' => 'nullable|string',
             'confirm' => 'required|boolean|accepted',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         return $this->respondSuccess('Erasure request submitted. You will be notified once processed.');
     }
@@ -43,7 +45,9 @@ class GDPRController extends BaseApiController
             'correct_value' => 'required|string',
             'reason' => 'nullable|string',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         return $this->respondSuccess('Rectification request submitted. You will be notified once processed.');
     }
@@ -61,7 +65,7 @@ class GDPRController extends BaseApiController
     {
         $validTypes = ['marketing', 'analytics', 'third_party'];
 
-        if (!in_array($type, $validTypes)) {
+        if (! in_array($type, $validTypes)) {
             return $this->respondError('Invalid consent type', 422);
         }
 

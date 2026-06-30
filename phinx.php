@@ -1,11 +1,11 @@
 <?php
 
-require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__.'/vendor/autoload.php';
 
 return [
     'paths' => [
         'migrations' => 'db/migrations',
-        'seeds' => 'db/seeds'
+        'seeds' => 'db/seeds',
     ],
     'environments' => [
         'default_migration_table' => 'phinxlog',
@@ -29,5 +29,5 @@ return [
             'charset' => 'utf8',
         ],
     ],
-    'version_order' => 'creation'
+    'version_order' => 'creation',
 ];

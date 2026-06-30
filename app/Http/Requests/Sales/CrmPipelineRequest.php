@@ -16,7 +16,7 @@ class CrmPipelineRequest extends FormRequest
         $pipelineId = $this->route('id');
 
         return [
-            'code' => 'required|string|max:20|unique:sales_crm_pipelines,code,' . $pipelineId,
+            'code' => 'required|string|max:20|unique:sales_crm_pipelines,code,'.$pipelineId,
             'name' => 'required|string|max:200',
             'customer_id' => 'required|exists:sales_customers,id',
             'contact_name' => 'nullable|string|max:200',

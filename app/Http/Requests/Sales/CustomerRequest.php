@@ -16,9 +16,9 @@ class CustomerRequest extends FormRequest
         $customerId = $this->route('id');
 
         return [
-            'code' => 'required|string|max:20|unique:sales_customers,code,' . $customerId,
+            'code' => 'required|string|max:20|unique:sales_customers,code,'.$customerId,
             'name' => 'required|string|max:200',
-            'email' => 'required|email|max:200|unique:sales_customers,email,' . $customerId,
+            'email' => 'required|email|max:200|unique:sales_customers,email,'.$customerId,
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
             'city' => 'nullable|string|max:100',

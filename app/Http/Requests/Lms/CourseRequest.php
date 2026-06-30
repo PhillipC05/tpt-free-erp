@@ -16,7 +16,7 @@ class CourseRequest extends FormRequest
         $courseId = $this->route('id');
 
         return [
-            'code' => 'required|string|max:20|unique:lms_courses,code,' . $courseId,
+            'code' => 'required|string|max:20|unique:lms_courses,code,'.$courseId,
             'title' => 'required|string|max:200',
             'description' => 'nullable|string',
             'type' => 'required|in:online,classroom,blended,workshop',

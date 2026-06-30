@@ -6,20 +6,21 @@ use App\Models\Contracts\Contract;
 use App\Models\ESignature\ESignature;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
 
 class ESignatureTest extends TestCase
 {
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user  = User::factory()->create();
+        $this->user = User::factory()->create();
         $this->token = $this->user->createToken('test')->plainTextToken;
         $this->assignAdminRole();
     }
@@ -32,11 +33,11 @@ class ESignatureTest extends TestCase
     private function makeContract(): Contract
     {
         return Contract::create([
-            'title'           => 'Test Contract',
+            'title' => 'Test Contract',
             'contract_number' => 'C-001',
-            'type'            => 'service',
-            'status'          => 'draft',
-            'created_by'      => $this->user->id,
+            'type' => 'service',
+            'status' => 'draft',
+            'created_by' => $this->user->id,
         ]);
     }
 
@@ -63,17 +64,16 @@ class ESignatureTest extends TestCase
         ]);
     }
 
-
     public function test_create_signature_request(): void
     {
         $contract = $this->makeContract();
 
         $response = $this->postJson('/api/v1/esignatures', [
-            'signer_name'   => 'Jane Smith',
-            'signer_email'  => 'jane@example.com',
+            'signer_name' => 'Jane Smith',
+            'signer_email' => 'jane@example.com',
             'signable_type' => 'contract',
-            'signable_id'   => $contract->id,
-            'message'       => 'Please review and sign.',
+            'signable_id' => $contract->id,
+            'message' => 'Please review and sign.',
         ], $this->auth());
 
         $response->assertStatus(201)
@@ -86,20 +86,20 @@ class ESignatureTest extends TestCase
     public function test_create_requires_auth(): void
     {
         $this->postJson('/api/v1/esignatures', [
-            'signer_name'   => 'Jane',
-            'signer_email'  => 'jane@example.com',
+            'signer_name' => 'Jane',
+            'signer_email' => 'jane@example.com',
             'signable_type' => 'contract',
-            'signable_id'   => 1,
+            'signable_id' => 1,
         ])->assertStatus(401);
     }
 
     public function test_create_validates_unknown_signable_type(): void
     {
         $this->postJson('/api/v1/esignatures', [
-            'signer_name'   => 'Jane',
-            'signer_email'  => 'jane@example.com',
+            'signer_name' => 'Jane',
+            'signer_email' => 'jane@example.com',
             'signable_type' => 'invoice',
-            'signable_id'   => 1,
+            'signable_id' => 1,
         ], $this->auth())->assertStatus(422);
     }
 
@@ -110,8 +110,8 @@ class ESignatureTest extends TestCase
         $contract = $this->makeContract();
         ESignature::factory()->count(3)->create([
             'signable_type' => 'App\\Models\\Contracts\\Contract',
-            'signable_id'   => $contract->id,
-            'requested_by'  => $this->user->id,
+            'signable_id' => $contract->id,
+            'requested_by' => $this->user->id,
         ]);
 
         $response = $this->getJson('/api/v1/esignatures', $this->auth());
@@ -123,14 +123,14 @@ class ESignatureTest extends TestCase
         $contract = $this->makeContract();
         ESignature::factory()->create([
             'signable_type' => 'App\\Models\\Contracts\\Contract',
-            'signable_id'   => $contract->id,
-            'requested_by'  => $this->user->id,
-            'status'        => 'pending',
+            'signable_id' => $contract->id,
+            'requested_by' => $this->user->id,
+            'status' => 'pending',
         ]);
         ESignature::factory()->signed()->create([
             'signable_type' => 'App\\Models\\Contracts\\Contract',
-            'signable_id'   => $contract->id,
-            'requested_by'  => $this->user->id,
+            'signable_id' => $contract->id,
+            'requested_by' => $this->user->id,
         ]);
 
         $response = $this->getJson('/api/v1/esignatures?status=signed', $this->auth());
@@ -144,8 +144,8 @@ class ESignatureTest extends TestCase
         $contract = $this->makeContract();
         $sig = ESignature::factory()->create([
             'signable_type' => 'App\\Models\\Contracts\\Contract',
-            'signable_id'   => $contract->id,
-            'requested_by'  => $this->user->id,
+            'signable_id' => $contract->id,
+            'requested_by' => $this->user->id,
         ]);
 
         $this->getJson("/api/v1/esignatures/{$sig->id}", $this->auth())
@@ -160,11 +160,11 @@ class ESignatureTest extends TestCase
         $contract = $this->makeContract();
         $sig = ESignature::factory()->create([
             'signable_type' => 'App\\Models\\Contracts\\Contract',
-            'signable_id'   => $contract->id,
-            'requested_by'  => $this->user->id,
+            'signable_id' => $contract->id,
+            'requested_by' => $this->user->id,
         ]);
 
-        $this->getJson("/api/v1/esignatures/sign/{$sig->token}")
+        $this->getJson("/api/esignatures/sign/{$sig->token}")
             ->assertOk()
             ->assertJsonPath('data.signer_email', $sig->signer_email);
     }
@@ -174,14 +174,14 @@ class ESignatureTest extends TestCase
         $contract = $this->makeContract();
         $sig = ESignature::factory()->create([
             'signable_type' => 'App\\Models\\Contracts\\Contract',
-            'signable_id'   => $contract->id,
-            'requested_by'  => $this->user->id,
+            'signable_id' => $contract->id,
+            'requested_by' => $this->user->id,
         ]);
 
-        $this->postJson("/api/v1/esignatures/sign/{$sig->token}", [
+        $this->postJson("/api/esignatures/sign/{$sig->token}", [
             'signature_type' => 'typed',
             'signature_data' => 'Jane Smith',
-            'signer_name'    => 'Jane Smith',
+            'signer_name' => 'Jane Smith',
         ])->assertOk();
 
         $this->assertDatabaseHas('e_signatures', ['id' => $sig->id, 'status' => 'signed']);
@@ -192,14 +192,14 @@ class ESignatureTest extends TestCase
         $contract = $this->makeContract();
         $sig = ESignature::factory()->signed()->create([
             'signable_type' => 'App\\Models\\Contracts\\Contract',
-            'signable_id'   => $contract->id,
-            'requested_by'  => $this->user->id,
+            'signable_id' => $contract->id,
+            'requested_by' => $this->user->id,
         ]);
 
-        $this->postJson("/api/v1/esignatures/sign/{$sig->token}", [
+        $this->postJson("/api/esignatures/sign/{$sig->token}", [
             'signature_type' => 'typed',
             'signature_data' => 'Someone Else',
-            'signer_name'    => 'Someone Else',
+            'signer_name' => 'Someone Else',
         ])->assertStatus(409);
     }
 
@@ -208,11 +208,11 @@ class ESignatureTest extends TestCase
         $contract = $this->makeContract();
         $sig = ESignature::factory()->create([
             'signable_type' => 'App\\Models\\Contracts\\Contract',
-            'signable_id'   => $contract->id,
-            'requested_by'  => $this->user->id,
+            'signable_id' => $contract->id,
+            'requested_by' => $this->user->id,
         ]);
 
-        $this->postJson("/api/v1/esignatures/sign/{$sig->token}/decline", [
+        $this->postJson("/api/esignatures/sign/{$sig->token}/decline", [
             'reason' => 'I disagree with clause 3.',
         ])->assertOk();
 
@@ -224,15 +224,15 @@ class ESignatureTest extends TestCase
         $contract = $this->makeContract();
         $sig = ESignature::factory()->create([
             'signable_type' => 'App\\Models\\Contracts\\Contract',
-            'signable_id'   => $contract->id,
-            'requested_by'  => $this->user->id,
-            'expires_at'    => now()->subHour(),
+            'signable_id' => $contract->id,
+            'requested_by' => $this->user->id,
+            'expires_at' => now()->subHour(),
         ]);
 
-        $this->postJson("/api/v1/esignatures/sign/{$sig->token}", [
+        $this->postJson("/api/esignatures/sign/{$sig->token}", [
             'signature_type' => 'typed',
             'signature_data' => 'Jane',
-            'signer_name'    => 'Jane',
+            'signer_name' => 'Jane',
         ])->assertStatus(410);
     }
 
@@ -242,14 +242,15 @@ class ESignatureTest extends TestCase
     {
         $contract = $this->makeContract();
 
-        // Create sig with matching hashes
-        $hash = ESignature::hashSignable($contract->toArray());
+        // Create sig with matching hashes — reload from DB to match controller's find()
+        $freshContract = Contract::find($contract->id);
+        $hash = ESignature::hashSignable($freshContract->toArray());
         $sig = ESignature::factory()->signed()->create([
             'signable_type' => 'App\\Models\\Contracts\\Contract',
-            'signable_id'   => $contract->id,
-            'requested_by'  => $this->user->id,
+            'signable_id' => $contract->id,
+            'requested_by' => $this->user->id,
             'document_hash' => $hash,
-            'signed_hash'   => $hash,
+            'signed_hash' => $hash,
         ]);
 
         $response = $this->getJson("/api/v1/esignatures/{$sig->id}/verify", $this->auth());
@@ -262,10 +263,10 @@ class ESignatureTest extends TestCase
 
         $sig = ESignature::factory()->signed()->create([
             'signable_type' => 'App\\Models\\Contracts\\Contract',
-            'signable_id'   => $contract->id,
-            'requested_by'  => $this->user->id,
+            'signable_id' => $contract->id,
+            'requested_by' => $this->user->id,
             'document_hash' => hash('sha256', 'original'),
-            'signed_hash'   => hash('sha256', 'original'),
+            'signed_hash' => hash('sha256', 'original'),
         ]);
 
         // Mutate the contract after signing
@@ -282,8 +283,8 @@ class ESignatureTest extends TestCase
         $contract = $this->makeContract();
         $sig = ESignature::factory()->create([
             'signable_type' => 'App\\Models\\Contracts\\Contract',
-            'signable_id'   => $contract->id,
-            'requested_by'  => $this->user->id,
+            'signable_id' => $contract->id,
+            'requested_by' => $this->user->id,
         ]);
 
         $this->deleteJson("/api/v1/esignatures/{$sig->id}", [], $this->auth())
@@ -297,8 +298,8 @@ class ESignatureTest extends TestCase
         $contract = $this->makeContract();
         $sig = ESignature::factory()->signed()->create([
             'signable_type' => 'App\\Models\\Contracts\\Contract',
-            'signable_id'   => $contract->id,
-            'requested_by'  => $this->user->id,
+            'signable_id' => $contract->id,
+            'requested_by' => $this->user->id,
         ]);
 
         $this->deleteJson("/api/v1/esignatures/{$sig->id}", [], $this->auth())

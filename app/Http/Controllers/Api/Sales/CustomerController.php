@@ -37,7 +37,7 @@ class CustomerController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new Customer());
+        parent::__construct(new Customer);
     }
 
     public function store(Request $request): JsonResponse
@@ -46,24 +46,29 @@ class CustomerController extends BaseApiController
             'code' => 'required|string|max:20|unique:sales_customers,code',
             'email' => 'required|email|max:200|unique:sales_customers,email',
         ]));
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $data = $request->all();
         $data['status'] = $data['status'] ?? 'active';
 
         $customer = Customer::create($data);
+
         return $this->respondCreated($customer, 'Customer created successfully');
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
         $customer = Customer::find($id);
-        if (!$customer) return $this->respondNotFound();
+        if (! $customer) {
+            return $this->respondNotFound();
+        }
 
         $error = $this->validate($request->all(), [
-            'code' => 'required|string|max:20|unique:sales_customers,code,' . $id,
+            'code' => 'required|string|max:20|unique:sales_customers,code,'.$id,
             'name' => 'required|string|max:200',
-            'email' => 'required|email|max:200|unique:sales_customers,email,' . $id,
+            'email' => 'required|email|max:200|unique:sales_customers,email,'.$id,
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
             'city' => 'nullable|string|max:100',
@@ -75,9 +80,12 @@ class CustomerController extends BaseApiController
             'status' => 'sometimes|in:active,inactive,blocked',
             'assigned_to' => 'nullable|exists:users,id',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $customer->update($request->all());
+
         return $this->respondSuccess('Customer updated', $customer->fresh());
     }
 
@@ -93,9 +101,9 @@ class CustomerController extends BaseApiController
             $search = $request->query('search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('code', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
@@ -117,7 +125,9 @@ class CustomerController extends BaseApiController
     public function orders(int $id): JsonResponse
     {
         $customer = Customer::with('orders.items')->find($id);
-        if (!$customer) return $this->respondNotFound();
+        if (! $customer) {
+            return $this->respondNotFound();
+        }
 
         return $this->respond([
             'success' => true,
@@ -128,7 +138,9 @@ class CustomerController extends BaseApiController
     public function invoices(int $id): JsonResponse
     {
         $customer = Customer::with('invoices')->find($id);
-        if (!$customer) return $this->respondNotFound();
+        if (! $customer) {
+            return $this->respondNotFound();
+        }
 
         return $this->respond([
             'success' => true,

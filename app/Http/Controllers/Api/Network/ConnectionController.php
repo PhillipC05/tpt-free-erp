@@ -24,7 +24,7 @@ class ConnectionController extends BaseApiController
             ->where('status', 'accepted')
             ->where(function ($q) use ($userId) {
                 $q->where('requester_id', $userId)
-                  ->orWhere('addressee_id', $userId);
+                    ->orWhere('addressee_id', $userId);
             })
             ->paginate(20);
 
@@ -67,19 +67,20 @@ class ConnectionController extends BaseApiController
         $addressee = User::find($userId);
         if ($addressee) {
             DB::table('notifications')->insert([
-                'id'               => \Illuminate\Support\Str::uuid(),
-                'type'             => 'connection_request',
-                'notifiable_type'  => User::class,
-                'notifiable_id'    => $userId,
-                'data'             => json_encode([
-                    'type'           => 'connection_request',
-                    'requester_id'   => $request->user()->id,
+                'user_id' => $userId,
+                'title' => 'Connection Request',
+                'message' => $request->user()->name.' wants to connect with you',
+                'type' => 'connection_request',
+                'data' => json_encode([
+                    'type' => 'connection_request',
+                    'requester_id' => $request->user()->id,
                     'requester_name' => $request->user()->name,
-                    'connection_id'  => $connection->id,
-                    'message'        => $connection->message,
+                    'connection_id' => $connection->id,
+                    'message' => $connection->message,
                 ]),
-                'created_at'       => now(),
-                'updated_at'       => now(),
+                'is_read' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
 
@@ -92,7 +93,7 @@ class ConnectionController extends BaseApiController
             ->where('addressee_id', $request->user()->id)
             ->first();
 
-        if (!$connection) {
+        if (! $connection) {
             return $this->respondNotFound('Connection request not found');
         }
 
@@ -111,7 +112,7 @@ class ConnectionController extends BaseApiController
             ->where('addressee_id', $request->user()->id)
             ->first();
 
-        if (!$connection) {
+        if (! $connection) {
             return $this->respondNotFound('Connection request not found');
         }
 
@@ -127,11 +128,11 @@ class ConnectionController extends BaseApiController
         $connection = UserConnection::where('id', $connectionId)
             ->where(function ($q) use ($userId) {
                 $q->where('requester_id', $userId)
-                  ->orWhere('addressee_id', $userId);
+                    ->orWhere('addressee_id', $userId);
             })
             ->first();
 
-        if (!$connection) {
+        if (! $connection) {
             return $this->respondNotFound('Connection not found');
         }
 

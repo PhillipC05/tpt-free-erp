@@ -22,7 +22,7 @@ class ExpenseItemController extends BaseApiController
     {
         $report = ExpenseReport::find($expenseId);
 
-        if (!$report) {
+        if (! $report) {
             return $this->respondNotFound('Expense report not found');
         }
 
@@ -37,12 +37,12 @@ class ExpenseItemController extends BaseApiController
     {
         $report = ExpenseReport::find($expenseId);
 
-        if (!$report) {
+        if (! $report) {
             return $this->respondNotFound('Expense report not found');
         }
 
-        if (!in_array($report->status, ['draft', 'submitted'])) {
-            return $this->respondError('Cannot add items to an ' . $report->status . ' expense report', 422);
+        if (! in_array($report->status, ['draft', 'submitted'])) {
+            return $this->respondError('Cannot add items to an '.$report->status.' expense report', 422);
         }
 
         $error = $this->validate($request->all(), [
@@ -77,7 +77,7 @@ class ExpenseItemController extends BaseApiController
     {
         $item = ExpenseItem::where('expense_report_id', $expenseId)->find($itemId);
 
-        if (!$item) {
+        if (! $item) {
             return $this->respondNotFound('Expense item not found');
         }
 
@@ -88,17 +88,17 @@ class ExpenseItemController extends BaseApiController
     {
         $report = ExpenseReport::find($expenseId);
 
-        if (!$report) {
+        if (! $report) {
             return $this->respondNotFound('Expense report not found');
         }
 
-        if (!in_array($report->status, ['draft', 'submitted'])) {
-            return $this->respondError('Cannot edit items on an ' . $report->status . ' expense report', 422);
+        if (! in_array($report->status, ['draft', 'submitted'])) {
+            return $this->respondError('Cannot edit items on an '.$report->status.' expense report', 422);
         }
 
         $item = ExpenseItem::where('expense_report_id', $expenseId)->find($itemId);
 
-        if (!$item) {
+        if (! $item) {
             return $this->respondNotFound('Expense item not found');
         }
 
@@ -129,17 +129,17 @@ class ExpenseItemController extends BaseApiController
     {
         $report = ExpenseReport::find($expenseId);
 
-        if (!$report) {
+        if (! $report) {
             return $this->respondNotFound('Expense report not found');
         }
 
-        if (!in_array($report->status, ['draft', 'submitted'])) {
-            return $this->respondError('Cannot delete items from an ' . $report->status . ' expense report', 422);
+        if (! in_array($report->status, ['draft', 'submitted'])) {
+            return $this->respondError('Cannot delete items from an '.$report->status.' expense report', 422);
         }
 
         $item = ExpenseItem::where('expense_report_id', $expenseId)->find($itemId);
 
-        if (!$item) {
+        if (! $item) {
             return $this->respondNotFound('Expense item not found');
         }
 
@@ -162,13 +162,13 @@ class ExpenseItemController extends BaseApiController
     {
         $report = ExpenseReport::find($expenseId);
 
-        if (!$report) {
+        if (! $report) {
             return $this->respondNotFound('Expense report not found');
         }
 
         $item = ExpenseItem::where('expense_report_id', $expenseId)->find($itemId);
 
-        if (!$item) {
+        if (! $item) {
             return $this->respondNotFound('Expense item not found');
         }
 

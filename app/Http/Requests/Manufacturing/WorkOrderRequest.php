@@ -16,7 +16,7 @@ class WorkOrderRequest extends FormRequest
         $woId = $this->route('id');
 
         return [
-            'wo_number' => 'required|string|max:50|unique:manufacturing_work_orders,wo_number,' . $woId,
+            'wo_number' => 'required|string|max:50|unique:manufacturing_work_orders,wo_number,'.$woId,
             'product_id' => 'required|exists:inventory_products,id',
             'bom_id' => 'nullable|exists:manufacturing_boms,id',
             'planned_quantity' => 'required|numeric|min:1',

@@ -82,7 +82,7 @@ class PostController extends BaseApiController
             ->where('user_id', $request->user()->id)
             ->first();
 
-        if (!$post) {
+        if (! $post) {
             return $this->respondNotFound('Post not found or you do not have permission to edit it');
         }
 
@@ -105,7 +105,7 @@ class PostController extends BaseApiController
         $post = NetworkPost::with(['author:id,name', 'comments.author:id,name'])
             ->find($id);
 
-        if (!$post) {
+        if (! $post) {
             return $this->respondNotFound('Post not found');
         }
 
@@ -118,7 +118,7 @@ class PostController extends BaseApiController
             ->where('user_id', $request->user()->id)
             ->first();
 
-        if (!$post) {
+        if (! $post) {
             return $this->respondNotFound('Post not found or you do not have permission to edit it');
         }
 
@@ -142,7 +142,7 @@ class PostController extends BaseApiController
             ->where('user_id', request()->user()->id)
             ->first();
 
-        if (!$post) {
+        if (! $post) {
             return $this->respondNotFound('Post not found or you do not have permission to delete it');
         }
 
@@ -160,7 +160,7 @@ class PostController extends BaseApiController
     {
         $post = NetworkPost::find($id);
 
-        if (!$post) {
+        if (! $post) {
             return $this->respondNotFound('Post not found');
         }
 
@@ -181,10 +181,12 @@ class PostController extends BaseApiController
                 // Remove reaction (toggle off)
                 $existingReaction->delete();
                 $post->decrement('likes_count');
+
                 return $this->respondSuccess('Reaction removed');
             }
             // Update reaction type
             $existingReaction->update(['type' => $request->input('type')]);
+
             return $this->respondSuccess('Reaction updated', $existingReaction);
         }
 
@@ -204,7 +206,7 @@ class PostController extends BaseApiController
     {
         $post = NetworkPost::find($id);
 
-        if (!$post) {
+        if (! $post) {
             return $this->respondNotFound('Post not found');
         }
 
@@ -235,7 +237,7 @@ class PostController extends BaseApiController
             ->where('user_id', $request->user()->id)
             ->first();
 
-        if (!$comment) {
+        if (! $comment) {
             return $this->respondNotFound('Comment not found or you do not have permission to delete it');
         }
 

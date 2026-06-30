@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class WorkOrder extends Model
 {
     use HasFactory;
+
     protected $table = 'manufacturing_work_orders';
 
     protected $fillable = [

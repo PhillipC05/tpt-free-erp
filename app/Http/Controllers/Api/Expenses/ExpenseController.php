@@ -73,7 +73,7 @@ class ExpenseController extends BaseApiController
     {
         $report = ExpenseReport::with('items')->find($id);
 
-        if (!$report) {
+        if (! $report) {
             return $this->respondNotFound('Expense report not found');
         }
 
@@ -84,7 +84,7 @@ class ExpenseController extends BaseApiController
     {
         $report = ExpenseReport::find($id);
 
-        if (!$report) {
+        if (! $report) {
             return $this->respondNotFound('Expense report not found');
         }
 
@@ -110,7 +110,7 @@ class ExpenseController extends BaseApiController
     {
         $report = ExpenseReport::find($id);
 
-        if (!$report) {
+        if (! $report) {
             return $this->respondNotFound('Expense report not found');
         }
 
@@ -129,7 +129,7 @@ class ExpenseController extends BaseApiController
     {
         $report = ExpenseReport::find($id);
 
-        if (!$report) {
+        if (! $report) {
             return $this->respondNotFound('Expense report not found');
         }
 
@@ -143,7 +143,7 @@ class ExpenseController extends BaseApiController
     {
         $report = ExpenseReport::find($id);
 
-        if (!$report) {
+        if (! $report) {
             return $this->respondNotFound('Expense report not found');
         }
 

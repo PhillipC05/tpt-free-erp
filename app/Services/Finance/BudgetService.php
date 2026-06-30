@@ -15,6 +15,7 @@ class BudgetService
     public function updateBudget(Budget $budget, array $data): Budget
     {
         $budget->update($data);
+
         return $budget->fresh();
     }
 

@@ -23,43 +23,53 @@ class TicketController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new ServiceTicket());
+        parent::__construct(new ServiceTicket);
     }
 
     public function store(Request $request): JsonResponse
     {
         $error = $this->validate($request->all());
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $data = $request->all();
         $data['status'] = $data['status'] ?? 'open';
 
         $ticket = ServiceTicket::create($data);
+
         return $this->respondCreated($ticket, 'Service ticket created successfully');
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
         $ticket = ServiceTicket::find($id);
-        if (!$ticket) return $this->respondNotFound();
+        if (! $ticket) {
+            return $this->respondNotFound();
+        }
 
         if (in_array($ticket->status, ['resolved', 'closed', 'cancelled'])) {
             return $this->respondError('Cannot update a resolved, closed, or cancelled ticket', 422);
         }
 
         $error = $this->validate($request->all(), array_merge($this->validationRules, [
-            'ticket_number' => 'required|string|max:50|unique:field_service_tickets,ticket_number,' . $id,
+            'ticket_number' => 'required|string|max:50|unique:field_service_tickets,ticket_number,'.$id,
         ]));
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $ticket->update($request->all());
+
         return $this->respondSuccess('Ticket updated', $ticket->fresh());
     }
 
     public function show(int $id): JsonResponse
     {
         $ticket = ServiceTicket::with(['customer', 'assignedTo'])->find($id);
-        if (!$ticket) return $this->respondNotFound();
+        if (! $ticket) {
+            return $this->respondNotFound();
+        }
 
         return $this->respond(['success' => true, 'data' => $ticket]);
     }
@@ -102,12 +112,16 @@ class TicketController extends BaseApiController
     public function updateStatus(Request $request, int $ticket): JsonResponse
     {
         $record = ServiceTicket::find($ticket);
-        if (!$record) return $this->respondNotFound();
+        if (! $record) {
+            return $this->respondNotFound();
+        }
 
         $error = $this->validate($request->all(), [
             'status' => 'required|in:open,assigned,in_progress,resolved,closed,cancelled',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $updates = ['status' => $request->input('status')];
         if (in_array($request->input('status'), ['resolved', 'closed'])) {
@@ -115,13 +129,16 @@ class TicketController extends BaseApiController
         }
 
         $record->update($updates);
+
         return $this->respondSuccess('Status updated', $record->fresh());
     }
 
     public function assign(Request $request, int $ticket): JsonResponse
     {
         $record = ServiceTicket::find($ticket);
-        if (!$record) return $this->respondNotFound();
+        if (! $record) {
+            return $this->respondNotFound();
+        }
 
         if (in_array($record->status, ['resolved', 'closed', 'cancelled'])) {
             return $this->respondError('Cannot assign a resolved, closed, or cancelled ticket', 422);
@@ -130,7 +147,9 @@ class TicketController extends BaseApiController
         $error = $this->validate($request->all(), [
             'assigned_to' => 'required|exists:hr_employees,id',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $record->update([
             'assigned_to' => $request->input('assigned_to'),

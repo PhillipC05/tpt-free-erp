@@ -20,7 +20,7 @@ class ContractMilestoneController extends BaseApiController
     public function listMilestones(int $contract): JsonResponse
     {
         $contractModel = Contract::find($contract);
-        if (!$contractModel) {
+        if (! $contractModel) {
             return $this->respondNotFound('Contract not found');
         }
 
@@ -32,16 +32,16 @@ class ContractMilestoneController extends BaseApiController
     public function createMilestone(Request $request, int $contract): JsonResponse
     {
         $contractModel = Contract::find($contract);
-        if (!$contractModel) {
+        if (! $contractModel) {
             return $this->respondNotFound('Contract not found');
         }
 
         $error = $this->validate($request->all(), [
-            'title'          => 'required|string|max:255',
-            'description'    => 'nullable|string',
-            'due_date'       => 'nullable|date',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'due_date' => 'nullable|date',
             'payment_amount' => 'nullable|numeric|min:0',
-            'is_completed'   => 'nullable|boolean',
+            'is_completed' => 'nullable|boolean',
         ]);
 
         if ($error) {
@@ -60,7 +60,7 @@ class ContractMilestoneController extends BaseApiController
     public function getMilestone(int $contract, int $milestone): JsonResponse
     {
         $record = ContractMilestone::where('contract_id', $contract)->find($milestone);
-        if (!$record) {
+        if (! $record) {
             return $this->respondNotFound('Milestone not found');
         }
 
@@ -70,16 +70,16 @@ class ContractMilestoneController extends BaseApiController
     public function updateMilestone(Request $request, int $contract, int $milestone): JsonResponse
     {
         $record = ContractMilestone::where('contract_id', $contract)->find($milestone);
-        if (!$record) {
+        if (! $record) {
             return $this->respondNotFound('Milestone not found');
         }
 
         $error = $this->validate($request->all(), [
-            'title'          => 'sometimes|required|string|max:255',
-            'description'    => 'nullable|string',
-            'due_date'       => 'nullable|date',
+            'title' => 'sometimes|required|string|max:255',
+            'description' => 'nullable|string',
+            'due_date' => 'nullable|date',
             'payment_amount' => 'nullable|numeric|min:0',
-            'is_completed'   => 'nullable|boolean',
+            'is_completed' => 'nullable|boolean',
         ]);
 
         if ($error) {
@@ -90,7 +90,7 @@ class ContractMilestoneController extends BaseApiController
             'title', 'description', 'due_date', 'payment_amount', 'is_completed',
         ]));
 
-        if ($request->boolean('is_completed') && !$record->completed_at) {
+        if ($request->boolean('is_completed') && ! $record->completed_at) {
             $record->update(['completed_at' => now()]);
         }
 
@@ -102,7 +102,7 @@ class ContractMilestoneController extends BaseApiController
     public function completeMilestone(int $contract, int $milestone): JsonResponse
     {
         $record = ContractMilestone::where('contract_id', $contract)->find($milestone);
-        if (!$record) {
+        if (! $record) {
             return $this->respondNotFound('Milestone not found');
         }
 
@@ -119,7 +119,7 @@ class ContractMilestoneController extends BaseApiController
     public function deleteMilestone(int $contract, int $milestone): JsonResponse
     {
         $record = ContractMilestone::where('contract_id', $contract)->find($milestone);
-        if (!$record) {
+        if (! $record) {
             return $this->respondNotFound('Milestone not found');
         }
 

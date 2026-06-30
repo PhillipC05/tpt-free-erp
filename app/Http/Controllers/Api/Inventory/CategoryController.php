@@ -17,7 +17,7 @@ class CategoryController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new Category());
+        parent::__construct(new Category);
     }
 
     public function index(Request $request): JsonResponse
@@ -31,7 +31,7 @@ class CategoryController extends BaseApiController
         }
 
         if ($request->has('search')) {
-            $query->where('name', 'like', '%' . $request->query('search') . '%');
+            $query->where('name', 'like', '%'.$request->query('search').'%');
         }
 
         $perPage = $request->query('per_page', 15);

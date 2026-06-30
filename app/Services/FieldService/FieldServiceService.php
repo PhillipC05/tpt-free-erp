@@ -9,6 +9,7 @@ class FieldServiceService
     public function createTicket(array $data): ServiceTicket
     {
         $data['status'] = $data['status'] ?? 'open';
+
         return ServiceTicket::create($data);
     }
 
@@ -28,7 +29,7 @@ class FieldServiceService
 
     public function resolveTicket(ServiceTicket $ticket, string $resolutionNotes): ServiceTicket
     {
-        if (!in_array($ticket->status, ['assigned', 'in_progress'])) {
+        if (! in_array($ticket->status, ['assigned', 'in_progress'])) {
             throw new \RuntimeException('Only assigned or in-progress tickets can be resolved');
         }
 
@@ -48,6 +49,7 @@ class FieldServiceService
         }
 
         $ticket->update(['status' => 'closed']);
+
         return $ticket->fresh();
     }
 }

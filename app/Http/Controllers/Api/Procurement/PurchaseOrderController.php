@@ -35,7 +35,7 @@ class PurchaseOrderController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new PurchaseOrder());
+        parent::__construct(new PurchaseOrder);
     }
 
     public function store(Request $request): JsonResponse
@@ -43,27 +43,32 @@ class PurchaseOrderController extends BaseApiController
         $error = $this->validate($request->all(), array_merge($this->validationRules, [
             'po_number' => 'required|string|max:50|unique:procurement_purchase_orders,po_number',
         ]));
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $data = $request->all();
         $data['status'] = $data['status'] ?? 'draft';
         $data['created_by'] = $data['created_by'] ?? Auth::id();
 
         $po = PurchaseOrder::create($data);
+
         return $this->respondCreated($po, 'Purchase order created successfully');
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
         $po = PurchaseOrder::find($id);
-        if (!$po) return $this->respondNotFound();
+        if (! $po) {
+            return $this->respondNotFound();
+        }
 
-        if (!in_array($po->status, ['draft', 'sent'])) {
+        if (! in_array($po->status, ['draft', 'sent'])) {
             return $this->respondError('Cannot update a purchase order that is confirmed or received', 422);
         }
 
         $error = $this->validate($request->all(), [
-            'po_number' => 'required|string|max:50|unique:procurement_purchase_orders,po_number,' . $id,
+            'po_number' => 'required|string|max:50|unique:procurement_purchase_orders,po_number,'.$id,
             'vendor_id' => 'required|exists:procurement_vendors,id',
             'order_date' => 'required|date',
             'expected_delivery_date' => 'nullable|date|after_or_equal:order_date',
@@ -73,29 +78,37 @@ class PurchaseOrderController extends BaseApiController
             'total_amount' => 'required|numeric|min:0',
             'notes' => 'nullable|string',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $po->update($request->all());
+
         return $this->respondSuccess('Purchase order updated', $po->fresh());
     }
 
     public function send(int $id): JsonResponse
     {
         $po = PurchaseOrder::find($id);
-        if (!$po) return $this->respondNotFound();
+        if (! $po) {
+            return $this->respondNotFound();
+        }
 
         if ($po->status !== 'draft') {
             return $this->respondError('Only draft purchase orders can be sent', 422);
         }
 
         $po->update(['status' => 'sent']);
+
         return $this->respondSuccess('Purchase order sent to vendor', $po->fresh());
     }
 
     public function confirm(int $id): JsonResponse
     {
         $po = PurchaseOrder::find($id);
-        if (!$po) return $this->respondNotFound();
+        if (! $po) {
+            return $this->respondNotFound();
+        }
 
         if ($po->status !== 'sent') {
             return $this->respondError('Only sent purchase orders can be confirmed', 422);
@@ -113,26 +126,32 @@ class PurchaseOrderController extends BaseApiController
     public function receive(int $id): JsonResponse
     {
         $po = PurchaseOrder::find($id);
-        if (!$po) return $this->respondNotFound();
+        if (! $po) {
+            return $this->respondNotFound();
+        }
 
         if ($po->status !== 'confirmed') {
             return $this->respondError('Only confirmed purchase orders can be received', 422);
         }
 
         $po->update(['status' => 'received']);
+
         return $this->respondSuccess('Purchase order marked as received', $po->fresh());
     }
 
     public function cancel(int $id): JsonResponse
     {
         $po = PurchaseOrder::find($id);
-        if (!$po) return $this->respondNotFound();
+        if (! $po) {
+            return $this->respondNotFound();
+        }
 
         if (in_array($po->status, ['received', 'cancelled'])) {
             return $this->respondError('Purchase order cannot be cancelled', 422);
         }
 
         $po->update(['status' => 'cancelled']);
+
         return $this->respondSuccess('Purchase order cancelled', $po->fresh());
     }
 
@@ -174,7 +193,9 @@ class PurchaseOrderController extends BaseApiController
     public function show(int $id): JsonResponse
     {
         $po = PurchaseOrder::with(['vendor', 'items.product'])->find($id);
-        if (!$po) return $this->respondNotFound();
+        if (! $po) {
+            return $this->respondNotFound();
+        }
 
         return $this->respond(['success' => true, 'data' => $po]);
     }
@@ -182,12 +203,16 @@ class PurchaseOrderController extends BaseApiController
     public function updateStatus(Request $request, int $po): JsonResponse
     {
         $record = PurchaseOrder::find($po);
-        if (!$record) return $this->respondNotFound();
+        if (! $record) {
+            return $this->respondNotFound();
+        }
 
         $error = $this->validate($request->all(), [
             'status' => 'required|in:draft,sent,confirmed,received,cancelled',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $updates = ['status' => $request->input('status')];
         if ($request->input('status') === 'confirmed') {
@@ -196,6 +221,7 @@ class PurchaseOrderController extends BaseApiController
         }
 
         $record->update($updates);
+
         return $this->respondSuccess('Status updated', $record->fresh());
     }
 }

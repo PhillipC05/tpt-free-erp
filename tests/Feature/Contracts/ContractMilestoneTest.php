@@ -14,7 +14,9 @@ class ContractMilestoneTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
+
     private Contract $contract;
 
     protected function setUp(): void
@@ -67,8 +69,8 @@ class ContractMilestoneTest extends TestCase
     public function test_can_create_milestone(): void
     {
         $response = $this->postJson("/api/v1/contracts/{$this->contract->id}/milestones", [
-            'title'          => 'Initial Payment',
-            'due_date'       => '2026-08-01',
+            'title' => 'Initial Payment',
+            'due_date' => '2026-08-01',
             'payment_amount' => 5000.00,
         ], $this->auth());
 
@@ -77,8 +79,8 @@ class ContractMilestoneTest extends TestCase
             ->assertJsonPath('data.title', 'Initial Payment');
 
         $this->assertDatabaseHas('contract_milestones', [
-            'contract_id'    => $this->contract->id,
-            'title'          => 'Initial Payment',
+            'contract_id' => $this->contract->id,
+            'title' => 'Initial Payment',
         ]);
     }
 
@@ -131,7 +133,7 @@ class ContractMilestoneTest extends TestCase
             ->assertJson(['success' => true]);
 
         $this->assertDatabaseHas('contract_milestones', [
-            'id'    => $milestone->id,
+            'id' => $milestone->id,
             'title' => 'Updated Milestone Title',
         ]);
     }
@@ -139,7 +141,7 @@ class ContractMilestoneTest extends TestCase
     public function test_can_mark_milestone_complete(): void
     {
         $milestone = ContractMilestone::factory()->create([
-            'contract_id'  => $this->contract->id,
+            'contract_id' => $this->contract->id,
             'is_completed' => false,
         ]);
 
@@ -153,7 +155,7 @@ class ContractMilestoneTest extends TestCase
             ->assertJson(['success' => true]);
 
         $this->assertDatabaseHas('contract_milestones', [
-            'id'           => $milestone->id,
+            'id' => $milestone->id,
             'is_completed' => 1,
         ]);
         $this->assertNotNull(ContractMilestone::find($milestone->id)->completed_at);

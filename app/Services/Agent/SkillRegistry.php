@@ -5,12 +5,13 @@ namespace App\Services\Agent;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class SkillRegistry
 {
     private const CACHE_KEY = 'skill_registry_v1';
+
     private const CACHE_TTL = 3600; // 1 hour
+
     private string $skillsPath;
 
     public function __construct()
@@ -20,19 +21,20 @@ class SkillRegistry
 
     public function all(): array
     {
-        if (!File::isDirectory($this->skillsPath) || empty(File::allFiles($this->skillsPath))) {
+        if (! File::isDirectory($this->skillsPath) || empty(File::allFiles($this->skillsPath))) {
             Log::info('SkillRegistry: storage/app/skills/ directory is empty or missing — returning empty skill list.');
+
             return [];
         }
 
-        return Cache::remember(self::CACHE_KEY, self::CACHE_TTL, fn() => $this->scanAll());
+        return Cache::remember(self::CACHE_KEY, self::CACHE_TTL, fn () => $this->scanAll());
     }
 
     public function getSkillsHelpMessage(): string
     {
         return 'To add skills, create Markdown (.md) files with YAML frontmatter in storage/app/skills/{category}/. '
-            . 'Each file must include at minimum: slug, category, name, description. '
-            . 'Example: storage/app/skills/mycategory/my-skill.md';
+            .'Each file must include at minimum: slug, category, name, description. '
+            .'Example: storage/app/skills/mycategory/my-skill.md';
     }
 
     public function find(string $slug): ?array
@@ -56,11 +58,11 @@ class SkillRegistry
      */
     public function parseContent(string $content): ?array
     {
-        if (!preg_match('/^---\s*\n(.*?)\n---\s*\n(.*)/s', $content, $matches)) {
+        if (! preg_match('/^---\s*\n(.*?)\n---\s*\n(.*)/s', $content, $matches)) {
             return null;
         }
 
-        $yamlStr  = $matches[1];
+        $yamlStr = $matches[1];
         $markdown = trim($matches[2]);
 
         try {
@@ -74,7 +76,7 @@ class SkillRegistry
 
     private function scanAll(): array
     {
-        if (!File::isDirectory($this->skillsPath)) {
+        if (! File::isDirectory($this->skillsPath)) {
             return [];
         }
 
@@ -82,7 +84,9 @@ class SkillRegistry
         $files = File::allFiles($this->skillsPath);
 
         foreach ($files as $file) {
-            if ($file->getExtension() !== 'md') continue;
+            if ($file->getExtension() !== 'md') {
+                continue;
+            }
 
             $skill = $this->parseSkillFile($file->getPathname());
             if ($skill) {
@@ -91,7 +95,7 @@ class SkillRegistry
         }
 
         // Sort by category then slug
-        usort($skills, fn($a, $b) => strcmp($a['category'] . '.' . $a['slug'], $b['category'] . '.' . $b['slug']));
+        usort($skills, fn ($a, $b) => strcmp($a['category'].'.'.$a['slug'], $b['category'].'.'.$b['slug']));
 
         return $skills;
     }
@@ -101,11 +105,11 @@ class SkillRegistry
         $content = File::get($path);
 
         // Extract YAML frontmatter between --- delimiters
-        if (!preg_match('/^---\s*\n(.*?)\n---\s*\n(.*)/s', $content, $matches)) {
+        if (! preg_match('/^---\s*\n(.*?)\n---\s*\n(.*)/s', $content, $matches)) {
             return null;
         }
 
-        $yamlStr  = $matches[1];
+        $yamlStr = $matches[1];
         $markdown = trim($matches[2]);
 
         try {
@@ -114,11 +118,13 @@ class SkillRegistry
             return null;
         }
 
-        if (empty($meta['slug'])) return null;
+        if (empty($meta['slug'])) {
+            return null;
+        }
 
         return array_merge($meta, [
             'instructions' => $markdown,
-            'file_path'    => $path,
+            'file_path' => $path,
         ]);
     }
 
@@ -128,17 +134,17 @@ class SkillRegistry
      */
     private function parseYaml(string $yaml): array
     {
-        $result  = [];
-        $lines   = explode("\n", $yaml);
-        $i       = 0;
-        $n       = count($lines);
+        $result = [];
+        $lines = explode("\n", $yaml);
+        $i = 0;
+        $n = count($lines);
 
         while ($i < $n) {
             $line = $lines[$i];
 
             // Top-level key: value
             if (preg_match('/^(\w[\w_-]*)\s*:\s*(.*)$/', $line, $m)) {
-                $key   = $m[1];
+                $key = $m[1];
                 $value = trim($m[2]);
 
                 if ($value === '' || $value === null) {
@@ -166,16 +172,29 @@ class SkillRegistry
     private function castYamlValue(string $value): mixed
     {
         // Remove quotes
-        if (preg_match('/^["\'](.+)["\']$/', $value, $m)) return $m[1];
+        if (preg_match('/^["\'](.+)["\']$/', $value, $m)) {
+            return $m[1];
+        }
         // Booleans
-        if (in_array(strtolower($value), ['true', 'yes'])) return true;
-        if (in_array(strtolower($value), ['false', 'no'])) return false;
+        if (in_array(strtolower($value), ['true', 'yes'])) {
+            return true;
+        }
+        if (in_array(strtolower($value), ['false', 'no'])) {
+            return false;
+        }
         // Null
-        if (in_array(strtolower($value), ['null', '~', ''])) return null;
+        if (in_array(strtolower($value), ['null', '~', ''])) {
+            return null;
+        }
         // Integer
-        if (ctype_digit($value)) return (int) $value;
+        if (ctype_digit($value)) {
+            return (int) $value;
+        }
         // Float
-        if (is_numeric($value)) return (float) $value;
+        if (is_numeric($value)) {
+            return (float) $value;
+        }
+
         return $value;
     }
 }

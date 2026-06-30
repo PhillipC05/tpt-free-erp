@@ -17,60 +17,61 @@ class WebhookDeliveryJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
     public int $timeout = 30;
 
-    public function __construct(private readonly int $deliveryId)
-    {
-    }
+    public function __construct(private readonly int $deliveryId) {}
 
     public function handle(): void
     {
         $delivery = WebhookDelivery::with('webhook')->find($this->deliveryId);
 
-        if (!$delivery || $delivery->status === 'delivered') {
+        if (! $delivery || $delivery->status === 'delivered') {
             return;
         }
 
         $webhook = $delivery->webhook;
 
-        if (!$webhook || !$webhook->is_active) {
+        if (! $webhook || ! $webhook->is_active) {
             $delivery->update(['status' => 'failed', 'last_response' => 'Webhook inactive or deleted.']);
+
             return;
         }
 
         $delivery->increment('attempts');
+        $delivery->refresh();
 
         $body = json_encode([
-            'event'     => $delivery->event,
+            'event' => $delivery->event,
             'timestamp' => now()->toIso8601String(),
-            'data'      => $delivery->payload,
+            'data' => $delivery->payload,
         ]);
 
-        $signature = 'sha256=' . hash_hmac('sha256', $body, $webhook->secret);
+        $signature = 'sha256='.hash_hmac('sha256', $body, $webhook->secret);
 
         try {
             $response = Http::timeout(15)
                 ->withHeaders([
-                    'Content-Type'     => 'application/json',
-                    'X-TPT-Signature'  => $signature,
-                    'X-TPT-Event'      => $delivery->event,
-                    'X-TPT-Delivery'   => (string) $delivery->id,
+                    'Content-Type' => 'application/json',
+                    'X-TPT-Signature' => $signature,
+                    'X-TPT-Event' => $delivery->event,
+                    'X-TPT-Delivery' => (string) $delivery->id,
                 ])
                 ->send('POST', $webhook->url, ['body' => $body]);
 
             if ($response->successful()) {
                 $delivery->update([
-                    'status'        => 'delivered',
+                    'status' => 'delivered',
                     'last_response' => substr($response->body(), 0, 1000),
                     'next_retry_at' => null,
                 ]);
 
                 $webhook->update([
                     'last_triggered_at' => now(),
-                    'failure_count'     => 0,
+                    'failure_count' => 0,
                 ]);
             } else {
-                $this->handleFailure($delivery, $webhook, "HTTP {$response->status()}: " . substr($response->body(), 0, 500));
+                $this->handleFailure($delivery, $webhook, "HTTP {$response->status()}: ".substr($response->body(), 0, 500));
             }
         } catch (\Throwable $e) {
             $this->handleFailure($delivery, $webhook, $e->getMessage());
@@ -88,12 +89,13 @@ class WebhookDeliveryJob implements ShouldQueue
         $isFinalAttempt = $attempt >= $this->tries;
 
         $delivery->update([
-            'status'        => $isFinalAttempt ? 'failed' : 'pending',
+            'status' => $isFinalAttempt ? 'failed' : 'pending',
             'last_response' => $reason,
             'next_retry_at' => $isFinalAttempt ? null : $nextRetry,
         ]);
 
         $webhook->increment('failure_count');
+        $webhook->refresh();
 
         // Auto-disable after 10 consecutive failures
         if ($webhook->failure_count >= 10) {
@@ -101,17 +103,17 @@ class WebhookDeliveryJob implements ShouldQueue
             Log::warning("Webhook #{$webhook->id} auto-disabled after 10 consecutive failures.");
         }
 
-        if (!$isFinalAttempt) {
+        if (! $isFinalAttempt && config('queue.default') !== 'sync') {
             self::dispatch($delivery->id)->delay($nextRetry);
         }
     }
 
     public function failed(\Throwable $e): void
     {
-        Log::error("WebhookDeliveryJob failed for delivery #{$this->deliveryId}: " . $e->getMessage());
+        Log::error("WebhookDeliveryJob failed for delivery #{$this->deliveryId}: ".$e->getMessage());
 
         WebhookDelivery::where('id', $this->deliveryId)->update([
-            'status'        => 'failed',
+            'status' => 'failed',
             'last_response' => $e->getMessage(),
         ]);
     }

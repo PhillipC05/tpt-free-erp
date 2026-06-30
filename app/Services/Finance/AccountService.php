@@ -11,12 +11,14 @@ class AccountService
     public function createAccount(array $data): Account
     {
         $data['current_balance'] = $data['opening_balance'] ?? 0;
+
         return Account::create($data);
     }
 
     public function updateAccount(Account $account, array $data): Account
     {
         $account->update($data);
+
         return $account->fresh();
     }
 
@@ -25,6 +27,7 @@ class AccountService
         if ($account->transactions()->exists()) {
             throw new \RuntimeException('Cannot delete account with existing transactions');
         }
+
         return $account->delete();
     }
 

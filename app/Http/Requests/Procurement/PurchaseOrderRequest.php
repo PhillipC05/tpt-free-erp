@@ -16,7 +16,7 @@ class PurchaseOrderRequest extends FormRequest
         $poId = $this->route('id');
 
         return [
-            'po_number' => 'required|string|max:50|unique:procurement_purchase_orders,po_number,' . $poId,
+            'po_number' => 'required|string|max:50|unique:procurement_purchase_orders,po_number,'.$poId,
             'vendor_id' => 'required|exists:procurement_vendors,id',
             'order_date' => 'required|date',
             'expected_delivery_date' => 'nullable|date|after_or_equal:order_date',

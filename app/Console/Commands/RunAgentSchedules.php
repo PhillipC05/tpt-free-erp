@@ -9,6 +9,7 @@ use Illuminate\Console\Command;
 class RunAgentSchedules extends Command
 {
     protected $signature = 'agents:run-schedules';
+
     protected $description = 'Execute all due agent skill schedules';
 
     public function handle(): void
@@ -19,7 +20,7 @@ class RunAgentSchedules extends Command
             ->get();
 
         foreach ($due as $schedule) {
-            if (!$schedule->agentProfile || !$schedule->agentProfile->is_active) {
+            if (! $schedule->agentProfile || ! $schedule->agentProfile->is_active) {
                 continue;
             }
 

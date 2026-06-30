@@ -26,7 +26,7 @@ class ContractExpiryNotification extends Notification
         return (new MailMessage)
             ->subject("Contract Expiring in {$this->daysUntilExpiry} Day(s): {$this->contract->title}")
             ->line("The contract \"{$this->contract->title}\" ({$this->contract->contract_number}) expires in {$this->daysUntilExpiry} day(s).")
-            ->line('End date: ' . $this->contract->end_date->toFormattedDateString())
+            ->line('End date: '.$this->contract->end_date->toFormattedDateString())
             ->action('View Contract', url("/contracts/{$this->contract->id}"))
             ->line('Please take action before the contract expires.');
     }
@@ -34,12 +34,12 @@ class ContractExpiryNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'type'              => 'contract_expiry',
-            'contract_id'       => $this->contract->id,
-            'contract_number'   => $this->contract->contract_number,
-            'title'             => $this->contract->title,
+            'type' => 'contract_expiry',
+            'contract_id' => $this->contract->id,
+            'contract_number' => $this->contract->contract_number,
+            'title' => $this->contract->title,
             'days_until_expiry' => $this->daysUntilExpiry,
-            'end_date'          => $this->contract->end_date->toDateString(),
+            'end_date' => $this->contract->end_date->toDateString(),
         ];
     }
 }

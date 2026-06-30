@@ -23,18 +23,21 @@ class MaintenanceController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new MaintenanceRecord());
+        parent::__construct(new MaintenanceRecord);
     }
 
     public function store(Request $request): JsonResponse
     {
         $error = $this->validate($request->all());
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $data = $request->all();
         $data['status'] = $data['status'] ?? 'scheduled';
 
         $record = MaintenanceRecord::create($data);
+
         return $this->respondCreated($record->load('asset'), 'Maintenance record created successfully');
     }
 

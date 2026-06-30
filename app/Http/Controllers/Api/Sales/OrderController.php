@@ -34,7 +34,7 @@ class OrderController extends BaseApiController
 
     public function __construct()
     {
-        parent::__construct(new Order());
+        parent::__construct(new Order);
     }
 
     public function store(Request $request): JsonResponse
@@ -42,27 +42,32 @@ class OrderController extends BaseApiController
         $error = $this->validate($request->all(), array_merge($this->validationRules, [
             'order_number' => 'required|string|max:50|unique:sales_orders,order_number',
         ]));
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $data = $request->all();
         $data['status'] = $data['status'] ?? 'draft';
         $data['created_by'] = $data['created_by'] ?? Auth::id();
 
         $order = Order::create($data);
+
         return $this->respondCreated($order, 'Order created successfully');
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
         $order = Order::find($id);
-        if (!$order) return $this->respondNotFound();
+        if (! $order) {
+            return $this->respondNotFound();
+        }
 
-        if (!in_array($order->status, ['draft', 'confirmed'])) {
+        if (! in_array($order->status, ['draft', 'confirmed'])) {
             return $this->respondError('Cannot update an order that is already in progress', 422);
         }
 
         $error = $this->validate($request->all(), [
-            'order_number' => 'required|string|max:50|unique:sales_orders,order_number,' . $id,
+            'order_number' => 'required|string|max:50|unique:sales_orders,order_number,'.$id,
             'customer_id' => 'required|exists:sales_customers,id',
             'order_date' => 'required|date',
             'expected_delivery_date' => 'nullable|date|after_or_equal:order_date',
@@ -73,35 +78,44 @@ class OrderController extends BaseApiController
             'total_amount' => 'required|numeric|min:0',
             'notes' => 'nullable|string',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $order->update($request->all());
+
         return $this->respondSuccess('Order updated', $order->fresh());
     }
 
     public function confirm(int $id): JsonResponse
     {
         $order = Order::find($id);
-        if (!$order) return $this->respondNotFound();
+        if (! $order) {
+            return $this->respondNotFound();
+        }
 
         if ($order->status !== 'draft') {
             return $this->respondError('Only draft orders can be confirmed', 422);
         }
 
         $order->update(['status' => 'confirmed']);
+
         return $this->respondSuccess('Order confirmed', $order->fresh());
     }
 
     public function cancel(int $id): JsonResponse
     {
         $order = Order::find($id);
-        if (!$order) return $this->respondNotFound();
+        if (! $order) {
+            return $this->respondNotFound();
+        }
 
         if (in_array($order->status, ['delivered', 'cancelled'])) {
             return $this->respondError('Order cannot be cancelled', 422);
         }
 
         $order->update(['status' => 'cancelled']);
+
         return $this->respondSuccess('Order cancelled', $order->fresh());
     }
 
@@ -143,21 +157,28 @@ class OrderController extends BaseApiController
     public function updateStatus(Request $request, int $order): JsonResponse
     {
         $record = Order::find($order);
-        if (!$record) return $this->respondNotFound();
+        if (! $record) {
+            return $this->respondNotFound();
+        }
 
         $error = $this->validate($request->all(), [
             'status' => 'required|in:draft,confirmed,processing,shipped,delivered,cancelled',
         ]);
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         $record->update(['status' => $request->input('status')]);
+
         return $this->respondSuccess('Status updated', $record->fresh());
     }
 
     public function show(int $id): JsonResponse
     {
         $order = Order::with(['customer', 'items.product', 'invoices'])->find($id);
-        if (!$order) return $this->respondNotFound();
+        if (! $order) {
+            return $this->respondNotFound();
+        }
 
         return $this->respond(['success' => true, 'data' => $order]);
     }

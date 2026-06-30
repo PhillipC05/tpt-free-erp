@@ -73,17 +73,18 @@ class FollowController extends BaseApiController
 
         // Notify the followed user
         DB::table('notifications')->insert([
-            'id'              => \Illuminate\Support\Str::uuid(),
-            'type'            => 'new_follower',
-            'notifiable_type' => User::class,
-            'notifiable_id'   => $userId,
-            'data'            => json_encode([
-                'type'          => 'new_follower',
-                'follower_id'   => $request->user()->id,
+            'user_id' => $userId,
+            'title' => 'New Follower',
+            'message' => $request->user()->name.' started following you',
+            'type' => 'new_follower',
+            'data' => json_encode([
+                'type' => 'new_follower',
+                'follower_id' => $request->user()->id,
                 'follower_name' => $request->user()->name,
             ]),
-            'created_at'      => now(),
-            'updated_at'      => now(),
+            'is_read' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         return $this->respondSuccess('User followed successfully', $follow);
@@ -95,7 +96,7 @@ class FollowController extends BaseApiController
             ->where('following_id', $userId)
             ->first();
 
-        if (!$follow) {
+        if (! $follow) {
             return $this->respondNotFound('Follow relationship not found');
         }
 

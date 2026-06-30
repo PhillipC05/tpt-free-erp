@@ -16,7 +16,7 @@ class OrderRequest extends FormRequest
         $orderId = $this->route('id');
 
         return [
-            'order_number' => 'required|string|max:50|unique:sales_orders,order_number,' . $orderId,
+            'order_number' => 'required|string|max:50|unique:sales_orders,order_number,'.$orderId,
             'customer_id' => 'required|exists:sales_customers,id',
             'order_date' => 'required|date',
             'expected_delivery_date' => 'nullable|date|after_or_equal:order_date',

@@ -6,14 +6,15 @@ use App\Models\Quality\NonConformance;
 use App\Models\Quality\QualityCheck;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
 
 class NonConformanceTest extends TestCase
 {
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
 
     protected function setUp(): void
@@ -28,6 +29,7 @@ class NonConformanceTest extends TestCase
     {
         return ['Authorization' => "Bearer {$this->token}"];
     }
+
     private function assignAdminRole(): void
     {
         DB::table('roles')->insertOrIgnore([
@@ -49,7 +51,6 @@ class NonConformanceTest extends TestCase
             'updated_at' => now(),
         ]);
     }
-
 
     public function test_can_list_non_conformances(): void
     {

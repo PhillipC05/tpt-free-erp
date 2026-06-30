@@ -12,6 +12,7 @@ class OnboardingTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private string $token;
 
     protected function setUp(): void
@@ -42,6 +43,7 @@ class OnboardingTest extends TestCase
             'updated_at' => now(),
         ]);
     }
+
     private function assignAdminRole(): void
     {
         DB::table('roles')->insertOrIgnore([
@@ -63,7 +65,6 @@ class OnboardingTest extends TestCase
             'updated_at' => now(),
         ]);
     }
-
 
     public function test_can_list_presets(): void
     {

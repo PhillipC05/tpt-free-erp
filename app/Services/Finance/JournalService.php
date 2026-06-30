@@ -2,9 +2,8 @@
 
 namespace App\Services\Finance;
 
-use App\Models\Finance\JournalEntry;
-use App\Models\Finance\JournalEntryLine;
 use App\Models\Finance\Account;
+use App\Models\Finance\JournalEntry;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 

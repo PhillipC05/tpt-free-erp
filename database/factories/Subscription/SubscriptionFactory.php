@@ -2,8 +2,9 @@
 
 namespace Database\Factories\Subscription;
 
-use App\Models\Subscription\Subscription;
 use App\Models\Sales\Customer;
+use App\Models\Subscription\Plan;
+use App\Models\Subscription\Subscription;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -13,11 +14,11 @@ class SubscriptionFactory extends Factory
 
     public function definition(): array
     {
-        $plan = \App\Models\Subscription\Plan::factory()->create();
+        $plan = Plan::factory()->create();
         $periodEnd = now()->addMonth();
 
         return [
-            'subscription_number' => 'SUB-' . date('Ymd') . '-' . str_pad(fake()->unique()->numberBetween(1, 99999), 5, '0', STR_PAD_LEFT),
+            'subscription_number' => 'SUB-'.date('Ymd').'-'.str_pad(fake()->unique()->numberBetween(1, 99999), 5, '0', STR_PAD_LEFT),
             'customer_id' => Customer::factory(),
             'plan_id' => $plan->id,
             'status' => 'active',

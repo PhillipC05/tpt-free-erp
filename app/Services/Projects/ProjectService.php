@@ -6,19 +6,20 @@ use App\Models\Projects\Project;
 use App\Models\Projects\Task;
 use App\Models\Projects\TimeEntry;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 
 class ProjectService
 {
     public function createProject(array $data): Project
     {
         $data['status'] = $data['status'] ?? 'planning';
+
         return Project::create($data);
     }
 
     public function updateProject(Project $project, array $data): Project
     {
         $project->update($data);
+
         return $project->fresh();
     }
 
@@ -65,7 +66,7 @@ class ProjectService
                         ? $task->start_date->diffInDays($task->due_date) + 1
                         : null,
                     'progress' => $task->status === 'done' ? 100 : ($task->status === 'in_progress' ? 50 : 0),
-                    'assigned_to' => $task->assignee ? $task->assignee->first_name . ' ' . $task->assignee->last_name : null,
+                    'assigned_to' => $task->assignee ? $task->assignee->first_name.' '.$task->assignee->last_name : null,
                     'status' => $task->status,
                     'dependencies' => $task->parent_id ? [$task->parent_id] : [],
                 ];

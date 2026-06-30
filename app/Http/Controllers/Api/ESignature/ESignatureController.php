@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\ESignature;
 
 use App\Http\Controllers\Api\BaseApiController;
+use App\Models\Contracts\Contract;
+use App\Models\Documents\Document;
 use App\Models\ESignature\ESignature;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -27,9 +29,9 @@ class ESignatureController extends BaseApiController
             'data' => $results->items(),
             'meta' => [
                 'current_page' => $results->currentPage(),
-                'last_page'    => $results->lastPage(),
-                'per_page'     => $results->perPage(),
-                'total'        => $results->total(),
+                'last_page' => $results->lastPage(),
+                'per_page' => $results->perPage(),
+                'total' => $results->total(),
             ],
         ]);
     }
@@ -37,44 +39,46 @@ class ESignatureController extends BaseApiController
     public function store(Request $request): JsonResponse
     {
         $error = $this->validate($request->all(), [
-            'signer_name'   => 'required|string|max:255',
-            'signer_email'  => 'required|email|max:255',
+            'signer_name' => 'required|string|max:255',
+            'signer_email' => 'required|email|max:255',
             'signable_type' => 'required|string|max:100',
-            'signable_id'   => 'required|integer',
-            'message'       => 'nullable|string|max:1000',
-            'expires_at'    => 'nullable|date|after:now',
+            'signable_id' => 'required|integer',
+            'message' => 'nullable|string|max:1000',
+            'expires_at' => 'nullable|date|after:now',
         ]);
 
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         // Resolve the signable model and compute its hash
         $signableClass = $this->resolveSignableClass($request->input('signable_type'));
-        if (!$signableClass) {
+        if (! $signableClass) {
             return $this->respondError('Unknown signable type', 422);
         }
 
         $signable = $signableClass::find($request->input('signable_id'));
-        if (!$signable) {
+        if (! $signable) {
             return $this->respondNotFound('Signable record not found');
         }
 
         $documentHash = ESignature::hashSignable($signable->toArray());
 
         $signature = ESignature::create([
-            'signable_type'  => $request->input('signable_type'),
-            'signable_id'    => $request->input('signable_id'),
-            'token'          => ESignature::generateToken(),
-            'status'         => 'pending',
-            'signer_name'    => $request->input('signer_name'),
-            'signer_email'   => $request->input('signer_email'),
-            'document_hash'  => $documentHash,
-            'message'        => $request->input('message'),
-            'expires_at'     => $request->input('expires_at'),
-            'requested_by'   => $request->user()->id,
-            'audit_log'      => [[
+            'signable_type' => $request->input('signable_type'),
+            'signable_id' => $request->input('signable_id'),
+            'token' => ESignature::generateToken(),
+            'status' => 'pending',
+            'signer_name' => $request->input('signer_name'),
+            'signer_email' => $request->input('signer_email'),
+            'document_hash' => $documentHash,
+            'message' => $request->input('message'),
+            'expires_at' => $request->input('expires_at'),
+            'requested_by' => $request->user()->id,
+            'audit_log' => [[
                 'event' => 'created',
-                'at'    => now()->toIso8601String(),
-                'by'    => $request->user()->email,
+                'at' => now()->toIso8601String(),
+                'by' => $request->user()->email,
             ]],
         ]);
 
@@ -87,7 +91,7 @@ class ESignatureController extends BaseApiController
     {
         $signature = ESignature::with(['requester:id,name,email', 'signable'])->find($id);
 
-        if (!$signature) {
+        if (! $signature) {
             return $this->respondNotFound('Signature request not found');
         }
 
@@ -99,30 +103,31 @@ class ESignatureController extends BaseApiController
     {
         $signature = ESignature::where('token', $token)->first();
 
-        if (!$signature) {
+        if (! $signature) {
             return $this->respondNotFound('Signing request not found');
         }
 
         if ($signature->status !== 'pending') {
-            return $this->respondError('This signing request has already been ' . $signature->status, 409);
+            return $this->respondError('This signing request has already been '.$signature->status, 409);
         }
 
         if ($signature->isExpired()) {
             $signature->update(['status' => 'expired']);
             $signature->appendAudit('expired');
+
             return $this->respondError('This signing request has expired', 410);
         }
 
         return $this->respond([
             'success' => true,
             'data' => [
-                'id'           => $signature->id,
-                'signer_name'  => $signature->signer_name,
+                'id' => $signature->id,
+                'signer_name' => $signature->signer_name,
                 'signer_email' => $signature->signer_email,
-                'message'      => $signature->message,
-                'expires_at'   => $signature->expires_at,
+                'message' => $signature->message,
+                'expires_at' => $signature->expires_at,
                 'signable_type' => $signature->signable_type,
-                'signable_id'   => $signature->signable_id,
+                'signable_id' => $signature->signable_id,
             ],
         ]);
     }
@@ -132,27 +137,30 @@ class ESignatureController extends BaseApiController
     {
         $signature = ESignature::where('token', $token)->first();
 
-        if (!$signature) {
+        if (! $signature) {
             return $this->respondNotFound('Signing request not found');
         }
 
         if ($signature->status !== 'pending') {
-            return $this->respondError('This signing request has already been ' . $signature->status, 409);
+            return $this->respondError('This signing request has already been '.$signature->status, 409);
         }
 
         if ($signature->isExpired()) {
             $signature->update(['status' => 'expired']);
             $signature->appendAudit('expired');
+
             return $this->respondError('This signing request has expired', 410);
         }
 
         $error = $this->validate($request->all(), [
             'signature_type' => 'required|in:drawn,typed',
             'signature_data' => 'required|string',
-            'signer_name'    => 'required|string|max:255',
+            'signer_name' => 'required|string|max:255',
         ]);
 
-        if ($error) return $error;
+        if ($error) {
+            return $error;
+        }
 
         // Recompute hash of signable at sign time for tamper-evidence
         $signableClass = $this->resolveSignableClass($signature->signable_type);
@@ -168,14 +176,14 @@ class ESignatureController extends BaseApiController
         $ua = $request->userAgent();
 
         $signature->update([
-            'status'           => 'signed',
-            'signature_type'   => $request->input('signature_type'),
-            'signature_data'   => $request->input('signature_data'),
-            'signer_name'      => $request->input('signer_name'),
-            'signer_ip'        => $ip,
+            'status' => 'signed',
+            'signature_type' => $request->input('signature_type'),
+            'signature_data' => $request->input('signature_data'),
+            'signer_name' => $request->input('signer_name'),
+            'signer_ip' => $ip,
             'signer_user_agent' => $ua,
-            'signed_hash'      => $signedHash,
-            'signed_at'        => now(),
+            'signed_hash' => $signedHash,
+            'signed_at' => now(),
         ]);
 
         $signature->appendAudit('signed', ['ip' => $ip, 'signature_type' => $request->input('signature_type')]);
@@ -189,9 +197,9 @@ class ESignatureController extends BaseApiController
         $this->cacheFlush();
 
         return $this->respondSuccess('Document signed successfully', [
-            'signed_at'      => $signature->signed_at,
-            'document_hash'  => $signature->document_hash,
-            'signed_hash'    => $signature->signed_hash,
+            'signed_at' => $signature->signed_at,
+            'document_hash' => $signature->document_hash,
+            'signed_hash' => $signature->signed_hash,
         ]);
     }
 
@@ -200,12 +208,12 @@ class ESignatureController extends BaseApiController
     {
         $signature = ESignature::where('token', $token)->first();
 
-        if (!$signature) {
+        if (! $signature) {
             return $this->respondNotFound('Signing request not found');
         }
 
         if ($signature->status !== 'pending') {
-            return $this->respondError('This signing request has already been ' . $signature->status, 409);
+            return $this->respondError('This signing request has already been '.$signature->status, 409);
         }
 
         $reason = $request->input('reason', 'No reason given');
@@ -223,7 +231,7 @@ class ESignatureController extends BaseApiController
     {
         $signature = ESignature::find($id);
 
-        if (!$signature) {
+        if (! $signature) {
             return $this->respondNotFound('Signature request not found');
         }
 
@@ -232,12 +240,12 @@ class ESignatureController extends BaseApiController
         }
 
         $signableClass = $this->resolveSignableClass($signature->signable_type);
-        if (!$signableClass) {
+        if (! $signableClass) {
             return $this->respondError('Cannot verify: unknown signable type', 422);
         }
 
         $signable = $signableClass::find($signature->signable_id);
-        if (!$signable) {
+        if (! $signable) {
             return $this->respondError('Cannot verify: signable record no longer exists', 422);
         }
 
@@ -247,14 +255,14 @@ class ESignatureController extends BaseApiController
         return $this->respond([
             'success' => true,
             'data' => [
-                'intact'       => $intact,
-                'signed_at'    => $signature->signed_at,
-                'signer_name'  => $signature->signer_name,
+                'intact' => $intact,
+                'signed_at' => $signature->signed_at,
+                'signer_name' => $signature->signer_name,
                 'signer_email' => $signature->signer_email,
-                'signer_ip'    => $signature->signer_ip,
+                'signer_ip' => $signature->signer_ip,
                 'document_hash_at_request' => $signature->document_hash,
                 'document_hash_at_signing' => $signature->signed_hash,
-                'document_hash_current'    => $currentHash,
+                'document_hash_current' => $currentHash,
             ],
         ]);
     }
@@ -263,7 +271,7 @@ class ESignatureController extends BaseApiController
     {
         $signature = ESignature::find($id);
 
-        if (!$signature) {
+        if (! $signature) {
             return $this->respondNotFound('Signature request not found');
         }
 
@@ -280,10 +288,10 @@ class ESignatureController extends BaseApiController
     private function resolveSignableClass(string $type): ?string
     {
         $map = [
-            'contract'  => \App\Models\Contracts\Contract::class,
-            'document'  => \App\Models\Documents\Document::class,
-            'App\\Models\\Contracts\\Contract' => \App\Models\Contracts\Contract::class,
-            'App\\Models\\Documents\\Document' => \App\Models\Documents\Document::class,
+            'contract' => Contract::class,
+            'document' => Document::class,
+            'App\\Models\\Contracts\\Contract' => Contract::class,
+            'App\\Models\\Documents\\Document' => Document::class,
         ];
 
         return $map[$type] ?? null;

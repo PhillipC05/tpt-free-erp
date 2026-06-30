@@ -23,12 +23,12 @@ class AgentExecutionService
     ): AgentExecution {
         $agent = AgentProfile::findOrFail($agentProfileId);
 
-        if (!$agent->is_active) {
+        if (! $agent->is_active) {
             throw new \RuntimeException("Agent profile '{$agent->name}' is not active.");
         }
 
         $skill = $this->registry->find($skillSlug);
-        if (!$skill) {
+        if (! $skill) {
             throw new \RuntimeException("Skill '{$skillSlug}' not found in registry.");
         }
 
@@ -37,17 +37,17 @@ class AgentExecutionService
             ->where('skill_slug', $skillSlug)
             ->first();
 
-        if ($assignment && !$assignment->is_enabled) {
+        if ($assignment && ! $assignment->is_enabled) {
             throw new \RuntimeException("Skill '{$skillSlug}' is disabled for this agent.");
         }
 
         $execution = AgentExecution::create([
             'agent_profile_id' => $agentProfileId,
-            'skill_slug'       => $skillSlug,
-            'triggered_by'     => $triggeredBy,
-            'trigger_type'     => $triggerType,
-            'input'            => $input,
-            'status'           => 'queued',
+            'skill_slug' => $skillSlug,
+            'triggered_by' => $triggeredBy,
+            'trigger_type' => $triggerType,
+            'input' => $input,
+            'status' => 'queued',
         ]);
 
         AgentSkillJob::dispatch($agentProfileId, $skillSlug, $input, $triggeredBy, $triggerType, $execution->id);
